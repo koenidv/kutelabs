@@ -1,0 +1,10 @@
+{
+  "name": "kutelabs",
+  "private": true,
+  "workspaces": [
+    "app",
+    "server",
+    "shared",
+    "editor-mixed"
+  ]
+}
