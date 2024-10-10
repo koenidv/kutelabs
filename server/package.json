@@ -4,9 +4,13 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
-    "hono": "^4.6.3"
+    "dotenv": "^16.4.5",
+    "envalid": "^8.0.0",
+    "hono": "^4.6.3",
+    "kotlin": "^1.9.25"
   },
   "devDependencies": {
+    "@kutelabs/shared": "workspace:*",
     "@types/bun": "latest"
   }
 }
