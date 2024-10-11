@@ -1,12 +1,13 @@
 {
   "name": "@kutelabs/editor-mixed",
-  "module": "index.ts",
+  "module": "src/editor.ts",
+  "main": "src/editor.ts",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "lit": "^3.2.1"
