@@ -11,6 +11,7 @@ dist/
 
 .astro/
 .netlify/
+.turbo/
 
 .DS_Store
 .env
