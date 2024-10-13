@@ -4,7 +4,7 @@ import { cors } from "hono/cors"
 
 const app = new Hono()
 
-const routes = new Glob("src/routes/**/index.ts")
+const routes = new Glob(__dirname + "/routes/**/index.ts")
 registerRoutes(routes)
 
 async function registerRoutes(routes: Glob) {
@@ -31,7 +31,7 @@ function parseRouteName(path: string): string | null {
 async function importModule(path: String): Promise<Hono | null> {
   return new Promise(async (resolve, _) => {
     try {
-      const exports = await import(`../${path}`)
+      const exports = await import(`${path}`)
       const module = exports.default
       if (!(module instanceof Hono)) {
         console.error(
