@@ -1,6 +1,7 @@
 import { Glob } from "bun"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
+import { env } from "./env"
 
 const app = new Hono()
 
@@ -53,4 +54,7 @@ app.get("/", c => {
 
 app.use("*", cors()) // todo properly configure cors at some point
 
-export default app
+export default {
+  port: env.PORT,
+  fetch: app.fetch,
+}
