@@ -1,6 +1,7 @@
-import type { Connection } from "../connections/Connection";
+import { Connection } from "../connections/Connection";
 import type { Connector } from "../connections/Connector";
-import type { Coordinates } from "../util/Coordinates";
+import { ConnectorType } from "../connections/ConnectorType";
+import { Coordinates } from "../util/Coordinates";
 import { IdGenerator } from "../util/IdGenerator";
 import { BlockConnectors } from "./BlockConnectors";
 import type { BlockContract } from "./BlockContract";
@@ -19,29 +20,25 @@ export class Block implements BlockContract {
 
     this.connectors.addConnector(...connectors)
 
-    // todo not implemented
-    // if (previous) {
-    //   if (this.beforeConnector === null) throw new Error("Block must have before connector to be initialized with previous block")
-    //   if (previous.afterConnector === null) throw new Error("Previous block must have after connector to be initialized as before block")
-    //   previous.connect(this, { from: previous.afterConnector, to: this.beforeConnector }, zeroCoordinates)
-    // }
+    if (previous) {
+      if (this.connectors.before === null) throw new Error("Block must have before connector to be initialized with previous block")
+      if (previous.connectors.after === null) throw new Error("Previous block must have after connector to be initialized as before block")
+      previous.connect(this, new Connection(previous.connectors.after, this.connectors.before), Coordinates.zero)
+    }
 
-    // BlockRegistry.instance.register(this) todo not implemented
+    // BlockRegistry.instance.register(this) // todo not implemented
   }
 
   
-  // Connected Blocks
-
-  connectedBlocks = new ConnectedBlocks()
+  // Connect/Disconnect
 
   connect(block: Block, connection: Connection, atPosition: Coordinates, isOppositeAction = false) {
     const localConnector = connection.localConnector(this)
 
-    if (!localConnector) throw new Error("no local connector handling not implemented")
-    // if (!localConnector) return this.handleNoLocalConnector(block, connection, atPosition) // todo not implemented
+    if (!localConnector) return this.handleNoLocalConnector(block, connection, atPosition)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
-      // return this.handleConnectUpstream(block, connection, atPosition, localConnector.type) // todo not implemented
+      return this.handleConnectUpstream(block, connection, atPosition, localConnector.type)
     }
 
     this.connectedBlocks.insertForConnector(block, localConnector)
@@ -50,8 +47,35 @@ export class Block implements BlockContract {
     // todo invalidate position
   }
 
-  get before() { return this.connectedBlocks.byConnector(this.connectors.before) }
+  private handleNoLocalConnector(block: Block, connection: Connection, atPosition: Coordinates) {
+    const lastLocalConnector = connection.localConnector(this.lastAfter)
+    if (lastLocalConnector && !lastLocalConnector.isDownstram) {
+      this.handleConnectUpstream(block, connection, atPosition, lastLocalConnector.type)
+      return
+    }
+    throw new Error(`Connection does not point to this block (block#${this.id}, from:${connection.from.parentBlock?.id}, to:${connection.to.parentBlock?.id})`)
+  }
 
+  private handleConnectUpstream(block: Block, connection: Connection, atPosition: Coordinates, localType: ConnectorType) {
+    if (localType === ConnectorType.Before) {
+      if (block.connectors.before && this.upstream?.connectors.after) {
+        this.upstream.connect(block, new Connection(this.upstream.connectors.after, block.connectors.before), Coordinates.zero)
+        return
+      } else {
+        block.lastAfter.connect(this.disconnectSelf(), connection, atPosition)
+        // BlockRegistry.instance.attachToRoot(block, atPosition) // todo not implemented
+        return
+      }
+    } else throw new Error(`Connecting to upstream connector type "${ConnectorType[localType]}" is not implemented`)
+  }
+
+
+  // Connected Blocks
+
+  connectedBlocks = new ConnectedBlocks()
+
+  get upstream() { return this.connectedBlocks.byConnector(this.upstreamConnectorInUse) }
+  get before() { return this.connectedBlocks.byConnector(this.connectors.before) }
   get after() { return this.connectedBlocks.byConnector(this.connectors.after) }
   get lastAfter(): Block {
     if (!this.after) return this
