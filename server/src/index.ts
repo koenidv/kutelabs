@@ -54,6 +54,7 @@ app.get("/", c => {
 
 app.use("*", cors()) // todo properly configure cors at some point
 
+console.info(`Starting server on port ${env.PORT}`)
 export default {
   port: env.PORT,
   fetch: app.fetch,
