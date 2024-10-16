@@ -1,6 +1,7 @@
 import { Connection } from "../connections/Connection";
 import type { BlockAndConnector, Connector } from "../connections/Connector";
 import { ConnectorType } from "../connections/ConnectorType";
+import { BlockRegistry } from "../registries/BlockRegistry";
 import { Coordinates } from "../util/Coordinates";
 import { findKeyByValue } from "../util/MapUtils";
 import type { Block } from "./Block";
@@ -29,7 +30,7 @@ export class ConnectedBlocks {
       return lastAfter.connect(popped, new Connection(lastAfter.connectors.after, popped.connectors.before), Coordinates.zero)
     }
 
-    // BlockRegistry.instance.attachToRoot(popped, addPopOffset(popped.calculatedPosition)) // todo not implemented
+    BlockRegistry.instance.attachToRoot(popped, curr => { return Coordinates.addPopOffset(curr) })
 
   }
 

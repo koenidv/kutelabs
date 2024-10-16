@@ -1,6 +1,7 @@
 import { Connection } from "../connections/Connection";
 import { Connector } from "../connections/Connector";
 import { ConnectorType } from "../connections/ConnectorType";
+import { BlockRegistry } from "../registries/BlockRegistry";
 import { Coordinates } from "../util/Coordinates";
 import { IdGenerator } from "../util/IdGenerator";
 import { BlockConnectors } from "./BlockConnectors";
@@ -26,7 +27,7 @@ export class Block implements BlockContract {
       previous.connect(this, new Connection(previous.connectors.after, this.connectors.before))
     }
 
-    // BlockRegistry.instance.register(this) // todo not implemented
+    BlockRegistry.instance.register(this)
   }
 
   
@@ -56,14 +57,14 @@ export class Block implements BlockContract {
     throw new Error(`Connection does not point to this block (block#${this.id}, from:${connection.from.parentBlock?.id}, to:${connection.to.parentBlock?.id})`)
   }
 
-  private handleConnectUpstream(block: Block, connection: Connection, localType: ConnectorType) {
+  private handleConnectUpstream(block: Block, connection: Connection, localType: ConnectorType, atPosition?: Coordinates) {
     if (localType === ConnectorType.Before) {
       if (block.connectors.before && this.upstream?.connectors.after) {
         this.upstream.connect(block, new Connection(this.upstream.connectors.after, block.connectors.before))
         return
       } else {
         block.lastAfter.connect(this.disconnectSelf(), connection)
-        // BlockRegistry.instance.attachToRoot(block, atPosition) // todo not implemented
+        BlockRegistry.instance.attachToRoot(block, curr => atPosition ?? curr)
         return
       }
     } else throw new Error(`Connecting to upstream connector type "${ConnectorType[localType]}" is not implemented`)
