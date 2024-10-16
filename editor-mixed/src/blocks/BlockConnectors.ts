@@ -1,13 +1,16 @@
 import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
+import type { Block } from "./Block"
 
 export class BlockConnectors {
   _connectors: Map<ConnectorType, Connector> = new Map()
   _innerConnectors: Connector[] = []
   _extensionConnectors: Connector[] = []
 
-  addConnector(...connectors: Connector[]) {
+  addConnector(parentBlock: Block, ...connectors: Connector[]) {
     connectors.forEach(connector => {
+      connector.parentBlock = parentBlock
+
       switch (connector.type) {
         case ConnectorType.Inner:
           this.addInner(connector)
@@ -33,8 +36,8 @@ export class BlockConnectors {
     this._extensionConnectors.push(connector)
   }
 
-  get internal() {
-    return this._connectors.get(ConnectorType.Internal) ?? null
+  get internal(): Connector {
+    return this._connectors.get(ConnectorType.Internal)!
   }
   get before() {
     return this._connectors.get(ConnectorType.Before) ?? null

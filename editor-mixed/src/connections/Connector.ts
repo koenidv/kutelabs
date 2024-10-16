@@ -26,6 +26,11 @@ export class Connector {
       this.type === ConnectorType.Internal
     )
   }
+
+  static internal() {
+    return new Connector(ConnectorType.Internal)
+  }
+  static Root = new Connector(ConnectorType.Internal)
 }
 
 export type BlockAndConnector = { block: Block; connector: Connector }

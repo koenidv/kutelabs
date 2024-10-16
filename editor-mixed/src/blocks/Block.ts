@@ -1,5 +1,5 @@
 import { Connection } from "../connections/Connection";
-import type { Connector } from "../connections/Connector";
+import { Connector } from "../connections/Connector";
 import { ConnectorType } from "../connections/ConnectorType";
 import { Coordinates } from "../util/Coordinates";
 import { IdGenerator } from "../util/IdGenerator";
@@ -18,12 +18,12 @@ export class Block implements BlockContract {
     this.type = type
     this.draggable = draggable
 
-    this.connectors.addConnector(...connectors)
+    this.connectors.addConnector(this, Connector.internal(), ...connectors)
 
     if (previous) {
       if (this.connectors.before === null) throw new Error("Block must have before connector to be initialized with previous block")
       if (previous.connectors.after === null) throw new Error("Previous block must have after connector to be initialized as before block")
-      previous.connect(this, new Connection(previous.connectors.after, this.connectors.before), Coordinates.zero)
+      previous.connect(this, new Connection(previous.connectors.after, this.connectors.before))
     }
 
     // BlockRegistry.instance.register(this) // todo not implemented
@@ -32,13 +32,13 @@ export class Block implements BlockContract {
   
   // Connect/Disconnect
 
-  connect(block: Block, connection: Connection, atPosition: Coordinates, isOppositeAction = false) {
+  connect(block: Block, connection: Connection, _atPosition?: Coordinates, isOppositeAction = false): void {
     const localConnector = connection.localConnector(this)
 
-    if (!localConnector) return this.handleNoLocalConnector(block, connection, atPosition)
+    if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
-      return this.handleConnectUpstream(block, connection, atPosition, localConnector.type)
+      return this.handleConnectUpstream(block, connection, localConnector.type)
     }
 
     this.connectedBlocks.insertForConnector(block, localConnector)
@@ -47,22 +47,22 @@ export class Block implements BlockContract {
     // todo invalidate position
   }
 
-  private handleNoLocalConnector(block: Block, connection: Connection, atPosition: Coordinates) {
+  private handleNoLocalConnector(block: Block, connection: Connection) {
     const lastLocalConnector = connection.localConnector(this.lastAfter)
     if (lastLocalConnector && !lastLocalConnector.isDownstram) {
-      this.handleConnectUpstream(block, connection, atPosition, lastLocalConnector.type)
+      this.handleConnectUpstream(block, connection, lastLocalConnector.type)
       return
     }
     throw new Error(`Connection does not point to this block (block#${this.id}, from:${connection.from.parentBlock?.id}, to:${connection.to.parentBlock?.id})`)
   }
 
-  private handleConnectUpstream(block: Block, connection: Connection, atPosition: Coordinates, localType: ConnectorType) {
+  private handleConnectUpstream(block: Block, connection: Connection, localType: ConnectorType) {
     if (localType === ConnectorType.Before) {
       if (block.connectors.before && this.upstream?.connectors.after) {
-        this.upstream.connect(block, new Connection(this.upstream.connectors.after, block.connectors.before), Coordinates.zero)
+        this.upstream.connect(block, new Connection(this.upstream.connectors.after, block.connectors.before))
         return
       } else {
-        block.lastAfter.connect(this.disconnectSelf(), connection, atPosition)
+        block.lastAfter.connect(this.disconnectSelf(), connection)
         // BlockRegistry.instance.attachToRoot(block, atPosition) // todo not implemented
         return
       }
