@@ -20,7 +20,7 @@ export async function checkRunscEnvironment(): Promise<boolean> {
         resolve(available)
       })
       .catch(error => {
-        console.error("Error checking runsc availability:", error)
+        console.error("Error checking runsc availability:", error, "Exiting.")
         process.exit(1)
       })
   })
@@ -32,12 +32,19 @@ function isDev() {
 
 async function runscAvailable(): Promise<boolean> {
   return new Promise(async (resolve, reject) => {
-    try {
-      const { stdout, stderr, exitCode } = await $`docker info`.quiet()
-      if (exitCode !== 0) return reject(stderr)
-      return resolve(stdout.includes("runsc"))
-    } catch (error) {
-      return reject(error)
-    }
+    $`docker info`
+      .nothrow()
+      .quiet()
+      .then(({ stdout, stderr, exitCode }) => {
+        if (exitCode !== 0) {
+          console.log("exit code is ", exitCode)
+          return reject(stderr.toString())
+        }
+        return resolve(stdout.includes("runsc"))
+      })
+      .catch(error => {
+        console.error("Error checking runsc availability. Is Docker mounted?", error)
+        reject(error)
+      })
   })
 }
