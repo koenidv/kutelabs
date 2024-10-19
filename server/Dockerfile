@@ -20,10 +20,8 @@ RUN bun install --yarn --frozen-lockfile --production
 COPY --from=builder /app/out/full .
 
 FROM base AS runner
+RUN apk add --no-cache docker-cli
 VOLUME [ "/data", "/var/run/docker.sock" ]
-
-RUN adduser --system --uid 1001 runner
-USER runner
 
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=installer /app/server ./server
@@ -37,4 +35,3 @@ ENV DATA_DIR=/data
 EXPOSE 3000
 WORKDIR /app/server
 CMD ["bun", "run", "src/index.ts"]
-
