@@ -3,9 +3,9 @@ import { ConnectorType } from "../connections/ConnectorType"
 import type { Block } from "./Block"
 
 export class BlockConnectors {
-  _connectors: Map<ConnectorType, Connector> = new Map()
-  _innerConnectors: Connector[] = []
-  _extensionConnectors: Connector[] = []
+  private _connectors: Map<ConnectorType, Connector> = new Map()
+  private _innerConnectors: Connector[] = []
+  private _extensionConnectors: Connector[] = []
 
   addConnector(parentBlock: Block, ...connectors: Connector[]) {
     connectors.forEach(connector => {
@@ -34,6 +34,10 @@ export class BlockConnectors {
 
   private addExtension(connector: Connector) {
     this._extensionConnectors.push(connector)
+  }
+
+  get all() {
+    return this._connectors
   }
 
   get internal(): Connector {

@@ -1,16 +1,43 @@
-export class SizeProps {
-  heights: number[]
-  widths: number[]
+export enum HeightProp {
+  Head,
+  Body,
+  BodyIntermediary,
+  BodySecondary,
+  Tail,
+}
 
-  constructor(heights: number[], widths: number[]) {
+export enum WidthProp {
+  Left,
+  Right,
+}
+
+export class SizeProps {
+  heights: Map<HeightProp, number>
+  widths: Map<WidthProp, number>
+
+  constructor(
+    heights: Map<HeightProp, number>,
+    widths: Map<WidthProp, number>
+  ) {
     this.heights = heights
     this.widths = widths
   }
 
+  static empty() {
+    return new SizeProps(new Map(), new Map())
+  }
+
+  static simple(height: number, width: number) {
+    return new SizeProps(
+      new Map([[HeightProp.Head, height]]),
+      new Map([[WidthProp.Left, width]])
+    )
+  }
+
   get fullHeight() {
-    return this.heights.reduce((acc, h) => acc + h, 0)
+    return [...this.heights.values()].reduce((acc, h) => acc + h, 0)
   }
   get fullWidth() {
-    return this.widths.reduce((acc, w) => acc + w, 0)
+    return [...this.widths.values()].reduce((acc, w) => acc + w, 0)
   }
 }

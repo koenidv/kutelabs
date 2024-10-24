@@ -1,4 +1,5 @@
 import type { Block } from "../blocks/Block"
+import { Coordinates } from "../util/Coordinates"
 import { ConnectorType } from "./ConnectorType"
 
 export class Connector {
@@ -17,6 +18,8 @@ export class Connector {
       throw new Error("Connector parent may not be changed")
     this._parentBlock = value
   }
+
+  public globalPosition: Coordinates = Coordinates.zero
 
   get isDownstram() {
     return (

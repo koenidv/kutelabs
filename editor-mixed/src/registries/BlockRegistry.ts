@@ -2,6 +2,7 @@ import type { Block } from "../blocks/Block"
 import type { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import type { SizeProps } from "../render/SizeProps"
 import type { Coordinates } from "../util/Coordinates"
 import { RegisteredBlock } from "./RegisteredBlock"
 
@@ -22,10 +23,28 @@ export class BlockRegistry {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block))
   }
-  public setSize(block: Block, size: SizeProps) {
+
+  
+  public setSize(block: Block, size: SizeProps): RegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.size = size
+    return registered
+  }
+
+  public getSize(block: Block): SizeProps {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    if (registered.size == null) throw new Error("Block size is not set")
+    return registered.size
+  }
+
+  
+  public setPosition(block: Block, position: Coordinates): RegisteredBlock {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    registered.globalPosition = position
+    return registered
   }
 
   public attachToRoot(
