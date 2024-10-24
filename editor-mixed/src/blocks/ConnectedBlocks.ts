@@ -57,4 +57,6 @@ export class ConnectedBlocks {
     return block
   }
 
+  get count() { return this.blocks.size }
+
 }
