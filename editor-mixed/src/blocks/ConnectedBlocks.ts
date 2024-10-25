@@ -56,7 +56,4 @@ export class ConnectedBlocks {
     this.blocks.delete(connector)
     return block
   }
-
-  get count() { return this.blocks.size }
-
 }

@@ -59,19 +59,17 @@ export abstract class AbstractRenderer {
     const registered = this.blockRegistry.setPosition(forBlock, blockPosition)
     this.setConnectorPositions(registered)
 
-    console.log("set pos recursive for", forBlock)
-
-    forBlock.downstreamWithConnectors.forEach(({block: connectedBlock, connector}) => {
-      console.log("connected block is", connectedBlock)
-      this.setPositionsRecursive(
-        connectedBlock,
-        this.calculateBlockPosition(connectedBlock, forBlock, connector)
-      )
-    })
+    forBlock.downstreamWithConnectors.forEach(
+      ({ block: connectedBlock, connector }) => {
+        this.setPositionsRecursive(
+          connectedBlock,
+          this.calculateBlockPosition(connectedBlock, forBlock, connector)
+        )
+      }
+    )
   }
 
   protected setConnectorPositions(registeredBlock: RegisteredBlock) {
-    console.log(registeredBlock)
     if (registeredBlock.size == null) throw new Error("Block size is not set")
     registeredBlock.block.connectors.all.forEach(connector => {
       const connectorOffset = this.calculateConnectorOffset(
@@ -79,7 +77,10 @@ export abstract class AbstractRenderer {
         registeredBlock.globalPosition,
         registeredBlock.size!
       )
-     connector.globalPosition = Coordinates.add(registeredBlock.globalPosition, connectorOffset)
+      connector.globalPosition = Coordinates.add(
+        registeredBlock.globalPosition,
+        connectorOffset
+      )
     })
   }
 

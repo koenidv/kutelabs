@@ -25,8 +25,7 @@ export class Connector {
     return (
       this.type === ConnectorType.After ||
       this.type === ConnectorType.Inner ||
-      this.type === ConnectorType.Extension ||
-      this.type === ConnectorType.Internal
+      this.type === ConnectorType.Extension
     )
   }
 

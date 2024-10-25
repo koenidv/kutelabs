@@ -6,7 +6,7 @@ export class IdGenerator {
     return IdGenerator._instance
   }
 
-  private _lastId = 0
+  private _lastId = -1
 
   public get next(): string {
     return (++this._lastId).toString()

@@ -11,7 +11,9 @@ import { EditorMixed } from "@kutelabs/editor-mixed";
 		<title>Astro</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
-		<EditorMixed />
+		<div class="flex w-full h-screen flex-col items-center justify-center gap-8">
+			<h1>kutelabs. a kute way to learn kotlin :)</h1>
+			<EditorMixed client:only="lit" />
+		</div>
 	</body>
 </html>

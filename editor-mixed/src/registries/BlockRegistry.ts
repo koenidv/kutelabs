@@ -70,9 +70,9 @@ export class BlockRegistry {
   public get root() {
     return this._root
   }
-  public get leafs() {
+  public get leafs(): Block[] {
     return [...this._blocks.keys()].filter(
-      b => b.connectedBlocks.count === 0 && b.type !== BlockType.Root
+      b => b.downstreamWithConnectors.length === 0 && b.type !== BlockType.Root
     )
   }
   public allConnectedBlocksMeasuredAndValid(block: Block) {

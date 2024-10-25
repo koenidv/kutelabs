@@ -55,7 +55,3 @@ export class RootBlock extends Block {
     return this.blocks.findIndex(b => b.block === block)
   }
 }
-
-export class HMR_RootBlockSingleton {
-  public static instance: RootBlock = new RootBlock()
-}

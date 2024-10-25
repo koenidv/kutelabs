@@ -37,7 +37,7 @@ export class BlockConnectors {
   }
 
   get all() {
-    return this._connectors
+    return [...this._connectors.values()]
   }
 
   get internal(): Connector {
