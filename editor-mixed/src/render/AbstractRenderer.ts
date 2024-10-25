@@ -1,14 +1,14 @@
 import { LitElement, svg, type TemplateResult } from "lit"
 import { customElement } from "lit/decorators.js"
 import type { BlockRegistry } from "../registries/BlockRegistry"
-import type { Coordinates } from "../util/Coordinates"
+import { Coordinates } from "../util/Coordinates"
 import type { SizeProps } from "./SizeProps"
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
 import type { Connector } from "../connections/Connector"
 import type { RegisteredBlock } from "../registries/RegisteredBlock"
 
-@customElement("renderer-base")
+// @customElement("renderer-base")
 export abstract class BaseRenderer extends LitElement {
   blockRegistry: BlockRegistry
 
@@ -17,10 +17,14 @@ export abstract class BaseRenderer extends LitElement {
     this.blockRegistry = blockRegistry
   }
 
-  render() {}
+  render(): TemplateResult<2>[] {
+    this.init()
+    return this.renderFromRoot()
+  }
 
   protected init() {
     this.measureSetAll()
+    this.calculatePositionsFromRoot()
   }
 
   //#region Measure block sizes
@@ -41,9 +45,7 @@ export abstract class BaseRenderer extends LitElement {
     this.measureSetUpstream(upstream)
   }
 
-  protected abstract measureBlock(
-    block: Block
-  ): SizeProps
+  protected abstract measureBlock(block: Block): SizeProps
 
   //#endregion
 
@@ -62,7 +64,7 @@ export abstract class BaseRenderer extends LitElement {
     forBlock.connectedBlocks.blocks.forEach((connectedBlock, connector) => {
       this.setPositionsRecursive(
         connectedBlock,
-        this.calculateBlockPosition(connector)
+        this.calculateBlockPosition(connectedBlock, forBlock, connector)
       )
     })
   }
@@ -76,11 +78,13 @@ export abstract class BaseRenderer extends LitElement {
         registeredBlock.size!
       )
       connector.globalPosition = connectorPosition
-    }
+    })
   }
 
   protected abstract calculateBlockPosition(
-    onConnector: Connector
+    block: Block,
+    parent: Block,
+    parentConnector: Connector
   ): Coordinates
 
   protected abstract calculateConnectorPosition(
@@ -91,12 +95,49 @@ export abstract class BaseRenderer extends LitElement {
 
   //#endregion
 
-
   //#region Render blocks
 
-  protected renderBlock(block: Block): TemplateResult<2> {
+  protected renderFromRoot(): TemplateResult<2>[] {
+    if (this.blockRegistry.root == null)
+      throw new Error("Cannot render; root is not set")
+    return this.blockRegistry.root.blocks.map(({ block, position }) => {
+      return this.renderBlock(block, null, position)
+    })
+  }
+
+  protected renderBlock(
+    block: Block,
+    previousBlock: Block | null,
+    translatePosition: Coordinates | null = null
+  ): TemplateResult<2> {
     const size = this.blockRegistry.getSize(block)
-    //todo
+
+    return this.draggableContainer(
+      block.id,
+      this.determineRenderOffset(block, previousBlock, translatePosition),
+      block.draggable,
+      () =>
+        this.renderBlockElement(block, size, (next: Block) =>
+          this.renderBlock(next, block)
+        )
+    )
+  }
+
+  protected determineRenderOffset(
+    block: Block,
+    previousBlock: Block | null,
+    translatePosition: Coordinates | null
+  ): Coordinates {
+    if (previousBlock == null && translatePosition == null)
+      throw new Error("Either previous block or translate position must be set")
+
+    return (
+      translatePosition ??
+      Coordinates.subtract(
+        this.blockRegistry.getPosition(previousBlock!),
+        this.blockRegistry.getPosition(block)
+      )
+    )
   }
 
   protected draggableContainer(
@@ -113,7 +154,8 @@ export abstract class BaseRenderer extends LitElement {
 
   protected abstract renderBlockElement(
     block: Block,
-    size: SizeProps
+    size: SizeProps,
+    renderConnected: (block: Block) => TemplateResult<2>
   ): TemplateResult<2>
 
   //#endregion

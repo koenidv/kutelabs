@@ -1,4 +1,5 @@
 import type { Block } from "../blocks/Block"
+import { BlockType } from "../blocks/BlockType"
 import type { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
@@ -24,7 +25,6 @@ export class BlockRegistry {
     this._blocks.set(block, new RegisteredBlock(block))
   }
 
-  
   public setSize(block: Block, size: SizeProps): RegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
@@ -39,12 +39,17 @@ export class BlockRegistry {
     return registered.size
   }
 
-  
   public setPosition(block: Block, position: Coordinates): RegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
     return registered
+  }
+
+  getPosition(block: Block): Coordinates {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    return registered.globalPosition
   }
 
   public attachToRoot(
@@ -66,7 +71,9 @@ export class BlockRegistry {
     return this._root
   }
   public get leafs() {
-    return [...this._blocks.keys()].filter(b => b.connectedBlocks.count === 0)
+    return [...this._blocks.keys()].filter(
+      b => b.connectedBlocks.count === 0 && b.type !== BlockType.Root
+    )
   }
   public allConnectedBlocksMeasuredAndValid(block: Block) {
     const connected: Map<Connector, Block> = block.connectedBlocks.blocks

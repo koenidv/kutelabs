@@ -14,7 +14,7 @@ export class Connector {
     return this._parentBlock
   }
   public set parentBlock(value: Block | null) {
-    if (this._parentBlock)
+    if (this._parentBlock != null && value != this._parentBlock)
       throw new Error("Connector parent may not be changed")
     this._parentBlock = value
   }
