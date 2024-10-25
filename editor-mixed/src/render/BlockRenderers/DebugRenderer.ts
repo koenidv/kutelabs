@@ -1,11 +1,11 @@
 import { svg, type TemplateResult } from "lit"
-import type { Block } from "../blocks/Block"
-import type { Connector } from "../connections/Connector"
-import { Coordinates } from "../util/Coordinates"
-import { AbstractRenderer } from "./AbstractRenderer"
-import { SizeProps } from "./SizeProps"
-import { ConnectorType } from "../connections/ConnectorType"
-import { BlockType } from "../blocks/BlockType"
+import type { Block } from "../../blocks/Block"
+import type { Connector } from "../../connections/Connector"
+import { Coordinates } from "../../util/Coordinates"
+import { AbstractRenderer } from "../AbstractRenderer"
+import { SizeProps } from "../SizeProps"
+import { ConnectorType } from "../../connections/ConnectorType"
+import { BlockType } from "../../blocks/BlockType"
 
 export class DebugRenderer extends AbstractRenderer {
   protected measureBlock(block: Block): SizeProps {

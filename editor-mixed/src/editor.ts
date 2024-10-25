@@ -1,7 +1,7 @@
 import { css, html, LitElement, svg, type TemplateResult } from "lit"
 import { customElement, property } from "lit/decorators.js"
 import type { AbstractRenderer } from "./render/AbstractRenderer"
-import { DebugRenderer } from "./render/DebugRenderer"
+import { DebugRenderer } from "./render/BlockRenderers/DebugRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
 import { RootBlock } from "./blocks/RootBlock"
 import { Block } from "./blocks/Block"
@@ -13,17 +13,20 @@ import { ExtrasRenderer } from "./render/ExtrasRenderer"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
-  rootBlock: RootBlock
   renderer: AbstractRenderer
   extrasRenderer: ExtrasRenderer
 
   constructor() {
     super()
-    this.rootBlock = new RootBlock()
-    BlockRegistry.instance.root = this.rootBlock
+    BlockRegistry.instance.initRoot()
+
     this.renderer = new DebugRenderer(BlockRegistry.instance)
     this.extrasRenderer = new ExtrasRenderer()
 
+    this.addDebugBlocks()
+  }
+
+  private addDebugBlocks() {
     const block1 = new Block(
       null,
       BlockType.Expression,

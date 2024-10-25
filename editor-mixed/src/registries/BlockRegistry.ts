@@ -1,6 +1,6 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
-import type { RootBlock } from "../blocks/RootBlock"
+import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import type { SizeProps } from "../render/SizeProps"
@@ -18,11 +18,17 @@ export class BlockRegistry {
   public set root(value: RootBlock | null) {
     this._root = value
   }
+  public initRoot() {
+    this.root = new RootBlock()
+  }
 
   _blocks: Map<Block, RegisteredBlock> = new Map()
   public register(block: Block) {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block))
+  }
+  public getRegisteredById(id: string) {
+    return [...this._blocks.values()].find(it => it.block.id == id)
   }
 
   public setSize(block: Block, size: SizeProps): RegisteredBlock {
