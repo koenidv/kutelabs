@@ -34,6 +34,14 @@ export class SizeProps {
     )
   }
 
+  addHeight(prop: HeightProp, value: number) {
+    this.heights.set(prop, value)
+  }
+
+  addWidth(prop: WidthProp, value: number) {
+    this.widths.set(prop, value)
+  }
+
   get fullHeight() {
     return [...this.heights.values()].reduce((acc, h) => acc + h, 0)
   }

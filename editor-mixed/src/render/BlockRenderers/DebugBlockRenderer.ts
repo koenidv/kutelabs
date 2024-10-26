@@ -3,13 +3,37 @@ import type { Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
-import { SizeProps } from "../SizeProps"
+import { HeightProp, SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
+import { BlockRegistry } from "../../registries/BlockRegistry"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected measureBlock(block: Block): SizeProps {
-    return SizeProps.simple(100, 100)
+    const size = SizeProps.simple(100, 100)
+
+    // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies
+    if (block.connectors.inners) {
+      size.heights.set(HeightProp.Head, 50)
+      if (block.inners.length > 0)
+        size.addHeight(
+          HeightProp.Body,
+          this.measureStackHeight(block.inners[0])
+        )
+      size.addHeight(HeightProp.Tail, 50)
+    }
+
+    return size
+  }
+
+  private measureStackHeight(block: Block): number {
+    let height = BlockRegistry.instance.getSize(block).fullHeight
+    let after = block.after
+    while (after != null) {
+      height += BlockRegistry.instance.getSize(after).fullHeight
+      after = after.after
+    }
+    return height
   }
 
   protected calculateBlockPosition(
@@ -32,7 +56,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       case ConnectorType.After:
         return new Coordinates(0, blockSize.fullHeight)
       case ConnectorType.Inner:
-        return new Coordinates(blockSize.fullWidth / 2, 25)
+        return new Coordinates(blockSize.fullWidth / 2, (blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight / 4))
       case ConnectorType.Extension:
         return new Coordinates(blockSize.fullWidth, 25)
       case ConnectorType.Internal:
@@ -65,7 +89,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       ${block.connectors.all.map(connector => this.renderConnector(connector, position))}
       
       ${block.after != null && renderConnected(block.after)}
-
+  
+      ${block.inners.map(inner => renderConnected(inner))}
       ${block.extensions.map(extension => renderConnected(extension))}
       
 	  </g>
@@ -73,7 +98,10 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     // todo inner blocks, extension blocks
   }
 
-  private renderConnector(connector: Connector, blockPosition: Coordinates): TemplateResult<2> {
+  private renderConnector(
+    connector: Connector,
+    blockPosition: Coordinates
+  ): TemplateResult<2> {
     // console.log("Rendering connector of type", ConnectorType[connector.type], "at position", Coordinates.subtract(connector.globalPosition, )
     let color
     switch (connector.type) {

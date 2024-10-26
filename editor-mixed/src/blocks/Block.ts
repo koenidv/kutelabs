@@ -54,13 +54,6 @@ export class Block implements BlockContract {
   ): void {
     const localConnector = connection.localConnector(this)
 
-    console.log(
-      "connecting",
-      this.id,
-      block.id,
-      ConnectorType[localConnector!.type]
-    )
-
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
@@ -145,6 +138,12 @@ export class Block implements BlockContract {
     return lastNode
   }
 
+  get inners(): Block[] {
+    return this.connectors.inners
+      .map(connector => this.connectedBlocks.byConnector(connector))
+      .filter(block => block !== null) as Block[]
+  }
+  
   get extensions(): Block[] {
     return this.connectors.extensions
       .map(connector => this.connectedBlocks.byConnector(connector))

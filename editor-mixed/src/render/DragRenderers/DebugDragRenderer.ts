@@ -30,13 +30,13 @@ export class DebugDragRenderer extends BaseDragRenderer {
     remoteBlock: Block,
     remoteConnector: Connector
   ): TemplateResult<2> {
-    throw new Error("Method not implemented.")
+    return this.renderExtensionSnap(localRegistered, localConnector, remoteBlock, remoteConnector)
   }
 
   protected renderExtensionSnap(
-    localRegistered: RegisteredBlock,
-    localConnector: Connector,
-    remoteBlock: Block,
+    _localRegistered: RegisteredBlock,
+    _localConnector: Connector,
+    _remoteBlock: Block,
     remoteConnector: Connector
   ): TemplateResult<2> {
     return svg`

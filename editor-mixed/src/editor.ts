@@ -28,13 +28,12 @@ export class EditorMixed extends LitElement {
     this.extrasRenderer = new ExtrasRenderer()
     this.dragRenderer = new DebugDragRenderer(
       (block: Block, position: Coordinates) =>
-        this.renderer.renderBlock(
-          block,
-          null,
-          position
-        )
+        this.renderer.renderBlock(block, null, position)
     )
-    this.dragHelper = new DragHelper(this.dragRenderer, this.requestUpdate.bind(this))
+    this.dragHelper = new DragHelper(
+      this.dragRenderer,
+      this.requestUpdate.bind(this)
+    )
 
     this.addDebugBlocks()
   }
@@ -43,19 +42,28 @@ export class EditorMixed extends LitElement {
     const block1 = new Block(
       null,
       BlockType.Expression,
-      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After), new Connector(ConnectorType.Extension)],
+      [
+        new Connector(ConnectorType.Before),
+        new Connector(ConnectorType.After),
+        new Connector(ConnectorType.Extension),
+      ],
       true
     )
     BlockRegistry.instance.attachToRoot(block1, () => new Coordinates(100, 200))
     new Block(
       block1,
       BlockType.Expression,
-      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After), new Connector(ConnectorType.Extension)],
+      [
+        new Connector(ConnectorType.Before),
+        new Connector(ConnectorType.After),
+        new Connector(ConnectorType.Extension),
+        new Connector(ConnectorType.Inner),
+      ],
       true
     )
     const block3 = new Block(
       null,
-      BlockType.Input ,
+      BlockType.Input,
       [new Connector(ConnectorType.Before)],
       true
     )
