@@ -54,10 +54,22 @@ export class Block implements BlockContract {
   ): void {
     const localConnector = connection.localConnector(this)
 
+    console.log(
+      "connecting",
+      this.id,
+      block.id,
+      ConnectorType[localConnector!.type]
+    )
+
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
-      return this.handleConnectUpstream(block, connection, localConnector.type, atPosition)
+      return this.handleConnectUpstream(
+        block,
+        connection,
+        localConnector.type,
+        atPosition
+      )
     }
 
     this.connectedBlocks.insertForConnector(block, localConnector)
@@ -114,6 +126,12 @@ export class Block implements BlockContract {
   get upstream() {
     return this.connectedBlocks.byConnector(this.upstreamConnectorInUse)
   }
+  get downstreamWithConnectors(): BlockAndConnector[] {
+    return [...this.connectedBlocks.blocks]
+      .filter(([connector, _block]) => connector.isDownstram)
+      .map(([connector, block]) => ({ block, connector }))
+  }
+
   get before() {
     return this.connectedBlocks.byConnector(this.connectors.before)
   }
@@ -126,10 +144,11 @@ export class Block implements BlockContract {
     while (lastNode.after) lastNode = lastNode.after
     return lastNode
   }
-  get downstreamWithConnectors(): BlockAndConnector[] {
-    return [...this.connectedBlocks.blocks]
-      .filter(([connector, _block]) => connector.isDownstram)
-      .map(([connector, block]) => ({ block, connector }))
+
+  get extensions(): Block[] {
+    return this.connectors.extensions
+      .map(connector => this.connectedBlocks.byConnector(connector))
+      .filter(block => block !== null) as Block[]
   }
 
   //#region Connectors

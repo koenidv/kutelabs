@@ -39,6 +39,8 @@ export class DebugDragRenderer extends BaseDragRenderer {
     remoteBlock: Block,
     remoteConnector: Connector
   ): TemplateResult<2> {
-    throw new Error("Method not implemented.")
+    return svg`
+        <rect width="32" height="32" x=${remoteConnector.globalPosition.x - 16} y=${remoteConnector.globalPosition.y - 16} fill="blue" opacity="0.5" stroke="black"/>
+      `
   }
 }

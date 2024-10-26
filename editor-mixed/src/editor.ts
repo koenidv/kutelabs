@@ -43,16 +43,23 @@ export class EditorMixed extends LitElement {
     const block1 = new Block(
       null,
       BlockType.Expression,
-      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After)],
+      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After), new Connector(ConnectorType.Extension)],
       true
     )
     BlockRegistry.instance.attachToRoot(block1, () => new Coordinates(100, 200))
     new Block(
       block1,
       BlockType.Expression,
-      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After)],
+      [new Connector(ConnectorType.Before), new Connector(ConnectorType.After), new Connector(ConnectorType.Extension)],
       true
     )
+    const block3 = new Block(
+      null,
+      BlockType.Input ,
+      [new Connector(ConnectorType.Before)],
+      true
+    )
+    BlockRegistry.instance.attachToRoot(block3, () => new Coordinates(300, 300))
   }
 
   protected render() {

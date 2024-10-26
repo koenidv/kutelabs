@@ -22,6 +22,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 
   protected calculateConnectorOffset(
     connector: Connector,
+    _block: Block,
     _blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates {
@@ -64,6 +65,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       ${block.connectors.all.map(connector => this.renderConnector(connector, position))}
       
       ${block.after != null && renderConnected(block.after)}
+
+      ${block.extensions.map(extension => renderConnected(extension))}
       
 	  </g>
     `

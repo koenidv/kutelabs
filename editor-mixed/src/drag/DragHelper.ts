@@ -25,6 +25,8 @@ export class DragHelper {
   private dragX = 0
   private dragY = 0
 
+  //#region Start Drag
+
   startDrag(evt: MouseEvent) {
     const draggedParent = this.findDragableParent(evt.target as HTMLElement)
     if (draggedParent == null) return
@@ -45,6 +47,27 @@ export class DragHelper {
     this.renderer.update(this.dragged, this.startPos, null)
     this.requestRerender()
   }
+
+  private findDragableParent(element: HTMLElement | null): HTMLElement | null {
+    if (!element) return null
+    if (element.classList.contains("dragable")) return element
+    if (
+      element.parentElement &&
+      element.parentElement.className != "editorContainer"
+    )
+      return this.findDragableParent(element.parentElement)
+    return null
+  }
+
+  private getDraggedData(
+    draggableParent: HTMLElement | null
+  ): RegisteredBlock | null {
+    if (draggableParent == null) return null
+    const blockId = draggableParent.id.replace("block-", "")
+    return BlockRegistry.instance.getRegisteredById(blockId) ?? null
+  }
+
+  //#region Update Drag
 
   drag(evt: MouseEvent) {
     if (!this.dragged) return
@@ -69,6 +92,8 @@ export class DragHelper {
     this.requestRerender()
   }
 
+  //#region Finalize Drag
+
   endDrag(evt: MouseEvent) {
     if (!this.dragged) return
     evt.preventDefault()
@@ -85,7 +110,7 @@ export class DragHelper {
     this.requestRerender()
   }
 
-  insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
+  private insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
       snap ?? new Connection(Connector.Root, dragged.block.connectors.internal)
@@ -95,25 +120,6 @@ export class DragHelper {
       snapOnConnection,
       Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY))
     )
-  }
-
-  private getDraggedData(
-    draggableParent: HTMLElement | null
-  ): RegisteredBlock | null {
-    if (draggableParent == null) return null
-    const blockId = draggableParent.id.replace("block-", "")
-    return BlockRegistry.instance.getRegisteredById(blockId) ?? null
-  }
-
-  private findDragableParent(element: HTMLElement | null): HTMLElement | null {
-    if (!element) return null
-    if (element.classList.contains("dragable")) return element
-    if (
-      element.parentElement &&
-      element.parentElement.className != "editorContainer"
-    )
-      return this.findDragableParent(element.parentElement)
-    return null
   }
 
   private reset() {

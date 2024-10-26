@@ -70,6 +70,20 @@ export abstract class BaseDragRenderer {
           this.snap.to.parentBlock,
           this.snap.to
         )
+      case ConnectorType.Inner:
+        return this.renderInnerSnap(
+          this.dragged,
+          this.snap.from,
+          this.snap.to.parentBlock,
+          this.snap.to
+        )
+      case ConnectorType.Extension:
+        return this.renderExtensionSnap(
+          this.dragged,
+          this.snap.from,
+          this.snap.to.parentBlock,
+          this.snap.to
+        )
       default:
         return nothing
     }

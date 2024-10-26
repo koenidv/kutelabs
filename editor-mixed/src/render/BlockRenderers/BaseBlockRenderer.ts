@@ -74,6 +74,7 @@ export abstract class BaseBlockRenderer {
     registeredBlock.block.connectors.all.forEach(connector => {
       const connectorOffset = this.calculateConnectorOffset(
         connector,
+        registeredBlock.block,
         registeredBlock.globalPosition,
         registeredBlock.size!
       )
@@ -92,6 +93,7 @@ export abstract class BaseBlockRenderer {
 
   protected abstract calculateConnectorOffset(
     connector: Connector,
+    block: Block,
     blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates
