@@ -81,9 +81,7 @@ export class BlockRegistry {
     }
     this.detachedBlockIds = [
       block.id,
-      ...block.downstreamWithConnectors.map(({ block }) => block.id),
-    
-    
+      ...block.allConnectedRecursive.map(({ id }) => id),
     ]
   }
 

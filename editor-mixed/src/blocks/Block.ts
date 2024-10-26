@@ -150,6 +150,15 @@ export class Block implements BlockContract {
       .filter(block => block !== null) as Block[]
   }
 
+  get allConnectedRecursive(): Block[] {
+    return [
+      this,
+      ...this.downstreamWithConnectors.flatMap(({ block }) =>
+        block.allConnectedRecursive
+      ),
+    ]
+  }
+
   //#region Connectors
 
   connectors = new BlockConnectors()

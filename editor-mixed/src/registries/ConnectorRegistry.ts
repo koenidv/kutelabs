@@ -25,7 +25,10 @@ export class ConnectorRegistry {
   public selectConnectorForBlock(block: Block, dragOffset: Coordinates, maxXY: number = 25): Connection | null {
     let localConnector: Connector | null = null
     let remoteConnector: Connector | null = null
-    const connectedIds = [block.id, ...block.downstreamWithConnectors.map(({ block }) => block.id)]
+    const connectedIds =[
+      block.id,
+      ...block.allConnectedRecursive.map(({ id }) => id),
+    ]
 
     // Regular before->after / before->extension / before->inner
     localConnector = block.connectors.before
