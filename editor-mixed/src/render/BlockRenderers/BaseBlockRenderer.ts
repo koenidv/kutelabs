@@ -61,9 +61,16 @@ export abstract class BaseBlockRenderer {
 
     forBlock.downstreamWithConnectors.forEach(
       ({ block: connectedBlock, connector }) => {
+        const connectedSize = this.blockRegistry.getSize(connectedBlock)
+
         this.setPositionsRecursive(
           connectedBlock,
-          this.calculateBlockPosition(connectedBlock, forBlock, connector)
+          this.calculateBlockPosition(
+            connectedBlock,
+            connectedSize,
+            registered,
+            connector
+          )
         )
       }
     )
@@ -87,7 +94,8 @@ export abstract class BaseBlockRenderer {
 
   protected abstract calculateBlockPosition(
     block: Block,
-    parent: Block,
+    size: SizeProps,
+    registeredParent: RegisteredBlock,
     parentConnector: Connector
   ): Coordinates
 

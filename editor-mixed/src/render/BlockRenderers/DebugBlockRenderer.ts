@@ -3,25 +3,29 @@ import type { Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
-import { HeightProp, SizeProps } from "../SizeProps"
+import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
 import { BlockRegistry } from "../../registries/BlockRegistry"
+import type { RegisteredBlock } from "../../registries/RegisteredBlock"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected measureBlock(block: Block): SizeProps {
-    const size = SizeProps.simple(100, 100)
+    const size = SizeProps.empty()
+    size.addWidth(WidthProp.Left, 100)
 
-    // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies
-    if (block.connectors.inners) {
-      size.heights.set(HeightProp.Head, 50)
-      if (block.inners.length > 0)
-        size.addHeight(
-          HeightProp.Body,
-          this.measureStackHeight(block.inners[0])
-        )
-      size.addHeight(HeightProp.Tail, 50)
-    }
+    size.addHeight(
+      HeightProp.Head,
+      block.extensions.length > 0
+        ? BlockRegistry.instance.getSize(block.extensions[0]).fullHeight
+        : 50
+    )
+
+    // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
+    if (block.inners.length > 0)
+      size.addHeight(HeightProp.Body, this.measureStackHeight(block.inners[0]))
+
+    size.addHeight(HeightProp.Tail, 50)
 
     return size
   }
@@ -38,27 +42,44 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 
   protected calculateBlockPosition(
     _block: Block,
-    _parent: Block,
+    _size: SizeProps,
+    registeredParent: RegisteredBlock,
     parentConnector: Connector
   ): Coordinates {
+    // todo this doesn't support multiple extensions; will need to know the extension index
+    if (parentConnector.type == ConnectorType.Extension) {
+      return new Coordinates(
+        registeredParent.globalPosition.x + registeredParent.size!.fullWidth,
+        registeredParent.globalPosition.y
+      )
+    }
+
     return parentConnector.globalPosition
   }
 
   protected calculateConnectorOffset(
     connector: Connector,
-    _block: Block,
+    block: Block,
     _blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates {
     switch (connector.type) {
       case ConnectorType.Before:
-        return Coordinates.zero
+        if (block.type == BlockType.Input)
+          return new Coordinates(0, blockSize.fullHeight / 2)
+        else return Coordinates.zero
       case ConnectorType.After:
         return new Coordinates(0, blockSize.fullHeight)
       case ConnectorType.Inner:
-        return new Coordinates(blockSize.fullWidth / 2, (blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight / 4))
+        return new Coordinates(
+          blockSize.fullWidth / 2,
+          blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight / 4
+        )
       case ConnectorType.Extension:
-        return new Coordinates(blockSize.fullWidth, 25)
+        return new Coordinates(
+          blockSize.fullWidth,
+          (blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight) / 2
+        )
       case ConnectorType.Internal:
         return new Coordinates(0, 0)
       default:

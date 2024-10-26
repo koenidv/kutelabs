@@ -61,13 +61,24 @@ export class EditorMixed extends LitElement {
       ],
       true
     )
-    const block3 = new Block(
-      null,
-      BlockType.Input,
-      [new Connector(ConnectorType.Before)],
-      true
+    BlockRegistry.instance.attachToRoot(
+      new Block(
+        null,
+        BlockType.Input,
+        [new Connector(ConnectorType.Before)],
+        true
+      ),
+      () => new Coordinates(300, 250)
     )
-    BlockRegistry.instance.attachToRoot(block3, () => new Coordinates(300, 300))
+    BlockRegistry.instance.attachToRoot(
+      new Block(
+        null,
+        BlockType.Input,
+        [new Connector(ConnectorType.Before)],
+        true
+      ),
+      () => new Coordinates(300, 400)
+    )
   }
 
   protected render() {
