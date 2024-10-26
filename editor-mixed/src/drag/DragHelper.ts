@@ -3,10 +3,17 @@ import { Connector } from "../connections/Connector"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { RegisteredBlock } from "../registries/RegisteredBlock"
+import type { DragRenderer } from "../render/DragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
 export class DragHelper {
-  constructor() {}
+  private renderer: DragRenderer
+  private requestRerender: () => void
+
+  constructor(renderer: DragRenderer, rerender: () => void) {
+    this.renderer = renderer
+    this.requestRerender = rerender
+  }
 
   private _observed: SVGSVGElement | null = null
   public set observed(value: SVGSVGElement | null) {
@@ -18,11 +25,23 @@ export class DragHelper {
   private y = 0
 
   startDrag(evt: MouseEvent) {
-    this.dragged = this.getDraggedData(evt.target as HTMLElement)
+    const draggedParent = this.findDragableParent(evt.target as HTMLElement)
+    if (draggedParent == null) return
+    this.dragged = this.getDraggedData(draggedParent)
     if (this.dragged == null) return
     evt.preventDefault()
 
-    this.dragged.block.disconnectSelf()
+    this.x =
+      draggedParent.getBoundingClientRect().left -
+      this._observed!.getBoundingClientRect().left
+    this.y =
+      draggedParent.getBoundingClientRect().top -
+      this._observed!.getBoundingClientRect().top
+
+    // this.dragged.block.disconnectSelf()
+
+    this.renderer.update(this.dragged, this.x, this.y)
+    this.requestRerender()
 
     // todo call drag renderer to draw dragged block
     // todo request rerender
@@ -36,11 +55,14 @@ export class DragHelper {
     this.x += evt.movementX / ctm.a
     this.y += evt.movementY / ctm.d
 
-    const closestConnector = ConnectorRegistry.instance.selectConnectorForBlock(
-      this.dragged,
-      { x: this.x, y: this.y },
-      25
-    )
+    this.renderer.update(this.dragged, this.x, this.y)
+    this.requestRerender()
+
+    // const closestConnector = ConnectorRegistry.instance.selectConnectorForBlock(
+    //   this.dragged,
+    //   { x: this.x, y: this.y },
+    //   25
+    // )
     // this.updateDropIndicator(closestConnector?.to ?? null)
     // this.updateElementBobbing(closestConnector?.to ?? null)
 
@@ -55,18 +77,21 @@ export class DragHelper {
 
     this.dragged = null
 
+    this.renderer.remove()
+    this.requestRerender()
+
     // todo remove dragged element from drag renderer
 
     // this.removeClonedElement()
     // this.hideDropIndicator()
     // this.stopElementBobbing()
 
-    const snapToConnector = ConnectorRegistry.instance.selectConnectorForBlock(
-      this.dragged,
-      { x: this.x, y: this.y },
-      25
-    )
-    this.insertDraggedDataAndFree(snapToConnector)
+    // const snapToConnector = ConnectorRegistry.instance.selectConnectorForBlock(
+    //   this.dragged,
+    //   { x: this.x, y: this.y },
+    //   25
+    // )
+    // this.insertDraggedDataAndFree(snapToConnector)
   }
 
   insertDraggedDataAndFree(snap: Connection | null) {
@@ -87,8 +112,9 @@ export class DragHelper {
     this.dragged = null
   }
 
-  private getDraggedData(element: HTMLElement | null): RegisteredBlock | null {
-    const draggableParent = this.findDragableParent(element)
+  private getDraggedData(
+    draggableParent: HTMLElement | null
+  ): RegisteredBlock | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
     return BlockRegistry.instance.getRegisteredById(blockId) ?? null

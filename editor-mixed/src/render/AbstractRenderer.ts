@@ -108,7 +108,7 @@ export abstract class AbstractRenderer {
     })
   }
 
-  protected renderBlock(
+  public renderBlock(
     block: Block,
     previousBlock: Block | null,
     translatePosition: Coordinates | null = null
