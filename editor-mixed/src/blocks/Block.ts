@@ -49,7 +49,7 @@ export class Block implements BlockContract {
   connect(
     block: Block,
     connection: Connection,
-    _atPosition?: Coordinates,
+    atPosition?: Coordinates,
     isOppositeAction = false
   ): void {
     const localConnector = connection.localConnector(this)
@@ -57,7 +57,7 @@ export class Block implements BlockContract {
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
-      return this.handleConnectUpstream(block, connection, localConnector.type)
+      return this.handleConnectUpstream(block, connection, localConnector.type, atPosition)
     }
 
     this.connectedBlocks.insertForConnector(block, localConnector)
@@ -92,7 +92,8 @@ export class Block implements BlockContract {
           new Connection(
             this.upstream.connectors.after,
             block.connectors.before
-          )
+          ),
+          atPosition
         )
         return
       } else {

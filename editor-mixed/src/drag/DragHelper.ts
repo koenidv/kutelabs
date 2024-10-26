@@ -67,18 +67,6 @@ export class DragHelper {
     )
 
     this.requestRerender()
-
-    // const closestConnector = ConnectorRegistry.instance.selectConnectorForBlock(
-    //   this.dragged,
-    //   { x: this.x, y: this.y },
-    //   25
-    // )
-    // this.updateDropIndicator(closestConnector?.to ?? null)
-    // this.updateElementBobbing(closestConnector?.to ?? null)
-
-    // this.move(this.copiedElement, this.x, this.y)
-
-    // todo update position and drop targt in drag renderer (request rerender?)
   }
 
   endDrag(evt: MouseEvent) {
@@ -95,20 +83,6 @@ export class DragHelper {
     this.reset()
 
     this.requestRerender()
-
-    // todo remove dragged element from drag renderer
-    // todo request rerender
-
-    // this.removeClonedElement()
-    // this.hideDropIndicator()
-    // this.stopElementBobbing()
-
-    // const snapToConnector = ConnectorRegistry.instance.selectConnectorForBlock(
-    //   this.dragged,
-    //   { x: this.x, y: this.y },
-    //   25
-    // )
-    // this.insertDraggedDataAndFree(snapToConnector)
   }
 
   insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
