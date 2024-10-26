@@ -38,7 +38,8 @@ export class DragHelper {
       draggedParent.getBoundingClientRect().top -
       this._observed!.getBoundingClientRect().top
 
-    // this.dragged.block.disconnectSelf()
+    this.dragged.block.disconnectSelf()
+    BlockRegistry.instance.setDetached(this.dragged.block)
 
     this.renderer.update(this.dragged, this.x, this.y)
     this.requestRerender()
@@ -75,12 +76,16 @@ export class DragHelper {
     if (!this.dragged) return
     evt.preventDefault()
 
-    this.dragged = null
+    this.insertOnSnap(this.dragged, null)
 
+    this.dragged = null
+    BlockRegistry.instance.setDetached(null)
     this.renderer.remove()
+
     this.requestRerender()
 
     // todo remove dragged element from drag renderer
+    // todo request rerender
 
     // this.removeClonedElement()
     // this.hideDropIndicator()
@@ -94,22 +99,18 @@ export class DragHelper {
     // this.insertDraggedDataAndFree(snapToConnector)
   }
 
-  insertDraggedDataAndFree(snap: Connection | null) {
-    if (!this.dragged) return
-
+  insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
       snap ??
-      new Connection(Connector.Root, this.dragged.block.connectors.internal)
+      new Connection(Connector.Root, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
-      this.dragged.block,
+      dragged.block,
       snapOnConnection,
       new Coordinates(this.x, this.y)
     )
-
-    // todo request rerender
-    this.dragged = null
+    
   }
 
   private getDraggedData(

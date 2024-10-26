@@ -73,12 +73,27 @@ export class BlockRegistry {
     )
   }
 
+  detachedBlockIds: string[] = []
+  public setDetached(block: Block | null) {
+    if (block == null) {
+      this.detachedBlockIds = []
+      return
+    }
+    this.detachedBlockIds = [
+      block.id,
+      ...block.downstreamWithConnectors.map(({ block }) => block.id),
+    ]
+  }
+
   public get root() {
     return this._root
   }
   public get leafs(): Block[] {
     return [...this._blocks.keys()].filter(
-      b => b.downstreamWithConnectors.length === 0 && b.type !== BlockType.Root
+      b =>
+        b.downstreamWithConnectors.length === 0 &&
+        b.type !== BlockType.Root &&
+        !this.detachedBlockIds.includes(b.id)
     )
   }
   public allConnectedBlocksMeasuredAndValid(block: Block) {
