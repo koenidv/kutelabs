@@ -3,7 +3,7 @@ import { Connector } from "../connections/Connector"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { RegisteredBlock } from "../registries/RegisteredBlock"
-import type { DragRenderer } from "../render/DragRenderer"
+import type { DragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
 export class DragHelper {
@@ -21,8 +21,9 @@ export class DragHelper {
   }
 
   private dragged: RegisteredBlock | null = null
-  private x = 0
-  private y = 0
+  private startPos = Coordinates.zero
+  private dragX = 0
+  private dragY = 0
 
   startDrag(evt: MouseEvent) {
     const draggedParent = this.findDragableParent(evt.target as HTMLElement)
@@ -31,21 +32,18 @@ export class DragHelper {
     if (this.dragged == null) return
     evt.preventDefault()
 
-    this.x =
+    this.startPos = new Coordinates(
       draggedParent.getBoundingClientRect().left -
-      this._observed!.getBoundingClientRect().left
-    this.y =
+        this._observed!.getBoundingClientRect().left,
       draggedParent.getBoundingClientRect().top -
-      this._observed!.getBoundingClientRect().top
+        this._observed!.getBoundingClientRect().top
+    )
 
     this.dragged.block.disconnectSelf()
     BlockRegistry.instance.setDetached(this.dragged.block)
 
-    this.renderer.update(this.dragged, this.x, this.y)
+    this.renderer.update(this.dragged, this.startPos, null)
     this.requestRerender()
-
-    // todo call drag renderer to draw dragged block
-    // todo request rerender
   }
 
   drag(evt: MouseEvent) {
@@ -53,10 +51,21 @@ export class DragHelper {
     evt.preventDefault()
 
     const ctm = this._observed!.getScreenCTM()!
-    this.x += evt.movementX / ctm.a
-    this.y += evt.movementY / ctm.d
+    this.dragX += evt.movementX / ctm.a
+    this.dragY += evt.movementY / ctm.d
 
-    this.renderer.update(this.dragged, this.x, this.y)
+    const snap = ConnectorRegistry.instance.selectConnectorForBlock(
+      this.dragged.block,
+      new Coordinates(this.dragX, this.dragY),
+      25
+    )
+
+    this.renderer.update(
+      this.dragged,
+      Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY)),
+      snap
+    )
+
     this.requestRerender()
 
     // const closestConnector = ConnectorRegistry.instance.selectConnectorForBlock(
@@ -76,11 +85,14 @@ export class DragHelper {
     if (!this.dragged) return
     evt.preventDefault()
 
-    this.insertOnSnap(this.dragged, null)
+    const snap = ConnectorRegistry.instance.selectConnectorForBlock(
+      this.dragged.block,
+      new Coordinates(this.dragX, this.dragY),
+      25
+    )
+    this.insertOnSnap(this.dragged, snap)
 
-    this.dragged = null
-    BlockRegistry.instance.setDetached(null)
-    this.renderer.remove()
+    this.reset()
 
     this.requestRerender()
 
@@ -102,15 +114,13 @@ export class DragHelper {
   insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
-      snap ??
-      new Connection(Connector.Root, dragged.block.connectors.internal)
+      snap ?? new Connection(Connector.Root, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
       dragged.block,
       snapOnConnection,
-      new Coordinates(this.x, this.y)
+      Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY))
     )
-    
   }
 
   private getDraggedData(
@@ -130,5 +140,14 @@ export class DragHelper {
     )
       return this.findDragableParent(element.parentElement)
     return null
+  }
+
+  private reset() {
+    this.dragged = null
+    BlockRegistry.instance.setDetached(null)
+    this.renderer.remove()
+    this.startPos = Coordinates.zero
+    this.dragX = 0
+    this.dragY = 0
   }
 }

@@ -1,14 +1,14 @@
 import { LitElement, svg, type TemplateResult } from "lit"
 import { customElement } from "lit/decorators.js"
-import type { BlockRegistry } from "../registries/BlockRegistry"
-import { Coordinates } from "../util/Coordinates"
-import { SizeProps } from "./SizeProps"
-import type { Block } from "../blocks/Block"
-import { BlockType } from "../blocks/BlockType"
-import type { Connector } from "../connections/Connector"
-import type { RegisteredBlock } from "../registries/RegisteredBlock"
+import type { BlockRegistry } from "../../registries/BlockRegistry"
+import { Coordinates } from "../../util/Coordinates"
+import { SizeProps } from "../SizeProps"
+import type { Block } from "../../blocks/Block"
+import { BlockType } from "../../blocks/BlockType"
+import type { Connector } from "../../connections/Connector"
+import type { RegisteredBlock } from "../../registries/RegisteredBlock"
 
-export abstract class AbstractRenderer {
+export abstract class BaseBlockRenderer {
   blockRegistry: BlockRegistry
 
   constructor(blockRegistry: BlockRegistry) {

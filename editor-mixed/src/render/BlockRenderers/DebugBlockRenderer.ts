@@ -2,12 +2,12 @@ import { svg, type TemplateResult } from "lit"
 import type { Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
-import { AbstractRenderer } from "../AbstractRenderer"
+import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
 
-export class DebugRenderer extends AbstractRenderer {
+export class DebugBlockRenderer extends BaseBlockRenderer {
   protected measureBlock(block: Block): SizeProps {
     return SizeProps.simple(100, 100)
   }

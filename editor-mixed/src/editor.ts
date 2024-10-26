@@ -1,31 +1,32 @@
 import { css, html, LitElement, type PropertyValues } from "lit"
 import { customElement } from "lit/decorators.js"
-import type { AbstractRenderer } from "./render/AbstractRenderer"
-import { DebugRenderer } from "./render/BlockRenderers/DebugRenderer"
+import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
+import { DebugBlockRenderer } from "./render/BlockRenderers/DebugBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
 import { Block } from "./blocks/Block"
 import { BlockType } from "./blocks/BlockType"
 import { Connector } from "./connections/Connector"
 import { ConnectorType } from "./connections/ConnectorType"
 import { Coordinates } from "./util/Coordinates"
-import { ExtrasRenderer } from "./render/ExtrasRenderer"
+import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
-import { DragRenderer } from "./render/DragRenderer"
+import { DebugDragRenderer } from "./render/DragRenderers/DebugDragRenderer"
+import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
-  renderer: AbstractRenderer
+  renderer: BaseBlockRenderer
   extrasRenderer: ExtrasRenderer
-  dragRenderer: DragRenderer
+  dragRenderer: BaseDragRenderer
   dragHelper: DragHelper
 
   constructor() {
     super()
     BlockRegistry.instance.initRoot()
 
-    this.renderer = new DebugRenderer(BlockRegistry.instance)
+    this.renderer = new DebugBlockRenderer(BlockRegistry.instance)
     this.extrasRenderer = new ExtrasRenderer()
-    this.dragRenderer = new DragRenderer(
+    this.dragRenderer = new DebugDragRenderer(
       (block: Block, position: Coordinates) =>
         this.renderer.renderBlock(
           block,

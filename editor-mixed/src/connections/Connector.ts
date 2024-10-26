@@ -1,4 +1,5 @@
 import type { Block } from "../blocks/Block"
+import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorType } from "./ConnectorType"
 
@@ -7,6 +8,7 @@ export class Connector {
 
   constructor(type: ConnectorType) {
     this.type = type
+    ConnectorRegistry.instance.register(this)
   }
 
   private _parentBlock: Block | null = null

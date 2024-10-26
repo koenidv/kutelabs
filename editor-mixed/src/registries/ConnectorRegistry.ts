@@ -1,6 +1,8 @@
 import type { Connector } from "../connections/Connector"
-import type { ConnectorType } from "../connections/ConnectorType"
-import type { Coordinates } from "../util/Coordinates"
+import { ConnectorType } from "../connections/ConnectorType"
+import { Coordinates } from "../util/Coordinates"
+import { Connection } from "../connections/Connection"
+import type { Block } from "../blocks/Block"
 
 export class ConnectorRegistry {
   private static _instance: ConnectorRegistry
@@ -16,11 +18,32 @@ export class ConnectorRegistry {
     return this._connectors
   }
 
-  public registerConnector(connector: Connector) {
+  public register(connector: Connector) {
     this._connectors.push(connector)
   }
 
+  public selectConnectorForBlock(block: Block, dragOffset: Coordinates, maxXY: number = 25): Connection | null {
+    let localConnector: Connector | null = null
+    let remoteConnector: Connector | null = null
+    const connectedIds = [block.id, ...block.downstreamWithConnectors.map(({ block }) => block.id)]
 
+    // Regular before->after / before->extension / before->inner
+    localConnector = block.connectors.before
+    if (localConnector) {
+      remoteConnector = this.getClosestConnector(connectedIds, Coordinates.add(localConnector.globalPosition, dragOffset), [ConnectorType.After, ConnectorType.Extension, ConnectorType.Inner], maxXY)
+      if (remoteConnector) return new Connection(localConnector, remoteConnector)
+    }
+
+    // reverse after->before
+    localConnector = block.lastAfter.connectors.after
+    if (localConnector) {
+      // const offset = subtractCoordinates(localConnector.calculatedPosition, block.calculatedPosition)
+      remoteConnector = this.getClosestConnector(connectedIds, Coordinates.add(localConnector.globalPosition, dragOffset), [ConnectorType.Before], maxXY)
+      if (remoteConnector) return new Connection(localConnector, remoteConnector)
+    }
+
+    return null
+  }
 
   public getClosestConnector(ignoreIds: string[], position: Coordinates, types: ConnectorType[], maxXY: number): Connector | null {
     const connectors = this.getNearbyConnectors(ignoreIds, position, types, maxXY)
