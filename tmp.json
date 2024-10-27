@@ -2,12 +2,10 @@
   "name": "kutelabs",
   "private": true,
   "workspaces": [
-    "app",
     "server",
-    "shared",
-    "editor-mixed"
+    "shared"
   ],
-  "packageManager": "bun@1.1.27",
+  "packageManager": "yarn@1.22.22",
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "@types/eslint": "^9.6.1",
