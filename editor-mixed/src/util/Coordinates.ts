@@ -19,7 +19,7 @@ export class Coordinates {
   }
 
   static zero = { x: 0, y: 0 }
-  static popOffset = { x: 50, y: 50 }
+  static popOffset = { x: 60, y: 60 }
 
   static addPopOffset(coordinates: Coordinates): Coordinates {
     return Coordinates.add(coordinates, Coordinates.popOffset)

@@ -1,5 +1,6 @@
 import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
+import { ConnectorRole } from "../connections/ConnectorRole"
 import type { Block } from "./Block"
 
 export class BlockConnectors {
@@ -58,5 +59,9 @@ export class BlockConnectors {
   }
   get extensions() {
     return this._extensionConnectors
+  }
+
+  byRole(role: ConnectorRole): Connector[] {
+    return this.all.filter(connector => connector.role == role)
   }
 }

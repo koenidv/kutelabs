@@ -1,19 +1,41 @@
 ---
-import { EditorMixed } from "@kutelabs/editor-mixed";
+import { EditorMixed } from "@kutelabs/editor-mixed"
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<div class="flex w-full h-screen flex-col items-center justify-center gap-8">
-			<h1>kutelabs. a kute way to learn kotlin :)</h1>
-			<EditorMixed client:only="lit" />
-		</div>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Astro</title>
+  </head>
+  <body>
+    <div
+      class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
+      <h1>kutelabs. a kute way to learn kotlin :)</h1>
+      <EditorMixed client:only="lit" />
+      <button id="btn-tojs">to js</button>
+      <button id="btn-execjs">exec js</button>
+    </div>
+  </body>
 </html>
+
+<script>
+  //@ts-ignore
+  document.querySelector("#btn-tojs").addEventListener(
+    "click",
+    (() => {
+      //@ts-ignore
+      console.log(document.querySelector("editor-mixed").toJs())
+    }).bind(this)
+  )
+  //@ts-ignore
+  document.querySelector("#btn-execjs").addEventListener(
+    "click",
+    (() => {
+      //@ts-ignore
+      console.log("exec js not yet imeplemented")
+    }).bind(this)
+  )
+</script>

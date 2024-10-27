@@ -18,7 +18,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       HeightProp.Head,
       block.extensions.length > 0
         ? BlockRegistry.instance.getSize(block.extensions[0]).fullHeight
-        : 50
+        : block.type == BlockType.Input ? 30 : 50
     )
 
     // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
