@@ -18,10 +18,26 @@ export class ConnectorRegistry {
     return this._connectors
   }
 
+  /**
+   * All connectors must register themselves to be considered for snapping
+   * @param connector Connector to register
+   */
   public register(connector: Connector) {
     this._connectors.push(connector)
   }
 
+  /**
+   * Selects the closest suitable connector for a block to snap to
+   *
+   * Suitable connections are:
+   * - before->after and after->before, before->extension, before->inner
+   * - //todo Only if remote connector props allow it
+   *
+   * @param block Block to search connections from
+   * @param dragOffset Delta between the block's calculated position and the dragged position
+   * @param maxXY Maximum distance to search for connectors, area will be a square
+   * @returns Connection (from-local) if a suitable connector was found, null otherwise
+   */
   public selectConnectorForBlock(
     block: AnyBlock,
     dragOffset: Coordinates,
@@ -40,7 +56,11 @@ export class ConnectorRegistry {
       remoteConnector = this.getClosestConnector(
         connectedIds,
         Coordinates.add(localConnector.globalPosition, dragOffset),
-        [ConnectorType.After, ConnectorType.Extension, ConnectorType.Inner],
+        [
+          c => c.type === ConnectorType.After,
+          c => c.type === ConnectorType.Extension,
+          c => c.type === ConnectorType.Inner,
+        ],
         maxXY
       )
       if (remoteConnector)
@@ -50,11 +70,10 @@ export class ConnectorRegistry {
     // reverse after->before
     localConnector = block.lastAfter.connectors.after
     if (localConnector) {
-      // const offset = subtractCoordinates(localConnector.calculatedPosition, block.calculatedPosition)
       remoteConnector = this.getClosestConnector(
         connectedIds,
         Coordinates.add(localConnector.globalPosition, dragOffset),
-        [ConnectorType.Before],
+        [c => c.type === ConnectorType.Before],
         maxXY
       )
       if (remoteConnector)
@@ -64,26 +83,42 @@ export class ConnectorRegistry {
     return null
   }
 
+  /**
+   * Find the closest connector to a given position that matches one of the predicates
+   * @param ignoreIds Don't return connectors from these blocks
+   * @param position Center of the area to search
+   * @param predicates OR List of predicates; a connector must match **at least one of them**
+   * @param maxXY Radius of the area to search, will be a square
+   * @returns Closest connector that matches the criteria, or null if none found
+   */
   public getClosestConnector(
     ignoreIds: string[],
     position: Coordinates,
-    types: ConnectorType[],
+    predicates: ((c: Connector) => boolean)[],
     maxXY: number
   ): Connector | null {
     const connectors = this.getNearbyConnectors(
       ignoreIds,
       position,
-      types,
+      predicates,
       maxXY
     )
     if (connectors.length === 0) return null
     return this.sortConnectorsByDistance(position, connectors)[0]
   }
 
+  /**
+   * Find connectors in a given area that match one of the predicates
+   * @param ingoreIds Don't return connectors from these blocks
+   * @param position Center of the area to search
+   * @param predicates OR List of predicates; a connector must match **at least one of them**
+   * @param maxXY Radius of the area to search, will be a square
+   * @returns List of connectors that match the criteria
+   */
   public getNearbyConnectors(
     ingoreIds: string[],
     position: Coordinates,
-    types: ConnectorType[],
+    predicates: ((c: Connector) => boolean)[],
     maxXY: number
   ): Connector[] {
     return this._connectors.filter(connector => {
@@ -91,16 +126,25 @@ export class ConnectorRegistry {
       if (ingoreIds.includes(connector.parentBlock.id)) {
         return false
       }
-      if (types.includes(connector.type)) {
-        return (
-          Math.abs(connector.globalPosition.x - position.x) <= maxXY &&
-          Math.abs(connector.globalPosition.y - position.y) <= maxXY
-        )
+
+      for (const predicate of predicates) {
+        if (predicate(connector))
+          return (
+            Math.abs(connector.globalPosition.x - position.x) <= maxXY &&
+            Math.abs(connector.globalPosition.y - position.y) <= maxXY
+          )
       }
+
       return false
     })
   }
 
+  /**
+   * Sort connectors by distance to a given position (pythagorean)
+   * @param position Center of the area to search
+   * @param connectors List of connectors to sort
+   * @returns Sorted list of connectors
+   */
   public sortConnectorsByDistance(
     position: Coordinates,
     connectors: Connector[]
