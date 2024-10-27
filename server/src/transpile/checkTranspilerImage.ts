@@ -1,7 +1,8 @@
 import { $ } from "bun"
+import { env } from "../env"
 
 export async function checkTranspilerImage() {
-  $`docker images transpiler`
+  $`docker images ${env.TRANSPILER_NAME}`
     .nothrow()
     .quiet()
     .then(({ stdout, stderr, exitCode }) => {
@@ -9,8 +10,8 @@ export async function checkTranspilerImage() {
         console.error("Error while checking Docker images:", stderr)
         process.exit(1)
       }
-      if (!stdout.includes("transpiler")) {
-        console.error("Docker image 'transpiler' is NOT present.")
+      if (!stdout.includes(env.TRANSPILER_NAME)) {
+        console.error(`Docker image '${env.TRANSPILER_NAME}' is NOT present`)
         process.exit(1)
       }
     })

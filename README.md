@@ -9,11 +9,29 @@ The project's focus will lie on the blocks/mixed content editor, which will be i
 
 ## Dockerizing
 
-### Isolation Image for Transpilation
+You will need to enable containerd to build multiplatform images ([Docker Engine](https://docs.docker.com/engine/storage/containerd/), [Docker Desktop](https://docs.docker.com/desktop/containerd/)).
 
-`docker build server/isolated -t transpiler:latest -f server/isolated/transpiler.dockerfile`
+### 1. Build Isolation Image for Transpilation
 
-### Server
+From the repository root, run:
 
-`docker build . -t kutelabs-server:latest -f server/Dockerfile`
-`docker run -v /var/run/docker.sock:/var/run/docker.sock -v data:/data kutelabs-server:latest`
+```sh
+docker build --platform linux/amd64,linux/arm64 server/isolated -f server/isolated/transpiler.dockerfile -t kutelabs-transpiler
+```
+
+### 2. Build Server Image
+
+Again from the repository root:
+
+```sh
+docker build --platform linux/amd64,linux/arm64 . -f server/Dockerfile -t kutelabs-server
+```
+
+### 3. Run Server
+
+Please ensure that [gVisor is installed](https://gvisor.dev/docs/user_guide/install/) on the host machine.
+The transpiler image must be available before running the server, but you can [specify the image name](/server/README.md#env) in an environment variable.
+
+```sh
+docker run -v /var/run/docker.sock:/var/run/docker.sock -v data:/data -e TRANSPILER_NAME=kutelabs-transpiler kutelabs-server:latest
+```

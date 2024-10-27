@@ -2,6 +2,7 @@ import { spawnSync } from "bun"
 import { checkRunscEnvironment } from "./checkRunscEnv"
 import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
 import { checkTranspilerImage } from "./checkTranspilerImage"
+import { env } from "../env"
 
 export enum TranspilationStatus {
   Success,
@@ -43,7 +44,7 @@ function syncTranspilation(
       `--memory=${maxMemory}m`,
       "--cpus=1",
       "--network=none",
-      "transpiler:latest",
+      `${env.TRANSPILER_NAME}:latest`,
     ],
     { stdout: "pipe", stderr: "pipe", timeout: timeout }
   )
