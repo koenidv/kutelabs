@@ -6,23 +6,30 @@ import { Coordinates } from "../util/Coordinates"
 import { IdGenerator } from "../util/IdGenerator"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
+import {
+  type BlockDataByType,
+} from "./BlockData"
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
 
-export class Block implements BlockContract {
+export class Block<T extends BlockType> implements BlockContract {
   readonly id: string = IdGenerator.instance.next
   readonly type: BlockType
   readonly draggable: boolean
   renderStale: boolean = false
+  data: BlockDataByType<T>
 
   constructor(
-    previous: Block | null,
-    type: BlockType,
+    previous: Block<BlockType> | null,
+    type: T,
+    data: BlockDataByType<T>,
     connectors: Connector[],
     draggable: boolean
   ) {
     this.type = type
     this.draggable = draggable
+
+    this.data = data
 
     this.connectors.addConnector(this, Connector.internal(), ...connectors)
 
@@ -47,7 +54,7 @@ export class Block implements BlockContract {
   //#region Connect/Disconnect
 
   connect(
-    block: Block,
+    block: Block<BlockType>,
     connection: Connection,
     atPosition?: Coordinates,
     isOppositeAction = false
@@ -73,7 +80,7 @@ export class Block implements BlockContract {
     block.connect(this, connection, undefined, true)
   }
 
-  private handleNoLocalConnector(block: Block, connection: Connection) {
+  private handleNoLocalConnector(block: Block<BlockType>, connection: Connection) {
     const lastLocalConnector = connection.localConnector(this.lastAfter)
     if (lastLocalConnector && !lastLocalConnector.isDownstram) {
       this.handleConnectUpstream(block, connection, lastLocalConnector.type)
@@ -85,7 +92,7 @@ export class Block implements BlockContract {
   }
 
   private handleConnectUpstream(
-    block: Block,
+    block: Block<BlockType>,
     connection: Connection,
     localType: ConnectorType,
     atPosition?: Coordinates
@@ -131,30 +138,30 @@ export class Block implements BlockContract {
   get after() {
     return this.connectedBlocks.byConnector(this.connectors.after)
   }
-  get lastAfter(): Block {
+  get lastAfter(): Block<any> {
     if (!this.after) return this
-    let lastNode: Block = this.after
+    let lastNode: Block<any> = this.after
     while (lastNode.after) lastNode = lastNode.after
     return lastNode
   }
 
-  get inners(): Block[] {
+  get inners(): Block<BlockType>[] {
     return this.connectors.inners
       .map(connector => this.connectedBlocks.byConnector(connector))
-      .filter(block => block !== null) as Block[]
-  }
-  
-  get extensions(): Block[] {
-    return this.connectors.extensions
-      .map(connector => this.connectedBlocks.byConnector(connector))
-      .filter(block => block !== null) as Block[]
+      .filter(block => block !== null) as Block<BlockType>[]
   }
 
-  get allConnectedRecursive(): Block[] {
+  get extensions(): Block<BlockType>[] {
+    return this.connectors.extensions
+      .map(connector => this.connectedBlocks.byConnector(connector))
+      .filter(block => block !== null) as Block<BlockType>[]
+  }
+
+  get allConnectedRecursive(): Block<BlockType>[] {
     return [
       this,
-      ...this.downstreamWithConnectors.flatMap(({ block }) =>
-        block.allConnectedRecursive
+      ...this.downstreamWithConnectors.flatMap(
+        ({ block }) => block.allConnectedRecursive
       ),
     ]
   }
@@ -168,13 +175,13 @@ export class Block implements BlockContract {
     return this.connectors.internal
   }
 
-  disconnect(block: Block): Block | null {
+  disconnect(block: Block<BlockType>): Block<BlockType> | null {
     const popped = this.connectedBlocks.popBlock(block)?.block ?? null
     if (block.connectedBlocks.isConnected(this)) block.disconnect(this)
     return popped
   }
 
-  disconnectSelf(): Block {
+  disconnectSelf(): Block<BlockType> {
     const upstreamConnector = this.upstreamConnectorInUse
     if (!upstreamConnector)
       throw new Error(`Block has no upstream connector (block#${this.id})`)

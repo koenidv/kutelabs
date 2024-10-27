@@ -1,10 +1,9 @@
 export enum BlockType {
   Root,
   Function,
-  FunctionReturn,
   Expression,
   Input,
+  Var,
   Loop,
   Conditional,
-  ConditionalElse,
 }

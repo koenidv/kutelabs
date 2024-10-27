@@ -12,6 +12,7 @@ import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
 import { DebugDragRenderer } from "./render/DragRenderers/DebugDragRenderer"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
+import { DefinedExpression } from "./blocks/DefinedExpression"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -42,6 +43,7 @@ export class EditorMixed extends LitElement {
     const block1 = new Block(
       null,
       BlockType.Expression,
+      { expression: DefinedExpression.Println },
       [
         new Connector(ConnectorType.Before),
         new Connector(ConnectorType.After),
@@ -52,7 +54,8 @@ export class EditorMixed extends LitElement {
     BlockRegistry.instance.attachToRoot(block1, () => new Coordinates(100, 200))
     new Block(
       block1,
-      BlockType.Expression,
+      BlockType.Loop,
+      null,
       [
         new Connector(ConnectorType.Before),
         new Connector(ConnectorType.After),
@@ -65,6 +68,7 @@ export class EditorMixed extends LitElement {
       new Block(
         null,
         BlockType.Input,
+        { input: "Hello" },
         [new Connector(ConnectorType.Before)],
         true
       ),
@@ -74,11 +78,16 @@ export class EditorMixed extends LitElement {
       new Block(
         null,
         BlockType.Input,
+        { input: "World" },
         [new Connector(ConnectorType.Before)],
         true
       ),
       () => new Coordinates(300, 400)
     )
+  }
+
+  public toJs(): string {
+    return "Not implemented"
   }
 
   protected render() {
