@@ -9,8 +9,13 @@ pnpm-debug.log*
 
 dist/
 
-app/.astro/
+.astro/
+.netlify/
+.turbo/
+out/
 
 .DS_Store
 .env
 .env.*
+
+server/src/data/
