@@ -1,4 +1,4 @@
-import type { Block } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
 import type { BlockType } from "../blocks/BlockType"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
@@ -18,11 +18,11 @@ export class Connector {
     ConnectorRegistry.instance.register(this)
   }
 
-  private _parentBlock: Block<any> | null = null
-  public get parentBlock(): Block<any> | null {
+  private _parentBlock: AnyBlock | null = null
+  public get parentBlock(): AnyBlock | null {
     return this._parentBlock
   }
-  public set parentBlock(value: Block<any> | null) {
+  public set parentBlock(value: AnyBlock | null) {
     if (this._parentBlock != null && value != this._parentBlock)
       throw new Error("Connector parent may not be changed")
     this._parentBlock = value
@@ -44,4 +44,4 @@ export class Connector {
   static Root = new Connector(ConnectorType.Internal)
 }
 
-export type BlockAndConnector = { block: Block<any>; connector: Connector }
+export type BlockAndConnector = { block: AnyBlock; connector: Connector }

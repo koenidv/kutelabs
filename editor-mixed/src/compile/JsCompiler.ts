@@ -25,6 +25,7 @@ export class JsCompiler extends BaseCompiler {
         ${inner}
       } 
     `
+    // functions should not have after blocks; thus not compiling them here
   }
 
   compileExpression(

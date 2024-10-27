@@ -2,7 +2,7 @@ import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
 import { Coordinates } from "../util/Coordinates"
 import { Connection } from "../connections/Connection"
-import type { Block } from "../blocks/Block"
+import type { AnyBlock } from "../blocks/Block"
 
 export class ConnectorRegistry {
   private static _instance: ConnectorRegistry
@@ -23,7 +23,7 @@ export class ConnectorRegistry {
   }
 
   public selectConnectorForBlock(
-    block: Block,
+    block: AnyBlock,
     dragOffset: Coordinates,
     maxXY: number = 25
   ): Connection | null {

@@ -1,6 +1,6 @@
 import { nothing, svg, type TemplateResult } from "lit"
-import type { RegisteredBlock } from "../../registries/RegisteredBlock"
-import type { Block } from "../../blocks/Block"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
+import type { AnyBlock, Block } from "../../blocks/Block"
 import { Coordinates } from "../../util/Coordinates"
 import type { Connection } from "../../connections/Connection"
 import { ConnectorType } from "../../connections/ConnectorType"
@@ -8,22 +8,22 @@ import type { Connector } from "../../connections/Connector"
 
 export abstract class BaseDragRenderer {
   private _renderBlock: (
-    block: Block,
+    block: AnyBlock,
     position: Coordinates
   ) => TemplateResult<2>
 
   constructor(
-    renderBlock: (block: Block, position: Coordinates) => TemplateResult<2>
+    renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
   ) {
     this._renderBlock = renderBlock
   }
 
-  private dragged: RegisteredBlock | null = null
+  private dragged: AnyRegisteredBlock | null = null
   private snap: Connection | null = null
   private position = Coordinates.zero
 
   update(
-    dragged: RegisteredBlock,
+    dragged: AnyRegisteredBlock,
     position: Coordinates,
     snap: Connection | null
   ) {
@@ -90,30 +90,30 @@ export abstract class BaseDragRenderer {
   }
 
   protected abstract renderBeforeSnap(
-    localRegistered: RegisteredBlock,
+    localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
-    remoteBlock: Block,
+    remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2>
 
   protected abstract renderAfterSnap(
-    localRegistered: RegisteredBlock,
+    localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
-    remoteBlock: Block,
+    remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2>
 
   protected abstract renderInnerSnap(
-    localRegistered: RegisteredBlock,
+    localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
-    remoteBlock: Block,
+    remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2>
 
   protected abstract renderExtensionSnap(
-    localRegistered: RegisteredBlock,
+    localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
-    remoteBlock: Block,
+    remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2>
 }

@@ -12,6 +12,8 @@ import {
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
 
+export type AnyBlock = Block<BlockType>
+
 export class Block<T extends BlockType> implements BlockContract {
   readonly id: string = IdGenerator.instance.next
   readonly type: BlockType
@@ -20,7 +22,7 @@ export class Block<T extends BlockType> implements BlockContract {
   data: BlockDataByType<T>
 
   constructor(
-    previous: Block<BlockType> | null,
+    previous: AnyBlock | null,
     type: T,
     data: BlockDataByType<T>,
     connectors: Connector[],
@@ -54,7 +56,7 @@ export class Block<T extends BlockType> implements BlockContract {
   //#region Connect/Disconnect
 
   connect(
-    block: Block<BlockType>,
+    block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
     isOppositeAction = false
@@ -80,7 +82,7 @@ export class Block<T extends BlockType> implements BlockContract {
     block.connect(this, connection, undefined, true)
   }
 
-  private handleNoLocalConnector(block: Block<BlockType>, connection: Connection) {
+  private handleNoLocalConnector(block: AnyBlock, connection: Connection) {
     const lastLocalConnector = connection.localConnector(this.lastAfter)
     if (lastLocalConnector && !lastLocalConnector.isDownstram) {
       this.handleConnectUpstream(block, connection, lastLocalConnector.type)
@@ -92,7 +94,7 @@ export class Block<T extends BlockType> implements BlockContract {
   }
 
   private handleConnectUpstream(
-    block: Block<BlockType>,
+    block: AnyBlock,
     connection: Connection,
     localType: ConnectorType,
     atPosition?: Coordinates
@@ -145,19 +147,19 @@ export class Block<T extends BlockType> implements BlockContract {
     return lastNode
   }
 
-  get inners(): Block<BlockType>[] {
+  get inners(): AnyBlock[] {
     return this.connectors.inners
       .map(connector => this.connectedBlocks.byConnector(connector))
-      .filter(block => block !== null) as Block<BlockType>[]
+      .filter(block => block !== null) as AnyBlock[]
   }
 
-  get extensions(): Block<BlockType>[] {
+  get extensions(): AnyBlock[] {
     return this.connectors.extensions
       .map(connector => this.connectedBlocks.byConnector(connector))
-      .filter(block => block !== null) as Block<BlockType>[]
+      .filter(block => block !== null) as AnyBlock[]
   }
 
-  get allConnectedRecursive(): Block<BlockType>[] {
+  get allConnectedRecursive(): AnyBlock[] {
     return [
       this,
       ...this.downstreamWithConnectors.flatMap(
@@ -175,13 +177,13 @@ export class Block<T extends BlockType> implements BlockContract {
     return this.connectors.internal
   }
 
-  disconnect(block: Block<BlockType>): Block<BlockType> | null {
+  disconnect(block: AnyBlock): AnyBlock | null {
     const popped = this.connectedBlocks.popBlock(block)?.block ?? null
     if (block.connectedBlocks.isConnected(this)) block.disconnect(this)
     return popped
   }
 
-  disconnectSelf(): Block<BlockType> {
+  disconnectSelf(): AnyBlock {
     const upstreamConnector = this.upstreamConnectorInUse
     if (!upstreamConnector)
       throw new Error(`Block has no upstream connector (block#${this.id})`)

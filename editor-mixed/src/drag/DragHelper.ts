@@ -2,7 +2,7 @@ import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
-import type { RegisteredBlock } from "../registries/RegisteredBlock"
+import type { AnyRegisteredBlock, RegisteredBlock } from "../registries/RegisteredBlock"
 import type { DragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
@@ -20,7 +20,7 @@ export class DragHelper {
     this._observed = value
   }
 
-  private dragged: RegisteredBlock | null = null
+  private dragged: AnyRegisteredBlock | null = null
   private startPos = Coordinates.zero
   private dragX = 0
   private dragY = 0
@@ -61,7 +61,7 @@ export class DragHelper {
 
   private getDraggedData(
     draggableParent: HTMLElement | null
-  ): RegisteredBlock | null {
+  ): AnyRegisteredBlock | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
     return BlockRegistry.instance.getRegisteredById(blockId) ?? null
@@ -110,7 +110,7 @@ export class DragHelper {
     this.requestRerender()
   }
 
-  private insertOnSnap(dragged: RegisteredBlock, snap: Connection | null) {
+  private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
       snap ?? new Connection(Connector.Root, dragged.block.connectors.internal)

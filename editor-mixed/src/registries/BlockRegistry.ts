@@ -1,11 +1,11 @@
-import type { Block } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import type { SizeProps } from "../render/SizeProps"
 import type { Coordinates } from "../util/Coordinates"
-import { RegisteredBlock } from "./RegisteredBlock"
+import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
 export class BlockRegistry {
   private static _instance: BlockRegistry | null = null
@@ -22,8 +22,8 @@ export class BlockRegistry {
     this.root = new RootBlock()
   }
 
-  _blocks: Map<Block, RegisteredBlock> = new Map()
-  public register(block: Block) {
+  _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
+  public register(block: AnyBlock) {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block))
   }
@@ -31,35 +31,35 @@ export class BlockRegistry {
     return [...this._blocks.values()].find(it => it.block.id == id)
   }
 
-  public setSize(block: Block, size: SizeProps): RegisteredBlock {
+  public setSize(block: AnyBlock, size: SizeProps): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.size = size
     return registered
   }
 
-  public getSize(block: Block): SizeProps {
+  public getSize(block: AnyBlock): SizeProps {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     if (registered.size == null) throw new Error("Block size is not set")
     return registered.size
   }
 
-  public setPosition(block: Block, position: Coordinates): RegisteredBlock {
+  public setPosition(block: AnyBlock, position: Coordinates): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
     return registered
   }
 
-  getPosition(block: Block): Coordinates {
+  getPosition(block: AnyBlock): Coordinates {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     return registered.globalPosition
   }
 
   public attachToRoot(
-    block: Block | null,
+    block: AnyBlock | null,
     modifyPosition: (current: Coordinates) => Coordinates
   ) {
     if (!block) return
@@ -74,7 +74,7 @@ export class BlockRegistry {
   }
 
   detachedBlockIds: string[] = []
-  public setDetached(block: Block | null) {
+  public setDetached(block: AnyBlock | null) {
     if (block == null) {
       this.detachedBlockIds = []
       return
@@ -88,7 +88,7 @@ export class BlockRegistry {
   public get root() {
     return this._root
   }
-  public get leafs(): Block[] {
+  public get leafs(): AnyBlock[] {
     return [...this._blocks.keys()].filter(
       b =>
         b.downstreamWithConnectors.length === 0 &&
@@ -96,8 +96,8 @@ export class BlockRegistry {
         !this.detachedBlockIds.includes(b.id)
     )
   }
-  public allConnectedBlocksMeasuredAndValid(block: Block) {
-    const connected: Map<Connector, Block> = block.connectedBlocks.blocks
+  public allConnectedBlocksMeasuredAndValid(block: AnyBlock) {
+    const connected: Map<Connector, AnyBlock> = block.connectedBlocks.blocks
     connected.forEach((block, _connector) => {
       const registered = this._blocks.get(block)
       if (!registered) throw new Error("Block is not registered")

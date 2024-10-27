@@ -1,12 +1,11 @@
-import { LitElement, svg, type TemplateResult } from "lit"
-import { customElement } from "lit/decorators.js"
+import { svg, type TemplateResult } from "lit"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import { Coordinates } from "../../util/Coordinates"
 import { SizeProps } from "../SizeProps"
-import type { Block } from "../../blocks/Block"
+import type { AnyBlock } from "../../blocks/Block"
 import { BlockType } from "../../blocks/BlockType"
 import type { Connector } from "../../connections/Connector"
-import type { RegisteredBlock } from "../../registries/RegisteredBlock"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export abstract class BaseBlockRenderer {
   blockRegistry: BlockRegistry
@@ -34,7 +33,7 @@ export abstract class BaseBlockRenderer {
     }
   }
 
-  protected measureSetUpstream(from: Block) {
+  protected measureSetUpstream(from: AnyBlock) {
     const upstream = from.upstream
     if (!upstream) throw new Error("Block has no upstream")
     if (upstream.type == BlockType.Root) return
@@ -43,7 +42,7 @@ export abstract class BaseBlockRenderer {
     this.measureSetUpstream(upstream)
   }
 
-  protected abstract measureBlock(block: Block): SizeProps
+  protected abstract measureBlock(block: AnyBlock): SizeProps
 
   //#endregion
 
@@ -55,7 +54,7 @@ export abstract class BaseBlockRenderer {
     })
   }
 
-  protected setPositionsRecursive(forBlock: Block, blockPosition: Coordinates) {
+  protected setPositionsRecursive(forBlock: AnyBlock, blockPosition: Coordinates) {
     const registered = this.blockRegistry.setPosition(forBlock, blockPosition)
     this.setConnectorPositions(registered)
 
@@ -76,7 +75,7 @@ export abstract class BaseBlockRenderer {
     )
   }
 
-  protected setConnectorPositions(registeredBlock: RegisteredBlock) {
+  protected setConnectorPositions(registeredBlock: AnyRegisteredBlock) {
     if (registeredBlock.size == null) throw new Error("Block size is not set")
     registeredBlock.block.connectors.all.forEach(connector => {
       const connectorOffset = this.calculateConnectorOffset(
@@ -93,15 +92,15 @@ export abstract class BaseBlockRenderer {
   }
 
   protected abstract calculateBlockPosition(
-    block: Block,
+    block: AnyBlock,
     size: SizeProps,
-    registeredParent: RegisteredBlock,
+    registeredParent: AnyRegisteredBlock,
     parentConnector: Connector
   ): Coordinates
 
   protected abstract calculateConnectorOffset(
     connector: Connector,
-    block: Block,
+    block: AnyBlock,
     blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates
@@ -119,8 +118,8 @@ export abstract class BaseBlockRenderer {
   }
 
   public renderBlock(
-    block: Block,
-    previousBlock: Block | null,
+    block: AnyBlock,
+    previousBlock: AnyBlock | null,
     translatePosition: Coordinates | null = null
   ): TemplateResult<2> {
     const size = this.blockRegistry.getSize(block)
@@ -131,15 +130,18 @@ export abstract class BaseBlockRenderer {
       this.determineRenderOffset(block, previousBlock, translatePosition),
       block.draggable,
       () =>
-        this.renderBlockElement(block, size, position, (next: Block) =>
-          this.renderBlock(next, block)
+        this.renderBlockElement(
+          block,
+          size,
+          position,
+          (next: AnyBlock) => this.renderBlock(next, block)
         )
     )
   }
 
   protected determineRenderOffset(
-    block: Block,
-    previousBlock: Block | null,
+    block: AnyBlock,
+    previousBlock: AnyBlock | null,
     translatePosition: Coordinates | null
   ): Coordinates {
     if (previousBlock == null && translatePosition == null)
@@ -167,10 +169,10 @@ export abstract class BaseBlockRenderer {
   }
 
   protected abstract renderBlockElement(
-    block: Block,
+    block: AnyBlock,
     size: SizeProps,
     position: Coordinates,
-    renderConnected: (block: Block) => TemplateResult<2>
+    renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2>
 
   //#endregion

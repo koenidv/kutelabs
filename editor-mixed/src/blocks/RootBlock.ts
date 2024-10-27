@@ -1,20 +1,20 @@
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import { Coordinates } from "../util/Coordinates"
-import { Block } from "./Block"
+import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
-export type BlockAndCoordinates = { block: Block; position: Coordinates }
+export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
 
-export class RootBlock extends Block {
+export class RootBlock extends Block<BlockType.Root> {
   constructor() {
-    super(null, BlockType.Root, [Connector.Root], false)
+    super(null, BlockType.Root, null, [Connector.Root], false)
   }
 
   blocks: BlockAndCoordinates[] = []
 
   override connect(
-    block: Block,
+    block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
     isOppositeAction: boolean = false
@@ -33,7 +33,7 @@ export class RootBlock extends Block {
     if (!isOppositeAction) block.connect(this, connection, atPosition, true)
   }
 
-  override disconnect(block: Block): Block | null {
+  override disconnect(block: AnyBlock): AnyBlock | null {
     const index = this.findIndex(block)
     if (index !== -1) this.blocks.splice(index, 1)
 
@@ -51,7 +51,7 @@ export class RootBlock extends Block {
     )
   }
 
-  private findIndex(block: Block) {
+  private findIndex(block: AnyBlock) {
     return this.blocks.findIndex(b => b.block === block)
   }
 }

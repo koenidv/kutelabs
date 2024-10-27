@@ -1,14 +1,14 @@
 import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
 import { ConnectorRole } from "../connections/ConnectorRole"
-import type { Block } from "./Block"
+import type { AnyBlock } from "./Block"
 
 export class BlockConnectors {
   private _connectors: Map<ConnectorType, Connector> = new Map()
   private _innerConnectors: Connector[] = []
   private _extensionConnectors: Connector[] = []
 
-  addConnector(parentBlock: Block, ...connectors: Connector[]) {
+  addConnector(parentBlock: AnyBlock, ...connectors: Connector[]) {
     connectors.forEach(connector => {
       connector.parentBlock = parentBlock
 

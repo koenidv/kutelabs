@@ -1,5 +1,5 @@
 import { svg, type TemplateResult } from "lit"
-import type { Block } from "../../blocks/Block"
+import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
@@ -7,10 +7,10 @@ import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
 import { BlockRegistry } from "../../registries/BlockRegistry"
-import type { RegisteredBlock } from "../../registries/RegisteredBlock"
+import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
-  protected measureBlock(block: Block): SizeProps {
+  protected measureBlock(block: AnyBlock): SizeProps {
     const size = SizeProps.empty()
     size.addWidth(WidthProp.Left, 100)
 
@@ -30,7 +30,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     return size
   }
 
-  private measureStackHeight(block: Block): number {
+  private measureStackHeight(block: AnyBlock): number {
     let height = BlockRegistry.instance.getSize(block).fullHeight
     let after = block.after
     while (after != null) {
@@ -41,9 +41,9 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   }
 
   protected calculateBlockPosition(
-    _block: Block,
+    _block: AnyBlock,
     _size: SizeProps,
-    registeredParent: RegisteredBlock,
+    registeredParent: AnyRegisteredBlock,
     parentConnector: Connector
   ): Coordinates {
     // todo this doesn't support multiple extensions; will need to know the extension index
@@ -59,7 +59,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 
   protected calculateConnectorOffset(
     connector: Connector,
-    block: Block,
+    block: AnyBlock,
     _blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates {
@@ -88,10 +88,10 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   }
 
   protected renderBlockElement(
-    block: Block,
+    block: AnyBlock,
     size: SizeProps,
     position: Coordinates,
-    renderConnected: (block: Block) => TemplateResult<2>
+    renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
     <g class="block-${BlockType[block.type]}">

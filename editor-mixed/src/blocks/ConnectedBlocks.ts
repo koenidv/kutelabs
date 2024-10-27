@@ -4,18 +4,18 @@ import { ConnectorType } from "../connections/ConnectorType";
 import { BlockRegistry } from "../registries/BlockRegistry";
 import { Coordinates } from "../util/Coordinates";
 import { findKeyByValue } from "../util/MapUtils";
-import type { Block } from "./Block";
+import type { AnyBlock, Block } from "./Block";
 
 export class ConnectedBlocks {
   
-  blocks: Map<Connector, Block> = new Map()
+  blocks: Map<Connector, AnyBlock> = new Map()
 
-  insertForConnector(block: Block, connector: Connector) {
+  insertForConnector(block: AnyBlock, connector: Connector) {
     if (this.blocks.has(connector)) this.handlePopBlock(connector, block)
     this.blocks.set(connector, block)
   }
 
-  private handlePopBlock(connector: Connector, newBlock: Block) {
+  private handlePopBlock(connector: Connector, newBlock: AnyBlock) {
     if (!connector.isDownstram) console.warn("Popping block on upstream connector", connector)
     const popped = (connector.isDownstram
       ? this.byConnector(connector)
@@ -34,16 +34,16 @@ export class ConnectedBlocks {
 
   }
 
-  isConnected(to: Block): boolean {
+  isConnected(to: AnyBlock): boolean {
     return [...this.blocks.values()].includes(to)
   }
 
-  byConnector(connector: Connector | null): Block | null {
+  byConnector(connector: Connector | null): AnyBlock | null {
     if (connector === null) return null
     return this.blocks.get(connector) || null
   }
 
-  popBlock(block: Block): BlockAndConnector | null {
+  popBlock(block: AnyBlock): BlockAndConnector | null {
     const connector = findKeyByValue(this.blocks, block)
     if (!connector) return null
     const popped = this.popForConnector(connector)
@@ -51,7 +51,7 @@ export class ConnectedBlocks {
     return { block: popped, connector }
   }
 
-  popForConnector(connector: Connector): Block | null {
+  popForConnector(connector: Connector): AnyBlock | null {
     const block = this.blocks.get(connector) ?? null
     this.blocks.delete(connector)
     return block
