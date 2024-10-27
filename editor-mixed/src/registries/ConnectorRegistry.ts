@@ -1,5 +1,4 @@
 import type { Connector } from "../connections/Connector"
-import { ConnectorType } from "../connections/ConnectorType"
 import { Coordinates } from "../util/Coordinates"
 import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
@@ -54,13 +53,9 @@ export class ConnectorRegistry {
     localConnector = block.connectors.before
     if (localConnector) {
       remoteConnector = this.getClosestConnector(
+        localConnector,
         connectedIds,
         Coordinates.add(localConnector.globalPosition, dragOffset),
-        [
-          c => c.type === ConnectorType.After,
-          c => c.type === ConnectorType.Extension,
-          c => c.type === ConnectorType.Inner,
-        ],
         maxXY
       )
       if (remoteConnector)
@@ -71,9 +66,9 @@ export class ConnectorRegistry {
     localConnector = block.lastAfter.connectors.after
     if (localConnector) {
       remoteConnector = this.getClosestConnector(
+        localConnector,
         connectedIds,
         Coordinates.add(localConnector.globalPosition, dragOffset),
-        [c => c.type === ConnectorType.Before],
         maxXY
       )
       if (remoteConnector)
@@ -85,22 +80,22 @@ export class ConnectorRegistry {
 
   /**
    * Find the closest connector to a given position that matches one of the predicates
+   * @param localConnector connector to search connection for, will invoke the predicates
    * @param ignoreIds Don't return connectors from these blocks
    * @param position Center of the area to search
-   * @param predicates OR List of predicates; a connector must match **at least one of them**
    * @param maxXY Radius of the area to search, will be a square
    * @returns Closest connector that matches the criteria, or null if none found
    */
   public getClosestConnector(
+    localConnector: Connector,
     ignoreIds: string[],
     position: Coordinates,
-    predicates: ((c: Connector) => boolean)[],
     maxXY: number
   ): Connector | null {
     const connectors = this.getNearbyConnectors(
+      localConnector,
       ignoreIds,
       position,
-      predicates,
       maxXY
     )
     if (connectors.length === 0) return null
@@ -109,16 +104,16 @@ export class ConnectorRegistry {
 
   /**
    * Find connectors in a given area that match one of the predicates
+   * @param localConnector connector to search connection for, will invoke the predicates
    * @param ingoreIds Don't return connectors from these blocks
    * @param position Center of the area to search
-   * @param predicates OR List of predicates; a connector must match **at least one of them**
    * @param maxXY Radius of the area to search, will be a square
    * @returns List of connectors that match the criteria
    */
   public getNearbyConnectors(
+    localConnector: Connector,
     ingoreIds: string[],
     position: Coordinates,
-    predicates: ((c: Connector) => boolean)[],
     maxXY: number
   ): Connector[] {
     return this._connectors.filter(connector => {
@@ -127,12 +122,12 @@ export class ConnectorRegistry {
         return false
       }
 
-      for (const predicate of predicates) {
-        if (predicate(connector))
-          return (
-            Math.abs(connector.globalPosition.x - position.x) <= maxXY &&
-            Math.abs(connector.globalPosition.y - position.y) <= maxXY
-          )
+      if (localConnector.connectPredicates.allows(connector)) {
+        return (
+          connector.connectPredicates.allows(localConnector) &&
+          Math.abs(connector.globalPosition.x - position.x) <= maxXY &&
+          Math.abs(connector.globalPosition.y - position.y) <= maxXY
+        )
       }
 
       return false

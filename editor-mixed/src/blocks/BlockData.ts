@@ -5,7 +5,7 @@ export type BlockDataByType<T extends BlockType> = T extends BlockType.Function
   ? BlockDataFunction
   : T extends BlockType.Expression
     ? BlockDataExpression
-    : T extends BlockType.Input
+    : T extends BlockType.Value
       ? BlockDataInput
       : BlockDataEmpty
 

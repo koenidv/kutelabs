@@ -1,16 +1,17 @@
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
-import type { AnyRegisteredBlock, RegisteredBlock } from "../registries/RegisteredBlock"
-import type { DragRenderer } from "../render/DragRenderers/BaseDragRenderer"
+import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
+import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
 export class DragHelper {
-  private renderer: DragRenderer
+  private renderer: BaseDragRenderer
   private requestRerender: () => void
 
-  constructor(renderer: DragRenderer, rerender: () => void) {
+  constructor(renderer: BaseDragRenderer, rerender: () => void) {
     this.renderer = renderer
     this.requestRerender = rerender
   }
@@ -113,7 +114,7 @@ export class DragHelper {
   private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
-      snap ?? new Connection(Connector.Root, dragged.block.connectors.internal)
+      snap ?? new Connection(DefaultConnectors.Root, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
       dragged.block,

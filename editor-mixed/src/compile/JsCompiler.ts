@@ -35,14 +35,14 @@ export class JsCompiler extends BaseCompiler {
     throw new Error("Method not implemented.")
   }
 
-  compileInput(
-    block: Block<BlockType.Input>,
+  compileValue(
+    block: Block<BlockType.Value>,
     next: typeof this.compile
   ): string {
     throw new Error("Method not implemented.")
   }
 
-  compileVar(block: Block<BlockType.Var>, next: typeof this.compile): string {
+  compileVariable(block: Block<BlockType.Variable>, next: typeof this.compile): string {
     throw new Error("Method not implemented.")
   }
 

@@ -4,7 +4,7 @@ import { ConnectorType } from "../connections/ConnectorType"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { findKeyByValue } from "../util/MapUtils"
-import type { AnyBlock, Block } from "./Block"
+import type { AnyBlock } from "./Block"
 
 export class ConnectedBlocks {
   blocks: Map<Connector, AnyBlock> = new Map()

@@ -1,8 +1,9 @@
-import type { AnyBlock, Block } from "../blocks/Block"
+import type { AnyBlock } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { SizeProps } from "../render/SizeProps"
 import type { Coordinates } from "../util/Coordinates"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
@@ -68,7 +69,7 @@ export class BlockRegistry {
     if (!registered) throw new Error("Block is not registered")
     this._root.connect(
       block,
-      new Connection(Connector.Root, block.connectors.internal),
+      new Connection(DefaultConnectors.Root, block.connectors.internal),
       modifyPosition(registered.globalPosition)
     )
   }

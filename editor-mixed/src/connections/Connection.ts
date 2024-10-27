@@ -1,5 +1,5 @@
 import type { AnyBlock, Block } from "../blocks/Block"
-import type { Connector } from "./Connector"
+import type { Connector } from "./Connector.1"
 
 export class Connection {
   from: Connector

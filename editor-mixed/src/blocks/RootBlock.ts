@@ -1,5 +1,6 @@
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { Coordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
@@ -8,7 +9,7 @@ export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
 
 export class RootBlock extends Block<BlockType.Root> {
   constructor() {
-    super(null, BlockType.Root, null, [Connector.Root], false)
+    super(null, BlockType.Root, null, [DefaultConnectors.Root], false)
   }
 
   blocks: BlockAndCoordinates[] = []
@@ -19,7 +20,7 @@ export class RootBlock extends Block<BlockType.Root> {
     atPosition?: Coordinates,
     isOppositeAction: boolean = false
   ): void {
-    if (connection.from != Connector.Root && connection.to != Connector.Root)
+    if (connection.from != DefaultConnectors.Root && connection.to != DefaultConnectors.Root)
       throw new Error("Root block can only connect on root connector")
 
     if (this.findIndex(block) == -1) {
@@ -45,7 +46,7 @@ export class RootBlock extends Block<BlockType.Root> {
     values.forEach(({ block, position }, _) =>
       this.connect(
         block,
-        new Connection(Connector.Root, block.connectors.internal),
+        new Connection(DefaultConnectors.Root, block.connectors.internal),
         position
       )
     )

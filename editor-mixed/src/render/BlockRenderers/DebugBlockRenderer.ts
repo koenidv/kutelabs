@@ -1,5 +1,5 @@
 import { svg, type TemplateResult } from "lit"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import type { AnyBlock } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
@@ -7,7 +7,7 @@ import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
 import { BlockRegistry } from "../../registries/BlockRegistry"
-import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected measureBlock(block: AnyBlock): SizeProps {
@@ -18,7 +18,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       HeightProp.Head,
       block.extensions.length > 0
         ? BlockRegistry.instance.getSize(block.extensions[0]).fullHeight
-        : block.type == BlockType.Input ? 30 : 50
+        : block.type == BlockType.Value ? 30 : 50
     )
 
     // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
@@ -65,7 +65,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   ): Coordinates {
     switch (connector.type) {
       case ConnectorType.Before:
-        if (block.type == BlockType.Input)
+        if (block.type == BlockType.Value)
           return new Coordinates(0, blockSize.fullHeight / 2)
         else return Coordinates.zero
       case ConnectorType.After:

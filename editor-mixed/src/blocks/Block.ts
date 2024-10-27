@@ -1,6 +1,7 @@
 import { Connection } from "../connections/Connection"
 import { Connector, type BlockAndConnector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { IdGenerator } from "../util/IdGenerator"
@@ -31,7 +32,7 @@ export class Block<T extends BlockType> implements BlockContract {
 
     this.data = data
 
-    this.connectors.addConnector(this, Connector.internal(), ...connectors)
+    this.connectors.addConnector(this, DefaultConnectors.internal(), ...connectors)
 
     if (previous != null) this.connectToPrevious(previous)
 

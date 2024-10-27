@@ -1,20 +1,23 @@
-import type { AnyBlock, Block } from "../blocks/Block"
-import type { BlockType } from "../blocks/BlockType"
+import type { AnyBlock } from "../blocks/Block"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
+import { ConnectPredicates, type ConnectPredicate } from "./ConnectPredicates"
 
 export class Connector {
   type: ConnectorType
   role: ConnectorRole
+  connectPredicates: ConnectPredicates
 
   constructor(
     type: ConnectorType,
-    role: ConnectorRole = ConnectorRole.Default
+    role: ConnectorRole = ConnectorRole.Default,
+    connectPredicates: ConnectPredicate[] = []
   ) {
     this.type = type
     this.role = role
+    this.connectPredicates = new ConnectPredicates(this, connectPredicates)
     ConnectorRegistry.instance.register(this)
   }
 
@@ -37,11 +40,6 @@ export class Connector {
       this.type === ConnectorType.Extension
     )
   }
-
-  static internal() {
-    return new Connector(ConnectorType.Internal)
-  }
-  static Root = new Connector(ConnectorType.Internal)
 }
 
 export type BlockAndConnector = { block: AnyBlock; connector: Connector }

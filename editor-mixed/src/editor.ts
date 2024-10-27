@@ -5,14 +5,13 @@ import { DebugBlockRenderer } from "./render/BlockRenderers/DebugBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
 import { Block } from "./blocks/Block"
 import { BlockType } from "./blocks/BlockType"
-import { Connector } from "./connections/Connector"
-import { ConnectorType } from "./connections/ConnectorType"
 import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
 import { DebugDragRenderer } from "./render/DragRenderers/DebugDragRenderer"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
 import { DefinedExpression } from "./blocks/DefinedExpression"
+import { DefaultConnectors } from "./connections/DefaultConnectors"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -44,7 +43,7 @@ export class EditorMixed extends LitElement {
       null,
       BlockType.Function,
       { name: "main" },
-      [new Connector(ConnectorType.Inner)],
+      [DefaultConnectors.innerLoop()],
       true
     )
     BlockRegistry.instance.attachToRoot(mainFn, () => new Coordinates(100, 200))
@@ -53,9 +52,9 @@ export class EditorMixed extends LitElement {
       BlockType.Expression,
       { expression: DefinedExpression.Println },
       [
-        new Connector(ConnectorType.Before),
-        new Connector(ConnectorType.After),
-        new Connector(ConnectorType.Extension),
+        DefaultConnectors.before(),
+        DefaultConnectors.after(),
+        DefaultConnectors.inputExtension(),
       ],
       true
     )
@@ -64,10 +63,10 @@ export class EditorMixed extends LitElement {
       BlockType.Loop,
       null,
       [
-        new Connector(ConnectorType.Before),
-        new Connector(ConnectorType.After),
-        new Connector(ConnectorType.Extension),
-        new Connector(ConnectorType.Inner),
+        DefaultConnectors.before(),
+        DefaultConnectors.after(),
+        DefaultConnectors.inputExtension(),
+        DefaultConnectors.innerLoop(),
       ],
       true
     )
@@ -76,10 +75,10 @@ export class EditorMixed extends LitElement {
       BlockType.Loop,
       null,
       [
-        new Connector(ConnectorType.Before),
-        new Connector(ConnectorType.After),
-        new Connector(ConnectorType.Extension),
-        new Connector(ConnectorType.Inner),
+        DefaultConnectors.before(),
+        DefaultConnectors.after(),
+        DefaultConnectors.inputExtension(),
+        DefaultConnectors.innerLoop(),
       ],
       true
     ),
@@ -87,9 +86,9 @@ export class EditorMixed extends LitElement {
     BlockRegistry.instance.attachToRoot(
       new Block(
         null,
-        BlockType.Input,
+        BlockType.Value,
         { input: "Hello" },
-        [new Connector(ConnectorType.Before)],
+        [DefaultConnectors.extender()],
         true
       ),
       () => new Coordinates(300, 250)
@@ -97,9 +96,9 @@ export class EditorMixed extends LitElement {
     BlockRegistry.instance.attachToRoot(
       new Block(
         null,
-        BlockType.Input,
+        BlockType.Value,
         { input: "World" },
-        [new Connector(ConnectorType.Before)],
+        [DefaultConnectors.extender()],
         true
       ),
       () => new Coordinates(300, 400)

@@ -1,6 +1,6 @@
-import { nothing, svg, type TemplateResult } from "lit"
+import { nothing, type TemplateResult } from "lit"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import type { AnyBlock } from "../../blocks/Block"
 import { Coordinates } from "../../util/Coordinates"
 import type { Connection } from "../../connections/Connection"
 import { ConnectorType } from "../../connections/ConnectorType"
@@ -40,6 +40,7 @@ export abstract class BaseDragRenderer {
   render() {
     if (this.dragged == null) return nothing
     return [
+      // todo should set z-index here
       this._renderBlock(this.dragged.block, this.position),
       this.renderSnap(),
     ]
