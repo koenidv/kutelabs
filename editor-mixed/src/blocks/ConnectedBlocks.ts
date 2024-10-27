@@ -1,13 +1,12 @@
-import { Connection } from "../connections/Connection";
-import type { BlockAndConnector, Connector } from "../connections/Connector";
-import { ConnectorType } from "../connections/ConnectorType";
-import { BlockRegistry } from "../registries/BlockRegistry";
-import { Coordinates } from "../util/Coordinates";
-import { findKeyByValue } from "../util/MapUtils";
-import type { AnyBlock, Block } from "./Block";
+import { Connection } from "../connections/Connection"
+import type { BlockAndConnector, Connector } from "../connections/Connector"
+import { ConnectorType } from "../connections/ConnectorType"
+import { BlockRegistry } from "../registries/BlockRegistry"
+import { Coordinates } from "../util/Coordinates"
+import { findKeyByValue } from "../util/MapUtils"
+import type { AnyBlock, Block } from "./Block"
 
 export class ConnectedBlocks {
-  
   blocks: Map<Connector, AnyBlock> = new Map()
 
   insertForConnector(block: AnyBlock, connector: Connector) {
@@ -16,22 +15,34 @@ export class ConnectedBlocks {
   }
 
   private handlePopBlock(connector: Connector, newBlock: AnyBlock) {
-    if (!connector.isDownstram) console.warn("Popping block on upstream connector", connector)
-    const popped = (connector.isDownstram
-      ? this.byConnector(connector)
-      : connector.parentBlock
+    if (!connector.isDownstram)
+      console.warn("Popping block on upstream connector", connector)
+    const popped = (
+      connector.isDownstram
+        ? this.byConnector(connector)
+        : connector.parentBlock
     )?.disconnectSelf()
     if (!popped) return
 
     // todo extension blocks / chains
 
     const lastAfter = newBlock.lastAfter
-    if (connector.type == ConnectorType.After && lastAfter.connectors.after && popped.connectors.before) {
-      return lastAfter.connect(popped, new Connection(lastAfter.connectors.after, popped.connectors.before), Coordinates.zero)
+    if (
+      (connector.type == ConnectorType.After ||
+        connector.type === ConnectorType.Inner) &&
+      lastAfter.connectors.after &&
+      popped.connectors.before
+    ) {
+      return lastAfter.connect(
+        popped,
+        new Connection(lastAfter.connectors.after, popped.connectors.before),
+        Coordinates.zero
+      )
     }
 
-    BlockRegistry.instance.attachToRoot(popped, curr => { return Coordinates.addPopOffset(curr) })
-
+    BlockRegistry.instance.attachToRoot(popped, curr => {
+      return Coordinates.addPopOffset(curr)
+    })
   }
 
   isConnected(to: AnyBlock): boolean {

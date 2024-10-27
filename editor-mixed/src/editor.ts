@@ -71,6 +71,19 @@ export class EditorMixed extends LitElement {
       ],
       true
     )
+    BlockRegistry.instance.attachToRoot(new Block(
+      null,
+      BlockType.Loop,
+      null,
+      [
+        new Connector(ConnectorType.Before),
+        new Connector(ConnectorType.After),
+        new Connector(ConnectorType.Extension),
+        new Connector(ConnectorType.Inner),
+      ],
+      true
+    ),
+  () => new Coordinates(450, 200))
     BlockRegistry.instance.attachToRoot(
       new Block(
         null,

@@ -6,9 +6,7 @@ import { Coordinates } from "../util/Coordinates"
 import { IdGenerator } from "../util/IdGenerator"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
-import {
-  type BlockDataByType,
-} from "./BlockData"
+import { type BlockDataByType } from "./BlockData"
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
 
@@ -35,25 +33,29 @@ export class Block<T extends BlockType> implements BlockContract {
 
     this.connectors.addConnector(this, Connector.internal(), ...connectors)
 
-    if (previous) {
-      if (this.connectors.before === null)
-        throw new Error(
-          "Block must have before connector to be initialized with previous block"
-        )
-      if (previous.connectors.after === null)
-        throw new Error(
-          "Previous block must have after connector to be initialized as before block"
-        )
-      previous.connect(
-        this,
-        new Connection(previous.connectors.after, this.connectors.before)
-      )
-    }
+    if (previous != null) this.connectToPrevious(previous)
 
     BlockRegistry.instance.register(this)
   }
 
   //#region Connect/Disconnect
+
+  private connectToPrevious(previous: AnyBlock) {
+    if (this.connectors.before === null)
+      throw new Error(
+        "Block must have before connector to be initialized with previous block"
+      )
+    const previousDownstreamConnector =
+      previous.connectors.after ?? previous.connectors.inners[0] ?? null
+    if (previousDownstreamConnector === null)
+      throw new Error(
+        "Previous block must have after or inner connector to be initialized as before block"
+      )
+    previous.connect(
+      this,
+      new Connection(previousDownstreamConnector, this.connectors.before)
+    )
+  }
 
   connect(
     block: AnyBlock,
