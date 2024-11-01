@@ -1,0 +1,6 @@
+{
+  "$schema": "./schema/challenge.schema.json",
+  "editor": {
+    "type": "mixed"
+  }
+}

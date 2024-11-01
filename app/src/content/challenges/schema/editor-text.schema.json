@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/editor.schema.json",
+  "title": "Text Editor Configuration",
+  "description": "Configuration for the text/code editor within a kutelabs challenge",
+  "type": "object",
+  "properties": {
+    "type": {
+      "description": "Defines this editor as a text editor",
+      "type": "string",
+      "const": "text"
+    }
+  },
+  "required": [
+    "type"
+  ]
+}

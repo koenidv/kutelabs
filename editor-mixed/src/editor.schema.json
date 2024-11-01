@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/editor.schema.json",
+  "title": "Mixed Content Editor Configuration",
+  "description": "Configuration for the mixed content editor within a kutelabs challenge",
+  "type": "object",
+  "properties": {
+    "type": {
+      "description": "Defines this editor as a mixed content editor",
+      "type": "string",
+      "const": "mixed"
+    }
+  }
+}

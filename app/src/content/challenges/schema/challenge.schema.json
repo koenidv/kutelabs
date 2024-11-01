@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/content/challenges/challenge.schema.json",
+  "title": "Challenge",
+  "description": "A challenge along the kutelabs learning journey",
+  "type": "object",
+  "properties": {
+    "editor": {
+      "anyOf": [
+        {
+          "description": "Use and configure the mixed content editor",
+          "$ref": "../../../../../editor-mixed/src/editor.schema.json"
+        },
+        {
+          "description": "Use and configure the text editor",
+          "$ref": "./editor-text.schema.json"
+        }
+      ]
+    }
+  },
+  "required": [
+    "editor"
+  ]
+}
