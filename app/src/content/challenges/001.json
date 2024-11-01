@@ -1,6 +1,20 @@
 {
   "$schema": "./schema/challenge.schema.json",
   "editor": {
-    "type": "mixed"
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "block": {
+          "type": "expression",
+          "data": {
+            "expression": "Println"
+          }
+        },
+        "coordinates": {
+          "x": 100,
+          "y": 100
+        }
+      }
+    ]
   }
 }
