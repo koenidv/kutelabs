@@ -8,8 +8,8 @@ import { BlockType } from "./BlockType"
 export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
 
 export class RootBlock extends Block<BlockType.Root> {
-  constructor() {
-    super(null, BlockType.Root, null, [DefaultConnectors.Root], false)
+  constructor(connectors: Connector[]) {
+    super(null, BlockType.Root, null, connectors, false)
   }
 
   blocks: BlockAndCoordinates[] = []
@@ -20,7 +20,12 @@ export class RootBlock extends Block<BlockType.Root> {
     atPosition?: Coordinates,
     isOppositeAction: boolean = false
   ): void {
-    if (connection.from != DefaultConnectors.Root && connection.to != DefaultConnectors.Root)
+    if (
+      connection.from != DefaultConnectors.Root &&
+      connection.to != DefaultConnectors.Root &&
+      connection.from != DefaultConnectors.Drawer &&
+      connection.to != DefaultConnectors.Drawer
+    )
       throw new Error("Root block can only connect on root connector")
 
     if (this.findIndex(block) == -1) {

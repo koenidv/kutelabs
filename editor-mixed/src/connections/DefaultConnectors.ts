@@ -50,4 +50,5 @@ export class DefaultConnectors {
   }
 
   static Root = new Connector(ConnectorType.Internal)
+  static Drawer = new Connector(ConnectorType.Internal)
 }

@@ -5,7 +5,7 @@ import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { SizeProps } from "../render/SizeProps"
-import type { Coordinates } from "../util/Coordinates"
+import { Coordinates } from "../util/Coordinates"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
 export class BlockRegistry {
@@ -19,8 +19,15 @@ export class BlockRegistry {
   public set root(value: RootBlock | null) {
     this._root = value
   }
-  public initRoot() {
-    this.root = new RootBlock()
+
+  private _drawer: RootBlock | null = null
+  public set drawer(value: RootBlock | null) {
+    this._drawer = value
+  }
+
+  public init() {
+    this.root = new RootBlock([DefaultConnectors.Root])
+    this.drawer = new RootBlock([DefaultConnectors.Drawer])
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
@@ -46,7 +53,10 @@ export class BlockRegistry {
     return registered.size
   }
 
-  public setPosition(block: AnyBlock, position: Coordinates): AnyRegisteredBlock {
+  public setPosition(
+    block: AnyBlock,
+    position: Coordinates
+  ): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
@@ -63,13 +73,32 @@ export class BlockRegistry {
     block: AnyBlock | null,
     modifyPosition: (current: Coordinates) => Coordinates
   ) {
-    if (!block) return
     if (!this._root) throw new Error("Root is not set")
+    this.attach(block, this._root, DefaultConnectors.Root, modifyPosition)
+  }
+
+  public attachToDrawer(block: AnyBlock | null) {
+    if (!this._drawer) throw new Error("Drawer is not set")
+    this.attach(
+      block,
+      this._drawer,
+      DefaultConnectors.Drawer,
+      () => Coordinates.zero
+    )
+  }
+
+  private attach(
+    block: AnyBlock | null,
+    to: RootBlock,
+    on: Connector,
+    modifyPosition: (c: Coordinates) => Coordinates
+  ) {
+    if (!block) return
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
-    this._root.connect(
+    to.connect(
       block,
-      new Connection(DefaultConnectors.Root, block.connectors.internal),
+      new Connection(on, block.connectors.internal),
       modifyPosition(registered.globalPosition)
     )
   }

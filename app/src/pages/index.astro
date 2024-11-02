@@ -26,8 +26,7 @@ import { EditorMixed } from "@kutelabs/editor-mixed"
   document.querySelector("#btn-tojs").addEventListener(
     "click",
     (() => {
-      //@ts-ignore
-      console.log(document.querySelector("editor-mixed").toJs())
+      console.log(document.querySelector("editor-mixed").compile(new JsCompiler()))
     }).bind(this)
   )
   //@ts-ignore

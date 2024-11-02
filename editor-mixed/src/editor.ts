@@ -12,6 +12,7 @@ import { DebugDragRenderer } from "./render/DragRenderers/DebugDragRenderer"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
 import { DefinedExpression } from "./blocks/DefinedExpression"
 import { DefaultConnectors } from "./connections/DefaultConnectors"
+import type { BaseCompiler } from "./compile/BaseCompiler"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -22,7 +23,7 @@ export class EditorMixed extends LitElement {
 
   constructor() {
     super()
-    BlockRegistry.instance.initRoot()
+    BlockRegistry.instance.init()
 
     this.renderer = new DebugBlockRenderer(BlockRegistry.instance)
     this.extrasRenderer = new ExtrasRenderer()
@@ -70,19 +71,21 @@ export class EditorMixed extends LitElement {
       ],
       true
     )
-    BlockRegistry.instance.attachToRoot(new Block(
-      null,
-      BlockType.Loop,
-      null,
-      [
-        DefaultConnectors.before(),
-        DefaultConnectors.after(),
-        DefaultConnectors.inputExtension(),
-        DefaultConnectors.innerLoop(),
-      ],
-      true
-    ),
-  () => new Coordinates(450, 200))
+    BlockRegistry.instance.attachToRoot(
+      new Block(
+        null,
+        BlockType.Loop,
+        null,
+        [
+          DefaultConnectors.before(),
+          DefaultConnectors.after(),
+          DefaultConnectors.inputExtension(),
+          DefaultConnectors.innerLoop(),
+        ],
+        true
+      ),
+      () => new Coordinates(450, 200)
+    )
     BlockRegistry.instance.attachToRoot(
       new Block(
         null,
@@ -103,10 +106,34 @@ export class EditorMixed extends LitElement {
       ),
       () => new Coordinates(300, 400)
     )
+    BlockRegistry.instance.attachToDrawer(
+      new Block(
+        mainFn,
+        BlockType.Expression,
+        { expression: DefinedExpression.Println },
+        [
+          DefaultConnectors.before(),
+          DefaultConnectors.after(),
+          DefaultConnectors.inputExtension(),
+        ],
+        true
+      )
+    )
+    BlockRegistry.instance.attachToDrawer(
+      new Block(
+        null,
+        BlockType.Value,
+        { input: "Hello" },
+        [DefaultConnectors.extender()],
+        true
+      )
+    )
   }
 
-  public toJs(): string {
-    return "Not implemented"
+  public compile(compiler: BaseCompiler): string {
+    if (!BlockRegistry.instance.root)
+      throw new Error("Root block is not initialized")
+    return compiler.compileFromRoot(BlockRegistry.instance.root, true)
   }
 
   protected render() {
