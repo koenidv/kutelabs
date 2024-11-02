@@ -3,7 +3,7 @@ import { customElement } from "lit/decorators.js"
 import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
 import { DebugBlockRenderer } from "./render/BlockRenderers/DebugBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
-import { Block } from "./blocks/Block"
+import { Block, type AnyBlock } from "./blocks/Block"
 import { BlockType } from "./blocks/BlockType"
 import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
@@ -13,10 +13,13 @@ import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
 import { DefinedExpression } from "./blocks/DefinedExpression"
 import { DefaultConnectors } from "./connections/DefaultConnectors"
 import type { BaseCompiler } from "./compile/BaseCompiler"
+import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
+import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   renderer: BaseBlockRenderer
+  drawerRenderer: BaseDrawerRenderer
   extrasRenderer: ExtrasRenderer
   dragRenderer: BaseDragRenderer
   dragHelper: DragHelper
@@ -26,6 +29,11 @@ export class EditorMixed extends LitElement {
     BlockRegistry.instance.init()
 
     this.renderer = new DebugBlockRenderer(BlockRegistry.instance)
+    this.drawerRenderer = new DebugDrawerRenderer(
+      (block: Block<BlockType>, position: Coordinates) =>
+        this.renderer.renderBlock(block, null, position),
+      (block: AnyBlock) => this.renderer.measureBlock(block)
+    )
     this.extrasRenderer = new ExtrasRenderer()
     this.dragRenderer = new DebugDragRenderer(
       (block: Block<BlockType>, position: Coordinates) =>
@@ -108,7 +116,7 @@ export class EditorMixed extends LitElement {
     )
     BlockRegistry.instance.attachToDrawer(
       new Block(
-        mainFn,
+        null,
         BlockType.Expression,
         { expression: DefinedExpression.Println },
         [
@@ -145,7 +153,7 @@ export class EditorMixed extends LitElement {
         @mouseup="${(e: MouseEvent) => this.dragHelper.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper.endDrag(e)}">
         ${this.extrasRenderer.renderBackground()} ${this.renderer.render()}
-        ${this.dragRenderer.render()}
+        ${this.drawerRenderer.render()} ${this.dragRenderer.render()}
       </svg>
     `
   }

@@ -42,7 +42,7 @@ export abstract class BaseBlockRenderer {
     this.measureSetUpstream(upstream)
   }
 
-  protected abstract measureBlock(block: AnyBlock): SizeProps
+  abstract measureBlock(block: AnyBlock): SizeProps
 
   //#endregion
 

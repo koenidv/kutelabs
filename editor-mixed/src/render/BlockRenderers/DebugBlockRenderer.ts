@@ -10,7 +10,7 @@ import { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
-  protected measureBlock(block: AnyBlock): SizeProps {
+  measureBlock(block: AnyBlock): SizeProps {
     const size = SizeProps.empty()
     size.addWidth(WidthProp.Left, 100)
 

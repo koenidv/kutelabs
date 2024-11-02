@@ -19,10 +19,17 @@ export class BlockRegistry {
   public set root(value: RootBlock | null) {
     this._root = value
   }
+  public get root() {
+    return this._root
+  }
 
   private _drawer: RootBlock | null = null
   public set drawer(value: RootBlock | null) {
     this._drawer = value
+    console.log(this._drawer)
+  }
+  public get drawer() {
+    return this._drawer
   }
 
   public init() {
@@ -115,9 +122,6 @@ export class BlockRegistry {
     ]
   }
 
-  public get root() {
-    return this._root
-  }
   public get leafs(): AnyBlock[] {
     return [...this._blocks.keys()].filter(
       b =>
