@@ -1,4 +1,4 @@
-import { nothing, type TemplateResult } from "lit"
+import { nothing, svg, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
 import type { BlockAndSize, SizeProps } from "../SizeProps"
 import type { BlockAndCoordinates, Coordinates } from "../../util/Coordinates"
@@ -30,7 +30,11 @@ export abstract class BaseDrawerRenderer {
     const withSize = this.measureAndSet(blocks)
     const withPositions = this.positionAndSet(withSize)
 
-    return this.renderDrawer(withPositions, this.renderBlock)
+    return svg`
+      <g id="drawer">
+        ${this.renderDrawer(withPositions, this.renderBlock)}
+      </g>
+      `
   }
 
   private measureAndSet(blocks: AnyBlock[]): BlockAndSize[] {

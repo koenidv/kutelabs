@@ -24,6 +24,7 @@ export class ConnectPredicates {
    * @returns true if allowed; true for non-internal connectors when no predicates are applied
    */
   allows(remoteConnector: Connector): boolean {
+    if (this.localConnector.parentBlock?.isInDrawer) return false
     if (this.predicates.length === 0)
       return remoteConnector.type !== ConnectorType.Internal
     return this.predicates.some(it => it(remoteConnector, this.localConnector))

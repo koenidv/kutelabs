@@ -29,7 +29,9 @@ export class DragHelper {
   //#region Start Drag
 
   startDrag(evt: MouseEvent) {
-    const draggedParent = this.findDragableParent(evt.target as HTMLElement)
+    const draggedParent = this.findParent(evt.target as HTMLElement, it =>
+      it.classList.contains("dragable")
+    )
     if (draggedParent == null) return
     this.dragged = this.getDraggedData(draggedParent)
     if (this.dragged == null) return
@@ -47,17 +49,6 @@ export class DragHelper {
 
     this.renderer.update(this.dragged, this.startPos, null)
     this.requestRerender()
-  }
-
-  private findDragableParent(element: HTMLElement | null): HTMLElement | null {
-    if (!element) return null
-    if (element.classList.contains("dragable")) return element
-    if (
-      element.parentElement &&
-      element.parentElement.className != "editorContainer"
-    )
-      return this.findDragableParent(element.parentElement)
-    return null
   }
 
   private getDraggedData(
@@ -99,12 +90,21 @@ export class DragHelper {
     if (!this.dragged) return
     evt.preventDefault()
 
-    const snap = ConnectorRegistry.instance.selectConnectorForBlock(
-      this.dragged.block,
-      new Coordinates(this.dragX, this.dragY),
-      25
-    )
-    this.insertOnSnap(this.dragged, snap)
+    if (
+      this.findParent(evt.target as HTMLElement, it => it.id == "drawer") !=
+      null
+    ) {
+      // Dropped on drawer
+      BlockRegistry.instance.attachToDrawer(this.dragged.block)
+    } else {
+      // Snapped to another connector on dropped in the workspace
+      const snap = ConnectorRegistry.instance.selectConnectorForBlock(
+        this.dragged.block,
+        new Coordinates(this.dragX, this.dragY),
+        25
+      )
+      this.insertOnSnap(this.dragged, snap)
+    }
 
     this.reset()
 
@@ -114,7 +114,8 @@ export class DragHelper {
   private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
     const snapOnConnection =
-      snap ?? new Connection(DefaultConnectors.Root, dragged.block.connectors.internal)
+      snap ??
+      new Connection(DefaultConnectors.Root, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
       dragged.block,
@@ -130,5 +131,19 @@ export class DragHelper {
     this.startPos = Coordinates.zero
     this.dragX = 0
     this.dragY = 0
+  }
+
+  private findParent(
+    element: HTMLElement | null,
+    predicate: (it: HTMLElement) => boolean
+  ): HTMLElement | null {
+    if (!element) return null
+    if (predicate(element)) return element
+    if (
+      element.parentElement &&
+      element.parentElement.className != "editorContainer"
+    )
+      return this.findParent(element.parentElement, predicate)
+    return null
   }
 }
