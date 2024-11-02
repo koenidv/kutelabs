@@ -75,7 +75,7 @@ export abstract class BaseBlockRenderer {
     )
   }
 
-  protected setConnectorPositions(registeredBlock: AnyRegisteredBlock) {
+  setConnectorPositions(registeredBlock: AnyRegisteredBlock) {
     if (registeredBlock.size == null) throw new Error("Block size is not set")
     registeredBlock.block.connectors.all.forEach(connector => {
       const connectorOffset = this.calculateConnectorOffset(

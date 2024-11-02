@@ -32,7 +32,8 @@ export class EditorMixed extends LitElement {
     this.drawerRenderer = new DebugDrawerRenderer(
       (block: Block<BlockType>, position: Coordinates) =>
         this.renderer.renderBlock(block, null, position),
-      (block: AnyBlock) => this.renderer.measureBlock(block)
+      this.renderer.measureBlock.bind(this.renderer),
+      this.renderer.setConnectorPositions.bind(this.renderer)
     )
     this.extrasRenderer = new ExtrasRenderer()
     this.dragRenderer = new DebugDragRenderer(
