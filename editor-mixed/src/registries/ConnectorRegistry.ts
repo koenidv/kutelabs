@@ -29,8 +29,7 @@ export class ConnectorRegistry {
    * Selects the closest suitable connector for a block to snap to
    *
    * Suitable connections are:
-   * - before->after and after->before, before->extension, before->inner
-   * - //todo Only if remote connector props allow it
+   * - before->after and after->before, before->extension, before->inner and inner->before
    *
    * @param block Block to search connections from
    * @param dragOffset Delta between the block's calculated position and the dragged position
@@ -73,6 +72,19 @@ export class ConnectorRegistry {
       )
       if (remoteConnector)
         return new Connection(localConnector, remoteConnector)
+    }
+
+    // reverse inner->before
+    for (const localConnector of block.connectors.inners) {
+      remoteConnector = this.getClosestConnector(
+        localConnector,
+        connectedIds,
+        Coordinates.add(localConnector.globalPosition, dragOffset),
+        maxXY
+      )
+      if (remoteConnector)
+        return new Connection(localConnector, remoteConnector)
+      
     }
 
     return null
