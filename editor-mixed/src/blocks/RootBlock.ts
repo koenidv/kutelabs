@@ -6,8 +6,8 @@ import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
-  constructor(connectors: Connector[]) {
-    super(null, BlockType.Root, null, connectors, false)
+  constructor() {
+    super(null, BlockType.Root, null, [DefaultConnectors.Root], false)
   }
 
   blocks: BlockAndCoordinates[] = []
@@ -20,9 +20,7 @@ export class RootBlock extends Block<BlockType.Root> {
   ): void {
     if (
       connection.from != DefaultConnectors.Root &&
-      connection.to != DefaultConnectors.Root &&
-      connection.from != DefaultConnectors.Drawer &&
-      connection.to != DefaultConnectors.Drawer
+      connection.to != DefaultConnectors.Root
     )
       throw new Error("Root block can only connect on root connector")
 
@@ -46,7 +44,7 @@ export class RootBlock extends Block<BlockType.Root> {
   }
 
   register(...values: BlockAndCoordinates[]) {
-    values.forEach(({ block, position }, _) =>
+    values.forEach(({ block, position }) =>
       this.connect(
         block,
         new Connection(DefaultConnectors.Root, block.connectors.internal),

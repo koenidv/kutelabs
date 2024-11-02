@@ -18,6 +18,7 @@ export class Block<T extends BlockType> implements BlockContract {
   readonly type: BlockType
   readonly draggable: boolean
   renderStale: boolean = false
+  isInDrawer: boolean = false
   data: BlockDataByType<T>
 
   constructor(

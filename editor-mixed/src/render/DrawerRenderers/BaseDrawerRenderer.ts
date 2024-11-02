@@ -6,11 +6,11 @@ import { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export abstract class BaseDrawerRenderer {
-  private renderBlock: (
+  protected renderBlock: (
     block: AnyBlock,
     position: Coordinates
   ) => TemplateResult<2>
-  private measureBlock: (block: AnyBlock) => SizeProps
+  protected measureBlock: (block: AnyBlock) => SizeProps
   private setConnectorPositions: (registered: AnyRegisteredBlock) => void
 
   constructor(
@@ -26,7 +26,7 @@ export abstract class BaseDrawerRenderer {
   public render(): TemplateResult<2> | typeof nothing {
     if (!BlockRegistry.instance.drawer) return nothing
 
-    const blocks = BlockRegistry.instance.drawer.blocks.map(it => it.block)
+    const blocks = BlockRegistry.instance.drawer.blocks
     const withSize = this.measureAndSet(blocks)
     const withPositions = this.positionAndSet(withSize)
 

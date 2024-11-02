@@ -1,5 +1,6 @@
 import type { AnyBlock } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
+import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
@@ -23,18 +24,17 @@ export class BlockRegistry {
     return this._root
   }
 
-  private _drawer: RootBlock | null = null
-  public set drawer(value: RootBlock | null) {
+  private _drawer: DrawerBlock | null = null
+  public set drawer(value: DrawerBlock | null) {
     this._drawer = value
-    console.log(this._drawer)
   }
   public get drawer() {
     return this._drawer
   }
 
   public init() {
-    this.root = new RootBlock([DefaultConnectors.Root])
-    this.drawer = new RootBlock([DefaultConnectors.Drawer])
+    this.root = new RootBlock()
+    this.drawer = new DrawerBlock()
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
@@ -96,7 +96,7 @@ export class BlockRegistry {
 
   private attach(
     block: AnyBlock | null,
-    to: RootBlock,
+    to: RootBlock | DrawerBlock,
     on: Connector,
     modifyPosition: (c: Coordinates) => Coordinates
   ) {

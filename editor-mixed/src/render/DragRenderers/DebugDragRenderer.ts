@@ -1,7 +1,7 @@
 import { svg, type TemplateResult } from "lit"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import type { AnyBlock } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
-import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { BaseDragRenderer } from "./BaseDragRenderer"
 import { BlockRegistry } from "../../registries/BlockRegistry"
 
@@ -20,7 +20,7 @@ export class DebugDragRenderer extends BaseDragRenderer {
       `
   }
 
-  protected renderBeforeSnap(localRegistered: RegisteredBlock, localConnector: Connector, remoteBlock: Block, remoteConnector: Connector): TemplateResult<2> {
+  protected renderBeforeSnap(localRegistered: AnyRegisteredBlock, localConnector: Connector, remoteBlock: AnyBlock, remoteConnector: Connector): TemplateResult<2> {
     return this.renderAfterSnap(localRegistered, localConnector, remoteBlock, remoteConnector)
   }
 
