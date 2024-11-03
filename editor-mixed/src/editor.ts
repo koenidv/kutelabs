@@ -147,15 +147,35 @@ export class EditorMixed extends LitElement {
 
   protected render() {
     return html`
-      <svg
-        class="editorContainer"
+      <div
+        id="editor-container"
+        style="position: relative"
         @mousedown="${(e: MouseEvent) => this.dragHelper.startDrag(e)}"
         @mousemove="${(e: MouseEvent) => this.dragHelper.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper.endDrag(e)}">
-        ${this.extrasRenderer.renderBackground()} ${this.renderer.render()}
-        ${this.drawerRenderer.render()} ${this.dragRenderer.render()}
-      </svg>
+        <svg
+          width="100%"
+          height="100%"
+          style="position: absolute; top: 0; left: 0;">
+          ${this.extrasRenderer.renderBackground()} ${this.renderer.render()}
+        </svg>
+
+        <div
+          id="drawer-container"
+          style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
+          ${this.drawerRenderer.renderElement()}
+        </div>
+
+        <svg
+          id="drag-layer"
+          width="100%"
+          height="100%"
+          style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
+          pointer-events="none">
+          ${this.dragRenderer.render()}
+        </svg>
+      </div>
     `
   }
 
@@ -165,7 +185,7 @@ export class EditorMixed extends LitElement {
   }
 
   static styles = css`
-    .editorContainer {
+    #editor-container {
       height: 80vh;
       width: 80vw;
       border: 1px solid black;

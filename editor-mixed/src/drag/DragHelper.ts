@@ -139,10 +139,9 @@ export class DragHelper {
   ): HTMLElement | null {
     if (!element) return null
     if (predicate(element)) return element
-    if (
-      element.parentElement &&
-      element.parentElement.className != "editorContainer"
-    )
+
+    // this will stop at the shadow root
+    if (element.parentElement)
       return this.findParent(element.parentElement, predicate)
     return null
   }

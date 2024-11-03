@@ -2,16 +2,30 @@ import { svg, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
 import { BaseDrawerRenderer } from "./BaseDrawerRenderer"
 import { Coordinates, type BlockAndCoordinates } from "../../util/Coordinates"
-import type { BlockAndSize } from "../SizeProps"
+import type { BlockAndSize, SizeProps } from "../SizeProps"
 
 export class DebugDrawerRenderer extends BaseDrawerRenderer {
-  calculatePositions(blockSizes: BlockAndSize[]): BlockAndCoordinates[] {
+  calculatePositions(blockSizes: BlockAndSize[]): {
+    positions: BlockAndCoordinates[]
+    fullWidth: number
+    fullHeight: number
+  } {
     let nextY = 25
-    return blockSizes.map(({ block, size }) => {
+    const positions = blockSizes.map(({ block, size }) => {
       const position = new Coordinates(25, nextY)
       nextY += size.fullHeight + 25
       return { block, position }
     })
+
+    return {
+      positions,
+      fullWidth:
+        blockSizes.reduce(
+          (acc, curr) => Math.max(acc, curr.size.fullWidth),
+          0
+        ) + 50,
+      fullHeight: nextY,
+    }
   }
 
   renderDrawer(

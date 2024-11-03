@@ -1,4 +1,4 @@
-import { nothing, svg, type TemplateResult } from "lit"
+import { html, nothing, svg, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
 import type { BlockAndSize, SizeProps } from "../SizeProps"
 import type { BlockAndCoordinates, Coordinates } from "../../util/Coordinates"
@@ -23,18 +23,22 @@ export abstract class BaseDrawerRenderer {
     this.setConnectorPositions = setConnectorPositions
   }
 
-  public render(): TemplateResult<2> | typeof nothing {
+  public renderElement(): TemplateResult<1> | typeof nothing {
     if (!BlockRegistry.instance.drawer) return nothing
 
     const blocks = BlockRegistry.instance.drawer.blocks
     const withSize = this.measureAndSet(blocks)
-    const withPositions = this.positionAndSet(withSize)
+    const layout = this.positionAndSet(withSize)
 
-    return svg`
-      <g id="drawer">
-        ${this.renderDrawer(withPositions, this.renderBlock)}
-      </g>
-      `
+    return html`
+      <svg
+        id="drawer"
+        width="${layout.fullWidth}"
+        height="${layout.fullHeight}"
+        style="min-height: 100%; display: block;">
+        ${this.renderDrawer(layout.positions, this.renderBlock)}
+      </svg>
+    `
   }
 
   private measureAndSet(blocks: AnyBlock[]): BlockAndSize[] {
@@ -45,21 +49,27 @@ export abstract class BaseDrawerRenderer {
     })
   }
 
-  private positionAndSet(blocks: BlockAndSize[]): BlockAndCoordinates[] {
-    const positions = this.calculatePositions(blocks)
-    positions.forEach(it => {
+  private positionAndSet(blocks: BlockAndSize[]): {
+    positions: BlockAndCoordinates[]
+    fullWidth: number
+    fullHeight: number
+  } {
+    const calculated = this.calculatePositions(blocks)
+    calculated.positions.forEach(it => {
       const registered = BlockRegistry.instance.setPosition(
         it.block,
         it.position
       )
       this.setConnectorPositions(registered)
     })
-    return positions
+    return calculated
   }
 
-  protected abstract calculatePositions(
-    blocks: BlockAndSize[]
-  ): BlockAndCoordinates[]
+  protected abstract calculatePositions(blocks: BlockAndSize[]): {
+    positions: BlockAndCoordinates[]
+    fullWidth: number
+    fullHeight: number
+  }
 
   protected abstract renderDrawer(
     blocks: BlockAndCoordinates[],
