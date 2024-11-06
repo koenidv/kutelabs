@@ -1,4 +1,4 @@
-import { spawnSync } from "bun"
+import { spawn } from "bun"
 import { checkRunscEnvironment } from "./checkRunscEnv"
 import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
 import { checkTranspilerImage } from "./checkTranspilerImage"
@@ -17,7 +17,7 @@ await checkTranspilerImage()
 export async function transpile(code: string): Promise<TranspilationResult> {
   return withTempDir(async workdir => {
     await writeInputFile(workdir, code)
-    const processResult = syncTranspileKtJs(workdir, 15000, 512, withRunsc)
+    const processResult = await transpileKtJs(workdir, 30000, 512, withRunsc)
 
     if (processResult.status !== TranspilationStatus.Success)
       return { status: processResult.status, message: processResult.message }
@@ -29,45 +29,61 @@ export async function transpile(code: string): Promise<TranspilationResult> {
   })
 }
 
-function syncTranspileKtJs(
+async function transpileKtJs(
   workdir: string,
   timeout: number,
   maxMemory: number,
   withRunsc: boolean
-): { status: TranspilationStatus; message?: string } {
-  const result = spawnSync(
-    [
-      "docker",
-      "run",
-      withRunsc ? "--runtime=runsc" : "",
-      "--rm",
-      "-v",
-      `${workdir}:/data`,
-      `--memory=${maxMemory}m`,
-      "--cpus=1",
-      "--network=none",
-      `${env.TRANSPILER_NAME}:latest`,
-    ],
-    { stdout: "pipe", stderr: "pipe", timeout: timeout }
-  )
-  console.log("Ressource usage:", result.resourceUsage)
+): Promise<{ status: TranspilationStatus; message?: string }> {
+  return new Promise(async resolve => {
+    const process = spawn(
+      [
+        "docker",
+        "run",
+        withRunsc ? "--runtime=runsc" : "",
+        "--rm",
+        "-v",
+        `${workdir}:/data`,
+        `--memory=${maxMemory}m`,
+        "--cpus=1",
+        "--network=none",
+        `${env.TRANSPILER_NAME}:latest`,
+      ],
+      { stdout: "pipe", stderr: "pipe" }
+    )
 
-  if (result.success) return { status: TranspilationStatus.Success }
+    const killTimeout = setTimeout(() => {
+      if (process.exitCode === null) {
+        process.kill("SIGKILL")
+        resolve({
+          status: TranspilationStatus.Timeout,
+          message: `Timeout after ${timeout}ms`,
+        })
+      }
+    }, timeout)
 
-  if (result.signalCode === "SIGKILL")
-    return { status: TranspilationStatus.Timeout }
-  if (result.exitCode === 1) {
-    console.error(result.stderr.toString())
-    return {
-      status: TranspilationStatus.CompilationError,
-      message: trimErrorMessage(result.stderr.toString()),
+    const exitCode = await process.exited
+    clearTimeout(killTimeout)
+    console.info("Ressource usage:", process.resourceUsage())
+
+    if (process.signalCode === "SIGKILL") return
+    switch (exitCode) {
+      case 0:
+        resolve({ status: TranspilationStatus.Success })
+        break
+      case 1:
+        resolve({
+          status: TranspilationStatus.CompilationError,
+          message: trimErrorMessage(await new Response(process.stderr).text()),
+        })
+        break
+      default:
+        return {
+          status: TranspilationStatus.UnknownError,
+          message: await new Response(process.stderr).text(),
+        }
     }
-  }
-
-  return {
-    status: TranspilationStatus.UnknownError,
-    message: result.stderr.toString(),
-  }
+  })
 }
 
 function trimErrorMessage(error: string): string {
