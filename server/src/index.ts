@@ -2,6 +2,7 @@ import { Glob } from "bun"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { env } from "./env"
+import "./extensions"
 
 const app = new Hono()
 

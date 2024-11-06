@@ -3,16 +3,12 @@ import { checkRunscEnvironment } from "./checkRunscEnv"
 import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
 import { checkTranspilerImage } from "./checkTranspilerImage"
 import { env } from "../env"
+import { TranspilationStatus } from "./TranspilationStatus"
 
-export enum TranspilationStatus {
-  Success,
-  CompilationError,
-  Timeout,
-  UnknownError,
-}
 export type TranspilationResult = {
   status: TranspilationStatus
   transpiled?: string
+  message?: string
 }
 
 const withRunsc = await checkRunscEnvironment()
@@ -21,18 +17,24 @@ await checkTranspilerImage()
 export async function transpile(code: string): Promise<TranspilationResult> {
   return withTempDir(async workdir => {
     await writeInputFile(workdir, code)
-    const status = syncTranspilation(workdir, 15000, 512, withRunsc)
-    if (status !== TranspilationStatus.Success) return { status }
-    return { status, transpiled: await readOutputFile(workdir) }
+    const processResult = syncTranspileKtJs(workdir, 15000, 512, withRunsc)
+
+    if (processResult.status !== TranspilationStatus.Success)
+      return { status: processResult.status, message: processResult.message }
+
+    return {
+      status: processResult.status,
+      transpiled: await readOutputFile(workdir),
+    }
   })
 }
 
-function syncTranspilation(
+function syncTranspileKtJs(
   workdir: string,
   timeout: number,
   maxMemory: number,
   withRunsc: boolean
-): TranspilationStatus {
+): { status: TranspilationStatus; message?: string } {
   const result = spawnSync(
     [
       "docker",
@@ -49,8 +51,27 @@ function syncTranspilation(
     { stdout: "pipe", stderr: "pipe", timeout: timeout }
   )
   console.log("Ressource usage:", result.resourceUsage)
-  if (result.success) return TranspilationStatus.Success
-  if (result.signalCode === "SIGKILL") return TranspilationStatus.Timeout
-  if (result.exitCode === 1) return TranspilationStatus.CompilationError
-  return TranspilationStatus.UnknownError
+
+  if (result.success) return { status: TranspilationStatus.Success }
+
+  if (result.signalCode === "SIGKILL")
+    return { status: TranspilationStatus.Timeout }
+  if (result.exitCode === 1) {
+    console.error(result.stderr.toString())
+    return {
+      status: TranspilationStatus.CompilationError,
+      message: trimErrorMessage(result.stderr.toString()),
+    }
+  }
+
+  return {
+    status: TranspilationStatus.UnknownError,
+    message: result.stderr.toString(),
+  }
+}
+
+function trimErrorMessage(error: string): string {
+  const internalIndex = error.indexOf("info: produce executable: /data/js/")
+  if (internalIndex === -1) return error
+  return error.substring(0, internalIndex)
 }

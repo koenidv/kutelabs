@@ -1,7 +1,13 @@
 import { Hono } from "hono"
-import { ResultDTO, TranspilatonError } from "./ResultDTO"
+import { ResultDTO } from "./ResultDTO"
 import { transpile } from "../../transpile/transpile"
-import { existsInCache, readTranspiledCache, writeTranspiledCache } from "../../cache/cacheUtils"
+import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import {
+  existsInCache,
+  readTranspiledCache,
+  shouldCache,
+  writeTranspiledCache,
+} from "../../cache/cacheUtils"
 
 const app = new Hono()
 
@@ -9,15 +15,19 @@ app.post("/kt/js", async c => {
   const body = await c.req.json()
   const kotlinCode = body.kotlinCode as string
 
-  if (!kotlinCode) return c.json(ResultDTO.error(TranspilatonError.noCode))
+  if (!kotlinCode)
+    return c.also(it => {
+      it.status(400)
+      it.json(ResultDTO.error(TranspilationStatus.EmptyInput))
+    })
 
   if (await existsInCache(kotlinCode))
-    return c.json(ResultDTO.cached(await readTranspiledCache(kotlinCode)))
+    return c.json(await readTranspiledCache(kotlinCode))
 
-  const transpiled = await transpile(kotlinCode)
-  writeTranspiledCache(kotlinCode, transpiled.transpiled!)
+  const dto = ResultDTO.fromTranspilationResult(await transpile(kotlinCode))
+  if (shouldCache(dto.status)) writeTranspiledCache(kotlinCode, dto) // async, not blocking response
 
-  return c.json(ResultDTO.fromTranspilationResult(transpiled))
+  return c.json(dto)
 })
 
 app.route
