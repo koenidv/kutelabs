@@ -5,17 +5,13 @@ import { Coordinates } from "../../util/Coordinates"
 import type { Connection } from "../../connections/Connection"
 import { ConnectorType } from "../../connections/ConnectorType"
 import type { Connector } from "../../connections/Connector"
+import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 
 export abstract class BaseDragRenderer {
-  private _renderBlock: (
-    block: AnyBlock,
-    position: Coordinates
-  ) => TemplateResult<2>
+  protected blockRenderer: BaseBlockRenderer
 
-  constructor(
-    renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
-  ) {
-    this._renderBlock = renderBlock
+  constructor(blockRenderer: BaseBlockRenderer) {
+    this.blockRenderer = blockRenderer
   }
 
   private dragged: AnyRegisteredBlock | null = null
@@ -41,7 +37,7 @@ export abstract class BaseDragRenderer {
     if (this.dragged == null) return nothing
     return [
       // pointer-events="none" is required to detect dropping on the drawer
-      svg`<g pointer-events="none">${this._renderBlock(this.dragged.block, this.position)}</g>`,
+      svg`<g pointer-events="none">${this.blockRenderer.renderBlock(this.dragged.block, this.position)}</g>`,
       this.renderSnap(),
     ]
   }

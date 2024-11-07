@@ -15,9 +15,12 @@ import { DefaultConnectors } from "./connections/DefaultConnectors"
 import type { BaseCompiler } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
 import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
+import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
+import { DebugLayouter } from "./render/Layouters/DebugLayouter"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
+  layouter: BaseLayouter
   renderer: BaseBlockRenderer
   drawerRenderer: BaseDrawerRenderer
   extrasRenderer: ExtrasRenderer
@@ -28,18 +31,18 @@ export class EditorMixed extends LitElement {
     super()
     BlockRegistry.instance.init()
 
-    this.renderer = new DebugBlockRenderer(BlockRegistry.instance)
+    this.layouter = new DebugLayouter(BlockRegistry.instance)
+    this.renderer = new DebugBlockRenderer(
+      BlockRegistry.instance,
+      this.layouter
+    )
     this.drawerRenderer = new DebugDrawerRenderer(
-      (block: Block<BlockType>, position: Coordinates) =>
-        this.renderer.renderBlock(block, null, position),
-      this.renderer.measureBlock.bind(this.renderer),
-      this.renderer.setConnectorPositions.bind(this.renderer)
+      BlockRegistry.instance,
+      this.layouter,
+      this.renderer
     )
     this.extrasRenderer = new ExtrasRenderer()
-    this.dragRenderer = new DebugDragRenderer(
-      (block: Block<BlockType>, position: Coordinates) =>
-        this.renderer.renderBlock(block, null, position)
-    )
+    this.dragRenderer = new DebugDragRenderer(this.renderer)
     this.dragHelper = new DragHelper(
       this.dragRenderer,
       this.requestUpdate.bind(this)

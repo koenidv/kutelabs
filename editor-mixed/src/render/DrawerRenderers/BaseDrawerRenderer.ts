@@ -1,26 +1,24 @@
-import { html, nothing, svg, type TemplateResult } from "lit"
+import { html, nothing, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
-import type { BlockAndSize, SizeProps } from "../SizeProps"
+import type { BlockAndSize } from "../SizeProps"
 import type { BlockAndCoordinates, Coordinates } from "../../util/Coordinates"
 import { BlockRegistry } from "../../registries/BlockRegistry"
-import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
+import type { BaseLayouter } from "../Layouters/BaseLayouter"
+import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 
 export abstract class BaseDrawerRenderer {
-  protected renderBlock: (
-    block: AnyBlock,
-    position: Coordinates
-  ) => TemplateResult<2>
-  protected measureBlock: (block: AnyBlock) => SizeProps
-  private setConnectorPositions: (registered: AnyRegisteredBlock) => void
+  blockRegistry: BlockRegistry
+  layouter: BaseLayouter
+  blockRenderer: BaseBlockRenderer
 
   constructor(
-    renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>,
-    measureBlock: (block: AnyBlock) => SizeProps,
-    setConnectorPositions: (registered: AnyRegisteredBlock) => void
+    blockRegistry: BlockRegistry,
+    layouter: BaseLayouter,
+    blockRenderer: BaseBlockRenderer
   ) {
-    this.renderBlock = renderBlock
-    this.measureBlock = measureBlock
-    this.setConnectorPositions = setConnectorPositions
+    this.blockRegistry = blockRegistry
+    this.layouter = layouter
+    this.blockRenderer = blockRenderer
   }
 
   public renderElement(): TemplateResult<1> | typeof nothing {
@@ -36,14 +34,17 @@ export abstract class BaseDrawerRenderer {
         width="${layout.fullWidth}"
         height="${layout.fullHeight}"
         style="min-height: 100%; display: block;">
-        ${this.renderDrawer(layout.positions, this.renderBlock)}
+        ${this.renderDrawer(
+          layout.positions,
+          this.blockRenderer.renderBlock.bind(this.blockRenderer)
+        )}
       </svg>
     `
   }
 
   private measureAndSet(blocks: AnyBlock[]): BlockAndSize[] {
     return blocks.map(block => {
-      const size = this.measureBlock(block)
+      const size = this.layouter.measureBlock(block)
       BlockRegistry.instance.setSize(block, size)
       return { block, size }
     })
@@ -60,7 +61,7 @@ export abstract class BaseDrawerRenderer {
         it.block,
         it.position
       )
-      this.setConnectorPositions(registered)
+      this.layouter.setConnectorPositions(registered)
     })
     return calculated
   }
