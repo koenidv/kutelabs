@@ -3,7 +3,7 @@ import { customElement } from "lit/decorators.js"
 import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
 import { DebugBlockRenderer } from "./render/BlockRenderers/DebugBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
-import { Block, type AnyBlock } from "./blocks/Block"
+import { Block } from "./blocks/Block"
 import { BlockType } from "./blocks/BlockType"
 import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
@@ -59,7 +59,7 @@ export class EditorMixed extends LitElement {
       [DefaultConnectors.innerLoop()],
       true
     )
-    BlockRegistry.instance.attachToRoot(mainFn, () => new Coordinates(100, 200))
+    BlockRegistry.instance.attachToRoot(mainFn, () => new Coordinates(200, 200))
     const block1 = new Block(
       mainFn,
       BlockType.Expression,
@@ -86,17 +86,19 @@ export class EditorMixed extends LitElement {
     BlockRegistry.instance.attachToRoot(
       new Block(
         null,
-        BlockType.Loop,
-        null,
+        BlockType.Expression,
+        {
+          expression: DefinedExpression.Custom,
+          customExpression: "val test = \"Hello, World!\"",
+          editable: true,
+        },
         [
           DefaultConnectors.before(),
           DefaultConnectors.after(),
-          DefaultConnectors.inputExtension(),
-          DefaultConnectors.innerLoop(),
         ],
         true
       ),
-      () => new Coordinates(450, 200)
+      () => new Coordinates(450, 100)
     )
     BlockRegistry.instance.attachToRoot(
       new Block(
@@ -106,7 +108,7 @@ export class EditorMixed extends LitElement {
         [DefaultConnectors.extender()],
         true
       ),
-      () => new Coordinates(300, 250)
+      () => new Coordinates(375, 300)
     )
     BlockRegistry.instance.attachToRoot(
       new Block(
@@ -116,7 +118,7 @@ export class EditorMixed extends LitElement {
         [DefaultConnectors.extender()],
         true
       ),
-      () => new Coordinates(300, 400)
+      () => new Coordinates(374, 400)
     )
     BlockRegistry.instance.attachToDrawer(
       new Block(

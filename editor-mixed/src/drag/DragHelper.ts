@@ -29,8 +29,10 @@ export class DragHelper {
   //#region Start Drag
 
   startDrag(evt: MouseEvent) {
-    const draggedParent = this.findParent(evt.target as HTMLElement, it =>
-      it.classList.contains("dragable")
+    const draggedParent = this.findParent(
+      evt.target as HTMLElement,
+      it => it.classList.contains("dragable"),
+      it => it.classList.contains("donotdrag")
     )
     if (draggedParent == null) return
     this.dragged = this.getDraggedData(draggedParent)
@@ -135,14 +137,16 @@ export class DragHelper {
 
   private findParent(
     element: HTMLElement | null,
-    predicate: (it: HTMLElement) => boolean
+    predicate: (it: HTMLElement) => boolean,
+    breakCondition?: (it: HTMLElement) => boolean
   ): HTMLElement | null {
     if (!element) return null
+    if (breakCondition?.(element)) return null
     if (predicate(element)) return element
 
     // this will stop at the shadow root
     if (element.parentElement)
-      return this.findParent(element.parentElement, predicate)
+      return this.findParent(element.parentElement, predicate, breakCondition)
     return null
   }
 }

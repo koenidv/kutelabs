@@ -1,5 +1,7 @@
 import type { AnyBlock } from "../../blocks/Block"
+import type { BlockDataExpression } from "../../blocks/BlockData"
 import { BlockType } from "../../blocks/BlockType"
+import { DefinedExpression } from "../../blocks/DefinedExpression"
 import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
@@ -10,7 +12,7 @@ import { BaseLayouter } from "./BaseLayouter"
 export class DebugLayouter extends BaseLayouter {
   measureBlock(block: AnyBlock): SizeProps {
     const size = SizeProps.empty()
-    size.addWidth(WidthProp.Left, 100)
+    size.addWidth(WidthProp.Left, this.determineWidth(block))
 
     size.addHeight(
       HeightProp.Head,
@@ -23,21 +25,23 @@ export class DebugLayouter extends BaseLayouter {
 
     // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
     if (block.inners.length > 0)
-      size.addHeight(HeightProp.Body, this.measureStackHeight(block.inners[0]))
+      size.addHeight(
+        HeightProp.Body,
+        this.getMeasuredStackHeight(block.inners[0])
+      )
 
     size.addHeight(HeightProp.Tail, 50)
 
     return size
   }
 
-  private measureStackHeight(block: AnyBlock): number {
-    let height = this.blockRegistry.getSize(block).fullHeight
-    let after = block.after
-    while (after != null) {
-      height += this.blockRegistry.getSize(after).fullHeight
-      after = after.after
-    }
-    return height
+  protected determineWidth(block: AnyBlock): number {
+    if (
+      block.type == BlockType.Expression &&
+      (block.data as BlockDataExpression).editable
+    )
+      return 250
+    else return 100
   }
 
   protected calculateBlockPosition(

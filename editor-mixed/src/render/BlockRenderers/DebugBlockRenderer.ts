@@ -1,15 +1,16 @@
 import { svg, type TemplateResult } from "lit"
-import type { AnyBlock } from "../../blocks/Block"
+import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
+import type { BlockDataExpression } from "../../blocks/BlockData"
+
+import "../../codeEditor/PrismKotlinEditor"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
-
-
   protected renderBlockElement(
     block: AnyBlock,
     size: SizeProps,
@@ -26,9 +27,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         fill="#fabcde"
         opacity="0.6"
         stroke="#000000aa"/>
-      
-      <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
-      <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+
+      ${this.renderBlockContents(block, size, position)}
 
       ${block.connectors.all.map(connector => this.renderConnector(connector, position))}
       
@@ -40,6 +40,53 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 	  </g>
     `
     // todo inner blocks, extension blocks
+  }
+
+  private renderBlockContents(
+    block: AnyBlock,
+    size: SizeProps,
+    position: Coordinates
+  ): TemplateResult<2> | undefined {
+    switch (block.type) {
+      case BlockType.Expression:
+        if ((block as Block<BlockType.Expression>).data.editable)
+          return this.renderEditableCodeContents(
+            block,
+            block.data as BlockDataExpression,
+            size
+          )
+        else break
+      default:
+        return svg`
+          <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
+          <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+        `
+    }
+  }
+
+  private renderEditableCodeContents(
+    block: Block<BlockType.Expression>,
+    data: BlockDataExpression,
+    size: SizeProps
+  ): TemplateResult<2> {
+    return svg`
+          <rect
+        x="0"
+        y="0"
+        width=${size.fullWidth / 2}
+        height=${size.fullHeight / 2}
+        fill="#badeff"
+        opacity="0.6"
+        stroke="#000000aa"/>
+        <foreignObject class="donotdrag" x="0" y="0" width=${size.fullWidth} height=${size.fullHeight} >
+          <!-- <lit-code code='val test = "dongs"' language="kotlin"></lit-code> -->
+          <prism-kotlin-editor
+            .input="${data.customExpression || ""}"
+            style="width: 100%; height: 100%;">
+          </prism-lit-editor>
+
+        </foreignObject>
+        `
   }
 
   private renderConnector(

@@ -18,6 +18,7 @@ export type BlockDataFunction = {
 export type BlockDataExpression = {
   expression: DefinedExpression
   customExpression?: string
+  editable?: boolean
 }
 
 export type BlockDataInput = {

@@ -31,6 +31,16 @@ export abstract class BaseLayouter {
     this.measureSetUpstream(upstream)
   }
 
+  protected getMeasuredStackHeight(block: AnyBlock): number {
+    let height = this.blockRegistry.getSize(block).fullHeight
+    let after = block.after
+    while (after != null) {
+      height += this.blockRegistry.getSize(after).fullHeight
+      after = after.after
+    }
+    return height
+  }
+
   abstract measureBlock(block: AnyBlock): SizeProps
 
   //#endregion
