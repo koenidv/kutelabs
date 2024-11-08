@@ -1,5 +1,6 @@
 import { Connection } from "../connections/Connection"
 import { Connector, type BlockAndConnector } from "../connections/Connector"
+import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
@@ -33,7 +34,11 @@ export class Block<T extends BlockType> implements BlockContract {
 
     this.data = data
 
-    this.connectors.addConnector(this, DefaultConnectors.internal(), ...connectors)
+    this.connectors.addConnector(
+      this,
+      DefaultConnectors.internal(),
+      ...connectors
+    )
 
     if (previous != null) this.connectToPrevious(previous)
 
@@ -161,6 +166,12 @@ export class Block<T extends BlockType> implements BlockContract {
     return this.connectors.extensions
       .map(connector => this.connectedBlocks.byConnector(connector))
       .filter(block => block !== null) as AnyBlock[]
+  }
+
+  get inputs() {
+    return this.connectors
+      .byRole(ConnectorRole.Input)
+      .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
   get allConnectedRecursive(): AnyBlock[] {

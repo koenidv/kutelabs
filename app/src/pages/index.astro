@@ -22,11 +22,15 @@ import { EditorMixed } from "@kutelabs/editor-mixed"
 </html>
 
 <script>
+  import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
+
   //@ts-ignore
   document.querySelector("#btn-tojs").addEventListener(
     "click",
     (() => {
-      console.log(document.querySelector("editor-mixed").compile(new JsCompiler()))
+      console.log(
+        document.querySelector("editor-mixed").compile(JsCompiler)
+      )
     }).bind(this)
   )
   //@ts-ignore

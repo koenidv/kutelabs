@@ -17,6 +17,7 @@ import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRend
 import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { DebugLayouter } from "./render/Layouters/DebugLayouter"
+import { JsCompiler } from "./compile/JsCompiler"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -89,13 +90,10 @@ export class EditorMixed extends LitElement {
         BlockType.Expression,
         {
           expression: DefinedExpression.Custom,
-          customExpression: "val test = \"Hello, World!\"",
+          customExpression: 'val test = "Hello, World!"',
           editable: true,
         },
-        [
-          DefaultConnectors.before(),
-          DefaultConnectors.after(),
-        ],
+        [DefaultConnectors.before(), DefaultConnectors.after()],
         true
       ),
       () => new Coordinates(450, 100)
@@ -144,10 +142,15 @@ export class EditorMixed extends LitElement {
     )
   }
 
-  public compile(compiler: BaseCompiler): string {
+  public compile<T>(compilerClass: { new (): T extends BaseCompiler ? T : null }): string {
+    if (compilerClass == null) throw new Error("Compiler class is null")
     if (!BlockRegistry.instance.root)
       throw new Error("Root block is not initialized")
-    return compiler.compileFromRoot(BlockRegistry.instance.root, true)
+
+    const instance = new compilerClass()
+    if (instance == null) throw new Error("Compiler instance is null")
+
+    return instance.compileFromRoot(BlockRegistry.instance.root, true)
   }
 
   protected render() {
