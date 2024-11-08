@@ -174,6 +174,15 @@ export class Block<T extends BlockType> implements BlockContract {
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
+  get conditional(): Block<T> | null {
+    return (
+      this.connectors
+        .byRole(ConnectorRole.Conditional)
+        .firstOrNull()
+        ?.let(c => this.connectedBlocks.byConnector(c)) ?? null
+    )
+  }
+
   get allConnectedRecursive(): AnyBlock[] {
     return [
       this,

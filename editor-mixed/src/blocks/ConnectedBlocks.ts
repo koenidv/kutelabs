@@ -52,7 +52,7 @@ export class ConnectedBlocks {
   byConnector(connector: Connector | null): AnyBlock | null {
     if (connector === null) return null
     return this.blocks.get(connector) || null
-  }
+  } 
 
   popBlock(block: AnyBlock): BlockAndConnector | null {
     const connector = findKeyByValue(this.blocks, block)

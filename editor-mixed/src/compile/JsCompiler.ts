@@ -66,7 +66,9 @@ export class JsCompiler extends BaseCompiler {
   }
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
-    throw new Error("Method not implemented.")
+    return `while (${next(block.conditional)}) {
+      ${next(block.inners[0])}
+    }`
   }
 
   compileConditional(

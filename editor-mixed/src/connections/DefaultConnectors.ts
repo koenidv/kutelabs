@@ -35,6 +35,14 @@ export class DefaultConnectors {
     ])
   }
 
+  static conditionalExtension() {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Conditional, [
+      remote =>
+        remote.type === ConnectorType.Before &&
+        remote.role === ConnectorRole.Conditional,
+    ])
+  }
+
   static extender() {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
       remote => remote.type === ConnectorType.Extension,
