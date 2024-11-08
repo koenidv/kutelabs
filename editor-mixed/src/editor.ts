@@ -19,6 +19,8 @@ import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { DebugLayouter } from "./render/Layouters/DebugLayouter"
 import { JsCompiler } from "./compile/JsCompiler"
 
+import "@kutelabs/shared/src/extensions"
+
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   layouter: BaseLayouter
@@ -142,7 +144,9 @@ export class EditorMixed extends LitElement {
     )
   }
 
-  public compile<T>(compilerClass: { new (): T extends BaseCompiler ? T : null }): string {
+  public compile<T>(compilerClass: {
+    new (): T extends BaseCompiler ? T : null
+  }): string {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!BlockRegistry.instance.root)
       throw new Error("Root block is not initialized")

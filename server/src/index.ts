@@ -2,7 +2,7 @@ import { Glob } from "bun"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { env } from "./env"
-import "./extensions"
+import "@kutelabs/shared/src/extensions" // todo proper exports from shared
 
 const app = new Hono()
 
