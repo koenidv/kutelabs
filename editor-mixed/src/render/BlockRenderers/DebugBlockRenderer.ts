@@ -71,11 +71,11 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   ): TemplateResult<2> {
     return svg`
         <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
-          <!-- <lit-code code='val test = "dongs"' language="kotlin"></lit-code> -->
           <prism-kotlin-editor
             .input="${data.customExpression || ""}"
-            style="width: 100%; height: 100%;">
-          </prism-lit-editor>
+            style="width: 100%; height: 100%;" 
+            @code-change=${(e: CustomEvent) => (block.data.customExpression = e.detail.code)}
+          />
 
         </foreignObject>
         `
