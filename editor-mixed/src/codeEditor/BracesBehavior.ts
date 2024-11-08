@@ -5,7 +5,7 @@ export class BracesBehavior extends Behavior {
     const ta = e.target as HTMLTextAreaElement
     if (
       e.key === "Backspace" &&
-      BracesBehavior.selectionIsBetweenBraces(ta)
+      BracesBehavior.selectionIsBetweenBraces(ta, true)
     ) {
       e.preventDefault()
       BracesBehavior.removeBraces(ta)
@@ -31,22 +31,17 @@ export class BracesBehavior extends Behavior {
     const selection = ta.selectionStart
     const newValue =
       ta.value.substring(0, ta.selectionStart - 1) +
-      ta.value.substring(ta.selectionStart + 1)
+      ta.value.substring(this.findClosingIndex(ta) + 1)
 
     ta.value = newValue
     ta.selectionStart = ta.selectionEnd = selection - 1
   }
 
-  static isAtEndOfLine(ta: HTMLTextAreaElement): boolean {
-    const selectionIndex = this.getSelectedLines(ta)[0]
-    const splitText = ta.value.split("\n")
-    const charactersUntilEndOfLine = splitText.reduce((acc, line, index) => {
-      if (index <= selectionIndex) {
-        return acc + line.length + 1
-      }
-      return acc
-    }, 0)
-
-    return charactersUntilEndOfLine === ta.selectionStart + 1
+  static findClosingIndex(ta: HTMLTextAreaElement): number {
+    const selection = ta.selectionStart - 1
+    if (!["{", "("].includes(ta.value.at(selection)!)) return selection
+    const find = ta.value.at(selection) == "{" ? "}" : ")"
+    const index = ta.value.substring(selection).indexOf(find) + selection
+    return index >= selection ? index : selection + 1
   }
 }
