@@ -11,6 +11,7 @@ import "prismjs/plugins/match-braces/prism-match-braces"
 import { IndentationBehavior } from "./IndentationBehavior"
 import { BracesBehavior } from "./BracesBehavior"
 import type { Behavior } from "./Behavior"
+import { QuotesBehavior } from "./QuotesBehavior"
 
 @customElement("prism-kotlin-editor")
 export class PrismKotlinEditor extends LitElement {
@@ -28,7 +29,11 @@ export class PrismKotlinEditor extends LitElement {
     this.highlighted = ""
   }
 
-  behaviours: Behavior[] = [new BracesBehavior(), new IndentationBehavior()]
+  behaviours: Behavior[] = [
+    new BracesBehavior(),
+    new IndentationBehavior(),
+    new QuotesBehavior(),
+  ]
 
   static styles = [
     unsafeCSS(prismStyles),
@@ -37,6 +42,7 @@ export class PrismKotlinEditor extends LitElement {
       :host {
         display: block;
         position: relative;
+        overflow: scroll;
       }
       pre {
         margin: 0;
