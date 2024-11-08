@@ -49,4 +49,25 @@ export abstract class Behavior {
     ta.value = newValue
     ta.selectionStart = ta.selectionEnd = selection + cursorOffset
   }
+
+  static selectionIsBetweenBraces(
+    ta: HTMLTextAreaElement,
+    ignoreNewlines = false
+  ): boolean {
+    if (ta.selectionStart != ta.selectionEnd) return false
+    const text = ignoreNewlines ? ta.value.replaceAll("\n", "") : ta.value
+    if (
+      text.at(ta.selectionStart - 1) == "{" &&
+      text.at(ta.selectionStart) == "}"
+    ) {
+      return true
+    }
+    if (
+      text.at(ta.selectionStart - 1) == "(" &&
+      text.at(ta.selectionStart) == ")"
+    ) {
+      return true
+    }
+    return false
+  }
 }

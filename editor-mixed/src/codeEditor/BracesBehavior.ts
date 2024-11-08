@@ -3,7 +3,10 @@ import { Behavior } from "./Behavior"
 export class BracesBehavior extends Behavior {
   handleKeyDown(e: KeyboardEvent): boolean {
     const ta = e.target as HTMLTextAreaElement
-    if (e.key === "Backspace" && BracesBehavior.shouldRemoveBraces(ta)) {
+    if (
+      e.key === "Backspace" &&
+      BracesBehavior.selectionIsBetweenBraces(ta)
+    ) {
       e.preventDefault()
       BracesBehavior.removeBraces(ta)
       return true
@@ -21,21 +24,6 @@ export class BracesBehavior extends Behavior {
       return true
     }
 
-    return false
-  }
-
-  static shouldRemoveBraces(ta: HTMLTextAreaElement): boolean {
-    if (ta.selectionStart != ta.selectionEnd) return false
-    if (
-      ta.value.at(ta.selectionStart - 1) == "{" &&
-      ta.value.at(ta.selectionStart) == "}"
-    )
-      return true
-    if (
-      ta.value.at(ta.selectionStart - 1) == "(" &&
-      ta.value.at(ta.selectionStart) == ")"
-    )
-      return true
     return false
   }
 

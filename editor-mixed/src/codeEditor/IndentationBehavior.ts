@@ -3,17 +3,27 @@ import { Behavior } from "./Behavior"
 export class IndentationBehavior extends Behavior {
   handleKeyDown(e: KeyboardEvent): boolean {
     const ta = e.target as HTMLTextAreaElement
-    console.log(ta)
     if (e.key === "Tab") {
       e.preventDefault()
       const selectedLines = IndentationBehavior.getSelectedLines(ta)
-      if (e.shiftKey) IndentationBehavior.decreaseLineIndentation(ta, ...selectedLines)
+      if (e.shiftKey)
+        IndentationBehavior.decreaseLineIndentation(ta, ...selectedLines)
       else IndentationBehavior.increaseLineIndentation(ta, ...selectedLines)
       return true
     } else if (e.key === "Enter") {
       e.preventDefault()
       const newIndentation = IndentationBehavior.getNewLineIndentation(ta)
-      IndentationBehavior.insertText(ta, "\n" + newIndentation)
+      const betweenBraces = IndentationBehavior.selectionIsBetweenBraces(ta)
+      console.log(betweenBraces)
+      let insertText = "\n" + newIndentation
+      if (betweenBraces) insertText += "\n"
+      console.log(insertText)
+      IndentationBehavior.insertText(
+        ta,
+        insertText,
+        betweenBraces ? insertText.length - 1 : insertText.length
+      )
+
       return true
     }
     return false
