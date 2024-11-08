@@ -194,6 +194,7 @@ export class EditorMixed extends LitElement {
       height: 80vh;
       width: 80vw;
       border: 1px solid black;
+      user-select: none;
     }
   `
 }

@@ -41,14 +41,20 @@ export class PrismKotlinEditor extends LitElement {
     css`
       :host {
         display: block;
+        overflow: auto;
         position: relative;
-        overflow: scroll;
+        width: 100%;
+        height: 100%;
       }
-      pre {
-        margin: 0;
-        padding: 10px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+      .container {
+        min-width: 100%;
+        min-height: 100%;
+        width: max-content;
+        height: max-content;
+        position: relative;
+        overflow: hidden;
+        background: #272822;
+        border-radius: 0.3rem;
       }
       textarea.input,
       pre.highlighted {
@@ -58,8 +64,11 @@ export class PrismKotlinEditor extends LitElement {
         tab-size: 2;
         padding: 0;
         margin: 0;
-        width: 100%;
-        height: 100%;
+        min-width: 100%;
+        min-height: 100%;
+        width: max-content;
+        height: max-content;
+        white-space: pre;
       }
       textarea.input {
         position: absolute;
@@ -71,7 +80,7 @@ export class PrismKotlinEditor extends LitElement {
         caret-color: white;
         outline: none;
         border: none;
-        overflow: auto;
+        overflow: hidden;
       }
       pre.highlighted {
         pointer-events: none;
@@ -87,15 +96,17 @@ export class PrismKotlinEditor extends LitElement {
 
   render() {
     return html`
-      <pre class="highlighted language-kotlin"><code>${unsafeHTML(
-        this.highlighted
-      )}</code></pre>
-      <textarea
-        class="input"
-        .value=${this.input}
-        @input=${this.handleInput}
-        @keydown=${this.handleKeyDown}
-        spellcheck="false"></textarea>
+      <div class="container">
+        <pre class="highlighted language-kotlin"><code>${unsafeHTML(
+          this.highlighted
+        )}</code></pre>
+        <textarea
+          class="input"
+          .value=${this.input}
+          @input=${this.handleInput}
+          @keydown=${this.handleKeyDown}
+          spellcheck="false"></textarea>
+      </div>
     `
   }
 
