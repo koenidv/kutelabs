@@ -29,7 +29,7 @@ export class PrismKotlinEditor extends LitElement {
     this.highlighted = ""
   }
 
-  behaviours: Behavior[] = [new IndentationBehavior()]
+  behaviours: Behavior[] = [new BracesBehavior(), new IndentationBehavior()]
 
   static styles = [
     unsafeCSS(prismStyles),
