@@ -70,15 +70,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     size: SizeProps
   ): TemplateResult<2> {
     return svg`
-          <rect
-        x="0"
-        y="0"
-        width=${size.fullWidth / 2}
-        height=${size.fullHeight / 2}
-        fill="#badeff"
-        opacity="0.6"
-        stroke="#000000aa"/>
-        <foreignObject class="donotdrag" x="0" y="0" width=${size.fullWidth} height=${size.fullHeight} >
+        <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
           <!-- <lit-code code='val test = "dongs"' language="kotlin"></lit-code> -->
           <prism-kotlin-editor
             .input="${data.customExpression || ""}"
