@@ -14,15 +14,14 @@ export class IndentationBehavior extends Behavior {
       e.preventDefault()
       const newIndentation = IndentationBehavior.getNewLineIndentation(ta)
       const betweenBraces = IndentationBehavior.selectionIsBetweenBraces(ta)
-      console.log(betweenBraces)
+
       let insertText = "\n" + newIndentation
-      if (betweenBraces) insertText += "\n"
-      console.log(insertText)
-      IndentationBehavior.insertText(
-        ta,
-        insertText,
-        betweenBraces ? insertText.length - 1 : insertText.length
-      )
+      const adjustCursor = insertText.length
+      if (betweenBraces) {
+        insertText += "\n" + IndentationBehavior.getCurrentIndentation(ta)
+      }
+
+      IndentationBehavior.insertText(ta, insertText, adjustCursor)
 
       return true
     }
@@ -57,20 +56,27 @@ export class IndentationBehavior extends Behavior {
     ta.selectionEnd = selection.end - changed
   }
 
+  static getCurrentIndentation(ta: HTMLTextAreaElement): string {
+    const lines = ta.value.substring(0, ta.selectionStart).split("\n")
+    const selectedLine = lines[this.getSelectedLines(ta)[0]]
+    const indentMatch = selectedLine.match(/^(\s*)/)
+    return indentMatch ? indentMatch[1] : ""
+  }
+
   static getNewLineIndentation(ta: HTMLTextAreaElement): string {
-    const currentPosition = ta.selectionStart
-    const lines = ta.value.substring(0, currentPosition).split("\n")
-    const currentLine = lines[lines.length - 1]
+    const lines = ta.value.substring(0, ta.selectionStart).split("\n")
+    const selectedLine = lines[this.getSelectedLines(ta)[0]]
+    const indentMatch = selectedLine.match(/^(\s*)/)
+    let indentation = indentMatch ? indentMatch[1] : ""
 
-    // Get the indentation of the current line
-    const indentMatch = currentLine.match(/^(\s*)/)
-    let indent = indentMatch ? indentMatch[1] : ""
-
-    // Increase indentation if the line ends with an opening brace
-    if (currentLine.trim().endsWith("{")) {
-      indent += "\t"
+    const trimmed = selectedLine.trim()
+    if (
+      trimmed.length > 0 &&
+      ["{", "("].includes(trimmed.at(trimmed.length - 1)!)
+    ) {
+      indentation += "\t"
     }
 
-    return indent
+    return indentation
   }
 }

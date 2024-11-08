@@ -24,6 +24,15 @@ export class BracesBehavior extends Behavior {
       return true
     }
 
+    if (
+      (e.key === ")" && ta.value.at(ta.selectionStart) == ")") ||
+      (e.key === "}" && ta.value.at(ta.selectionStart) == "}")
+    ) {
+      e.preventDefault()
+      ta.selectionStart++
+      return true
+    }
+
     return false
   }
 
