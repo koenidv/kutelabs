@@ -7,6 +7,11 @@ import Prism from "prismjs"
 import "prismjs/components/prism-kotlin"
 import prismStyles from "prismjs/themes/prism.css?inline"
 import themeStyles from "prismjs/themes/prism-okaidia.css?inline"
+import "prismjs/plugins/match-braces/prism-match-braces"
+import { createRef, ref, type Ref } from "lit/directives/ref.js"
+import { IndentationBehavior } from "./IndentationBehavior"
+import { BracesBehavior } from "./BracesBehavior"
+import type { Behavior } from "./Behavior"
 
 @customElement("prism-kotlin-editor")
 export class PrismKotlinEditor extends LitElement {
@@ -23,6 +28,8 @@ export class PrismKotlinEditor extends LitElement {
     this.input = ""
     this.highlighted = ""
   }
+
+  behaviours: Behavior[] = [new IndentationBehavior()]
 
   static styles = [
     unsafeCSS(prismStyles),
@@ -82,6 +89,7 @@ export class PrismKotlinEditor extends LitElement {
         class="input"
         .value=${this.input}
         @input=${this.handleInput}
+        @keydown=${this.handleKeyDown}
         spellcheck="false"></textarea>
     `
   }
@@ -93,6 +101,14 @@ export class PrismKotlinEditor extends LitElement {
       new CustomEvent("code-change", { detail: { code: this.input } })
     )
     this.highlightCode()
+  }
+
+  private handleKeyDown(e: KeyboardEvent) {
+    let handled = false
+    for (const behavior of this.behaviours) {
+      if (!handled) handled = behavior.handleKeyDown(e)
+    }
+    if (handled) e.target?.dispatchEvent(new Event("input", { bubbles: true }))
   }
 
   private highlightCode() {
