@@ -12,6 +12,7 @@ import themeStyles from "prismjs/themes/prism-okaidia.css?inline"
 export class PrismKotlinEditor extends LitElement {
   declare input: string
   declare highlighted: string
+
   static properties = {
     input: { type: String },
     highlighted: { type: String, state: true },
@@ -29,15 +30,39 @@ export class PrismKotlinEditor extends LitElement {
     css`
       :host {
         display: block;
+        position: relative;
       }
       pre {
         margin: 0;
         padding: 10px;
         white-space: pre-wrap;
+        word-wrap: break-word;
       }
-      code {
+      textarea.input,
+      pre.highlighted {
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        tab-size: 2;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      textarea.input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        resize: none;
+        background: transparent;
+        color: transparent;
+        caret-color: white;
         outline: none;
-        min-height: 1em;
+        border: none;
+        overflow: auto;
+      }
+      pre.highlighted {
+        pointer-events: none;
       }
     `,
   ]
@@ -50,20 +75,22 @@ export class PrismKotlinEditor extends LitElement {
 
   render() {
     return html`
-      <pre class="language-kotlin">
-        <code class="editor language-kotlin" @input=${this.handleInput} contenteditable="true">
-          ${unsafeHTML(this.highlighted)}
-        </code>
-      </pre>
+      <pre class="highlighted language-kotlin"><code>${unsafeHTML(
+        this.highlighted
+      )}</code></pre>
+      <textarea
+        class="input"
+        .value=${this.input}
+        @input=${this.handleInput}
+        spellcheck="false"></textarea>
     `
   }
 
   private handleInput(e: Event) {
-    const target = e.target as HTMLElement
-    const input = target.textContent || ""
-    this.input = input
+    const target = e.target as HTMLTextAreaElement
+    this.input = target.value || ""
     this.dispatchEvent(
-      new CustomEvent("code-change", { detail: { code: input } })
+      new CustomEvent("code-change", { detail: { code: this.input } })
     )
     this.highlightCode()
   }
@@ -74,7 +101,5 @@ export class PrismKotlinEditor extends LitElement {
       Prism.languages["kotlin"],
       "kotlin"
     )
-    console.log(this.highlighted)
-    this.requestUpdate()
   }
 }
