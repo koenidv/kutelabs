@@ -1,14 +1,29 @@
 import { Connection } from "../connections/Connection"
-import { Connector } from "../connections/Connector"
+import type { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
-  constructor(blockRegistry: BlockRegistry) {
-    super(null, BlockType.Root, null, [DefaultConnectors.Root], false, blockRegistry)
+  public readonly rootConnector: Connector
+  constructor(
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry
+  ) {
+    const rootConnector = DefaultConnectors.root()
+    super(
+      null,
+      BlockType.Root,
+      null,
+      [rootConnector],
+      false,
+      blockRegistry,
+      connectorRegistry
+    )
+    this.rootConnector = rootConnector
   }
 
   blocks: BlockAndCoordinates[] = []
@@ -20,8 +35,8 @@ export class RootBlock extends Block<BlockType.Root> {
     isOppositeAction: boolean = false
   ): void {
     if (
-      connection.from != DefaultConnectors.Root &&
-      connection.to != DefaultConnectors.Root
+      connection.from != this.rootConnector &&
+      connection.to != this.rootConnector
     )
       throw new Error("Root block can only connect on root connector")
 
@@ -48,7 +63,7 @@ export class RootBlock extends Block<BlockType.Root> {
     values.forEach(({ block, position }) =>
       this.connect(
         block,
-        new Connection(DefaultConnectors.Root, block.connectors.internal),
+        new Connection(this.rootConnector, block.connectors.internal),
         position
       )
     )

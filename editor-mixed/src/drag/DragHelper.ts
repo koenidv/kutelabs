@@ -1,6 +1,4 @@
 import { Connection } from "../connections/Connection"
-import { Connector } from "../connections/Connector"
-import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
@@ -9,11 +7,18 @@ import { Coordinates } from "../util/Coordinates"
 
 export class DragHelper {
   private readonly blockRegistry: BlockRegistry
+  private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
   private readonly requestRerender: () => void
 
-  constructor(blockRegistry: BlockRegistry, renderer: BaseDragRenderer, rerender: () => void) {
+  constructor(
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry,
+    renderer: BaseDragRenderer,
+    rerender: () => void
+  ) {
     this.blockRegistry = blockRegistry
+    this.connectorRegistry = connectorRegistry
     this.renderer = renderer
     this.requestRerender = rerender
   }
@@ -73,7 +78,7 @@ export class DragHelper {
     this.dragX += evt.movementX / ctm.a
     this.dragY += evt.movementY / ctm.d
 
-    const snap = ConnectorRegistry.instance.selectConnectorForBlock(
+    const snap = this.connectorRegistry.selectConnectorForBlock(
       this.dragged.block,
       new Coordinates(this.dragX, this.dragY),
       25
@@ -102,7 +107,7 @@ export class DragHelper {
       this.blockRegistry.attachToDrawer(this.dragged.block)
     } else {
       // Snapped to another connector on dropped in the workspace
-      const snap = ConnectorRegistry.instance.selectConnectorForBlock(
+      const snap = this.connectorRegistry.selectConnectorForBlock(
         this.dragged.block,
         new Coordinates(this.dragX, this.dragY),
         25
@@ -119,7 +124,7 @@ export class DragHelper {
     const connectOnBlock = snap?.to.parentBlock ?? this.blockRegistry.root!
     const snapOnConnection =
       snap ??
-      new Connection(DefaultConnectors.Root, dragged.block.connectors.internal)
+      new Connection(this.blockRegistry.root!.rootConnector, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
       dragged.block,

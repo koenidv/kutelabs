@@ -7,6 +7,7 @@ import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
+import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
 export class BlockRegistry {
@@ -20,9 +21,9 @@ export class BlockRegistry {
     return this._drawer
   }
 
-  constructor() {
-    this._root = new RootBlock(this)
-    this._drawer = new DrawerBlock(this)
+  constructor(connectorRegistry: ConnectorRegistry) {
+    this._root = new RootBlock(this, connectorRegistry)
+    this._drawer = new DrawerBlock(this, connectorRegistry)
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
@@ -69,7 +70,7 @@ export class BlockRegistry {
     modifyPosition: (current: Coordinates) => Coordinates
   ) {
     if (!this._root) throw new Error("Root is not set")
-    this.attach(block, this._root, DefaultConnectors.Root, modifyPosition)
+    this.attach(block, this._root, this._root.rootConnector, modifyPosition)
   }
 
   public attachToDrawer(block: AnyBlock | null) {
@@ -77,7 +78,7 @@ export class BlockRegistry {
     this.attach(
       block,
       this._drawer,
-      DefaultConnectors.Drawer,
+      this._drawer.drawerConnector,
       () => Coordinates.zero
     )
   }

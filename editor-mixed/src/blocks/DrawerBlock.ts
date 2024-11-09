@@ -1,13 +1,29 @@
 import { Connection } from "../connections/Connection"
+import type { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
-  constructor(blockRegistry: BlockRegistry) {
-    super(null, BlockType.Root, null, [DefaultConnectors.Drawer], false, blockRegistry)
+  public readonly drawerConnector: Connector
+  constructor(
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry
+  ) {
+    const drawerConnector = DefaultConnectors.drawer()
+    super(
+      null,
+      BlockType.Root,
+      null,
+      [drawerConnector],
+      false,
+      blockRegistry,
+      connectorRegistry
+    )
+    this.drawerConnector = drawerConnector
   }
 
   blocks: AnyBlock[] = []
@@ -19,8 +35,8 @@ export class DrawerBlock extends Block<BlockType.Root> {
     isOppositeAction: boolean = false
   ): void {
     if (
-      connection.from != DefaultConnectors.Drawer &&
-      connection.to != DefaultConnectors.Drawer
+      connection.from != this.drawerConnector &&
+      connection.to != this.drawerConnector
     )
       throw new Error("Drawer block can only connect on drawer connector")
 
@@ -39,7 +55,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
       if (!it) return
       this.connect(
         it,
-        new Connection(DefaultConnectors.Drawer, it.connectors.internal)
+        new Connection(this.drawerConnector, it.connectors.internal)
       )
     })
 
@@ -59,7 +75,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     values.forEach(block =>
       this.connect(
         block,
-        new Connection(DefaultConnectors.Drawer, block.connectors.internal)
+        new Connection(this.drawerConnector, block.connectors.internal)
       )
     )
   }

@@ -4,6 +4,7 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { IdGenerator } from "../util/IdGenerator"
 import { BlockConnectors } from "./BlockConnectors"
@@ -29,7 +30,8 @@ export class Block<T extends BlockType> implements BlockContract {
     data: BlockDataByType<T>,
     connectors: Connector[],
     draggable: boolean,
-    blockRegistry: BlockRegistry
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry
   ) {
     this.type = type
     this.draggable = draggable
@@ -38,6 +40,7 @@ export class Block<T extends BlockType> implements BlockContract {
 
     this.connectors.addConnector(
       this,
+      connectorRegistry,
       DefaultConnectors.internal(),
       ...connectors
     )

@@ -6,4 +6,6 @@ export enum ConnectorRole {
   Conditional,
   Input,
   Output,
+  Root,
+  Drawer
 }

@@ -4,14 +4,6 @@ import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
 
 export class ConnectorRegistry {
-  private static _instance: ConnectorRegistry
-  public static get instance(): ConnectorRegistry {
-    if (!ConnectorRegistry._instance) {
-      ConnectorRegistry._instance = new ConnectorRegistry()
-    }
-    return ConnectorRegistry._instance
-  }
-
   private _connectors: Connector[] = []
   public get connectors(): Connector[] {
     return this._connectors
@@ -84,7 +76,6 @@ export class ConnectorRegistry {
       )
       if (remoteConnector)
         return new Connection(localConnector, remoteConnector)
-      
     }
 
     return null

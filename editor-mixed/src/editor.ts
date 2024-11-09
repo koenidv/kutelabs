@@ -17,12 +17,14 @@ import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRend
 import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { DebugLayouter } from "./render/Layouters/DebugLayouter"
+import { ConnectorRegistry } from "./registries/ConnectorRegistry"
 
 import "@kutelabs/shared/src/extensions"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   blockRegistry: BlockRegistry
+  connectorRegistry: ConnectorRegistry
   layouter: BaseLayouter
   renderer: BaseBlockRenderer
   drawerRenderer: BaseDrawerRenderer
@@ -32,7 +34,8 @@ export class EditorMixed extends LitElement {
 
   constructor() {
     super()
-    this.blockRegistry = new BlockRegistry()
+    this.connectorRegistry = new ConnectorRegistry()
+    this.blockRegistry = new BlockRegistry(this.connectorRegistry)
 
     this.layouter = new DebugLayouter(this.blockRegistry)
     this.renderer = new DebugBlockRenderer(this.blockRegistry, this.layouter)
@@ -45,6 +48,7 @@ export class EditorMixed extends LitElement {
     this.dragRenderer = new DebugDragRenderer(this.blockRegistry, this.renderer)
     this.dragHelper = new DragHelper(
       this.blockRegistry,
+      this.connectorRegistry,
       this.dragRenderer,
       this.requestUpdate.bind(this)
     )
@@ -59,7 +63,8 @@ export class EditorMixed extends LitElement {
       { name: "main" },
       [DefaultConnectors.innerLoop()],
       true,
-      this.blockRegistry
+      this.blockRegistry,
+      this.connectorRegistry
     )
     this.blockRegistry.attachToRoot(mainFn, () => new Coordinates(200, 200))
     const block1 = new Block(
@@ -72,7 +77,8 @@ export class EditorMixed extends LitElement {
         DefaultConnectors.inputExtension(),
       ],
       true,
-      this.blockRegistry
+      this.blockRegistry,
+      this.connectorRegistry
     )
     new Block(
       block1,
@@ -85,7 +91,8 @@ export class EditorMixed extends LitElement {
         DefaultConnectors.innerLoop(),
       ],
       true,
-      this.blockRegistry
+      this.blockRegistry,
+      this.connectorRegistry
     )
     this.blockRegistry.attachToRoot(
       new Block(
@@ -98,7 +105,8 @@ export class EditorMixed extends LitElement {
         },
         [DefaultConnectors.before(), DefaultConnectors.after()],
         true,
-        this.blockRegistry
+        this.blockRegistry,
+        this.connectorRegistry
       ),
       () => new Coordinates(450, 100)
     )
@@ -109,7 +117,8 @@ export class EditorMixed extends LitElement {
         { input: "Hello" },
         [DefaultConnectors.extender()],
         true,
-        this.blockRegistry
+        this.blockRegistry,
+        this.connectorRegistry
       ),
       () => new Coordinates(375, 300)
     )
@@ -120,7 +129,8 @@ export class EditorMixed extends LitElement {
         { input: "World" },
         [DefaultConnectors.extender()],
         true,
-        this.blockRegistry
+        this.blockRegistry,
+        this.connectorRegistry
       ),
       () => new Coordinates(374, 400)
     )
@@ -135,7 +145,8 @@ export class EditorMixed extends LitElement {
           DefaultConnectors.inputExtension(),
         ],
         true,
-        this.blockRegistry
+        this.blockRegistry,
+        this.connectorRegistry
       )
     )
     this.blockRegistry.attachToDrawer(
@@ -145,7 +156,8 @@ export class EditorMixed extends LitElement {
         { input: "Hello" },
         [DefaultConnectors.extender()],
         true,
-        this.blockRegistry
+        this.blockRegistry,
+        this.connectorRegistry
       )
     )
   }

@@ -18,17 +18,19 @@ export class Connector {
     this.type = type
     this.role = role
     this.connectPredicates = new ConnectPredicates(this, connectPredicates)
-    ConnectorRegistry.instance.register(this)
+  }
+
+  public register(registry: ConnectorRegistry, parentBlock: AnyBlock): this {
+    if (this._parentBlock != null && parentBlock != this._parentBlock)
+      throw new Error("Connector parent may not be changed")
+    this._parentBlock = parentBlock
+    registry.register(this)
+    return this
   }
 
   private _parentBlock: AnyBlock | null = null
   public get parentBlock(): AnyBlock | null {
     return this._parentBlock
-  }
-  public set parentBlock(value: AnyBlock | null) {
-    if (this._parentBlock != null && value != this._parentBlock)
-      throw new Error("Connector parent may not be changed")
-    this._parentBlock = value
   }
 
   public globalPosition: Coordinates = Coordinates.zero
