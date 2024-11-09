@@ -1,12 +1,13 @@
 import { Connection } from "../connections/Connection"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
+import type { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
-  constructor() {
-    super(null, BlockType.Root, null, [DefaultConnectors.Drawer], false)
+  constructor(blockRegistry: BlockRegistry) {
+    super(null, BlockType.Root, null, [DefaultConnectors.Drawer], false, blockRegistry)
   }
 
   blocks: AnyBlock[] = []

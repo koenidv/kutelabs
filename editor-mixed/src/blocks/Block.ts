@@ -21,13 +21,15 @@ export class Block<T extends BlockType> implements BlockContract {
   renderStale: boolean = false
   isInDrawer: boolean = false
   data: BlockDataByType<T>
+  private readonly insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
 
   constructor(
     previous: AnyBlock | null,
     type: T,
     data: BlockDataByType<T>,
     connectors: Connector[],
-    draggable: boolean
+    draggable: boolean,
+    blockRegistry: BlockRegistry
   ) {
     this.type = type
     this.draggable = draggable
@@ -42,7 +44,8 @@ export class Block<T extends BlockType> implements BlockContract {
 
     if (previous != null) this.connectToPrevious(previous)
 
-    BlockRegistry.instance.register(this)
+    blockRegistry.register(this)
+    this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
   //#region Connect/Disconnect
@@ -83,7 +86,11 @@ export class Block<T extends BlockType> implements BlockContract {
       )
     }
 
-    this.connectedBlocks.insertForConnector(block, localConnector)
+    this.connectedBlocks.insertForConnector(
+      block,
+      localConnector,
+      this.insertOnRoot
+    )
     if (isOppositeAction) return
 
     // todo invalidate position
@@ -121,7 +128,7 @@ export class Block<T extends BlockType> implements BlockContract {
         return
       } else {
         block.lastAfter.connect(this.disconnectSelf(), connection)
-        BlockRegistry.instance.attachToRoot(block, curr => atPosition ?? curr)
+        this.insertOnRoot(block, curr => atPosition ?? curr)
         return
       }
     } else

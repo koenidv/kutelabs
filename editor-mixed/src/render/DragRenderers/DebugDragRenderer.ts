@@ -3,7 +3,6 @@ import type { AnyBlock } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { BaseDragRenderer } from "./BaseDragRenderer"
-import { BlockRegistry } from "../../registries/BlockRegistry"
 
 export class DebugDragRenderer extends BaseDragRenderer {
   protected renderAfterSnap(
@@ -12,7 +11,7 @@ export class DebugDragRenderer extends BaseDragRenderer {
     remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2> {
-    const width = BlockRegistry.instance.getSize(remoteBlock).fullWidth + 16
+    const width = this.blockRegistry.getSize(remoteBlock).fullWidth + 16
     const height = 32
 
     return svg`

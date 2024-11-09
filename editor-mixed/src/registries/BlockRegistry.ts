@@ -10,31 +10,19 @@ import { Coordinates } from "../util/Coordinates"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
 export class BlockRegistry {
-  private static _instance: BlockRegistry | null = null
-  static get instance(): BlockRegistry {
-    if (!BlockRegistry._instance) BlockRegistry._instance = new BlockRegistry()
-    return BlockRegistry._instance
-  }
-
   private _root: RootBlock | null = null
-  public set root(value: RootBlock | null) {
-    this._root = value
-  }
   public get root() {
     return this._root
   }
 
   private _drawer: DrawerBlock | null = null
-  public set drawer(value: DrawerBlock | null) {
-    this._drawer = value
-  }
   public get drawer() {
     return this._drawer
   }
 
-  public init() {
-    this.root = new RootBlock()
-    this.drawer = new DrawerBlock()
+  constructor() {
+    this._root = new RootBlock(this)
+    this._drawer = new DrawerBlock(this)
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()

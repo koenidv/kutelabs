@@ -6,11 +6,14 @@ import type { Connection } from "../../connections/Connection"
 import { ConnectorType } from "../../connections/ConnectorType"
 import type { Connector } from "../../connections/Connector"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
+import type { BlockRegistry } from "../../registries/BlockRegistry"
 
 export abstract class BaseDragRenderer {
-  protected blockRenderer: BaseBlockRenderer
+  protected readonly blockRegistry: BlockRegistry
+  private readonly blockRenderer: BaseBlockRenderer
 
-  constructor(blockRenderer: BaseBlockRenderer) {
+  constructor(blockRegistry: BlockRegistry, blockRenderer: BaseBlockRenderer) {
+    this.blockRegistry = blockRegistry
     this.blockRenderer = blockRenderer
   }
 

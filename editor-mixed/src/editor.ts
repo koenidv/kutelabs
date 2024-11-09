@@ -17,12 +17,12 @@ import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRend
 import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { DebugLayouter } from "./render/Layouters/DebugLayouter"
-import { JsCompiler } from "./compile/JsCompiler"
 
 import "@kutelabs/shared/src/extensions"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
+  blockRegistry: BlockRegistry
   layouter: BaseLayouter
   renderer: BaseBlockRenderer
   drawerRenderer: BaseDrawerRenderer
@@ -32,21 +32,19 @@ export class EditorMixed extends LitElement {
 
   constructor() {
     super()
-    BlockRegistry.instance.init()
+    this.blockRegistry = new BlockRegistry()
 
-    this.layouter = new DebugLayouter(BlockRegistry.instance)
-    this.renderer = new DebugBlockRenderer(
-      BlockRegistry.instance,
-      this.layouter
-    )
+    this.layouter = new DebugLayouter(this.blockRegistry)
+    this.renderer = new DebugBlockRenderer(this.blockRegistry, this.layouter)
     this.drawerRenderer = new DebugDrawerRenderer(
-      BlockRegistry.instance,
+      this.blockRegistry,
       this.layouter,
       this.renderer
     )
     this.extrasRenderer = new ExtrasRenderer()
-    this.dragRenderer = new DebugDragRenderer(this.renderer)
+    this.dragRenderer = new DebugDragRenderer(this.blockRegistry, this.renderer)
     this.dragHelper = new DragHelper(
+      this.blockRegistry,
       this.dragRenderer,
       this.requestUpdate.bind(this)
     )
@@ -60,9 +58,10 @@ export class EditorMixed extends LitElement {
       BlockType.Function,
       { name: "main" },
       [DefaultConnectors.innerLoop()],
-      true
+      true,
+      this.blockRegistry
     )
-    BlockRegistry.instance.attachToRoot(mainFn, () => new Coordinates(200, 200))
+    this.blockRegistry.attachToRoot(mainFn, () => new Coordinates(200, 200))
     const block1 = new Block(
       mainFn,
       BlockType.Expression,
@@ -72,7 +71,8 @@ export class EditorMixed extends LitElement {
         DefaultConnectors.after(),
         DefaultConnectors.inputExtension(),
       ],
-      true
+      true,
+      this.blockRegistry
     )
     new Block(
       block1,
@@ -84,9 +84,10 @@ export class EditorMixed extends LitElement {
         DefaultConnectors.inputExtension(),
         DefaultConnectors.innerLoop(),
       ],
-      true
+      true,
+      this.blockRegistry
     )
-    BlockRegistry.instance.attachToRoot(
+    this.blockRegistry.attachToRoot(
       new Block(
         null,
         BlockType.Expression,
@@ -96,31 +97,34 @@ export class EditorMixed extends LitElement {
           editable: true,
         },
         [DefaultConnectors.before(), DefaultConnectors.after()],
-        true
+        true,
+        this.blockRegistry
       ),
       () => new Coordinates(450, 100)
     )
-    BlockRegistry.instance.attachToRoot(
+    this.blockRegistry.attachToRoot(
       new Block(
         null,
         BlockType.Value,
         { input: "Hello" },
         [DefaultConnectors.extender()],
-        true
+        true,
+        this.blockRegistry
       ),
       () => new Coordinates(375, 300)
     )
-    BlockRegistry.instance.attachToRoot(
+    this.blockRegistry.attachToRoot(
       new Block(
         null,
         BlockType.Value,
         { input: "World" },
         [DefaultConnectors.extender()],
-        true
+        true,
+        this.blockRegistry
       ),
       () => new Coordinates(374, 400)
     )
-    BlockRegistry.instance.attachToDrawer(
+    this.blockRegistry.attachToDrawer(
       new Block(
         null,
         BlockType.Expression,
@@ -130,16 +134,18 @@ export class EditorMixed extends LitElement {
           DefaultConnectors.after(),
           DefaultConnectors.inputExtension(),
         ],
-        true
+        true,
+        this.blockRegistry
       )
     )
-    BlockRegistry.instance.attachToDrawer(
+    this.blockRegistry.attachToDrawer(
       new Block(
         null,
         BlockType.Value,
         { input: "Hello" },
         [DefaultConnectors.extender()],
-        true
+        true,
+        this.blockRegistry
       )
     )
   }
@@ -148,13 +154,13 @@ export class EditorMixed extends LitElement {
     new (): T extends BaseCompiler ? T : null
   }): string {
     if (compilerClass == null) throw new Error("Compiler class is null")
-    if (!BlockRegistry.instance.root)
+    if (!this.blockRegistry.root)
       throw new Error("Root block is not initialized")
 
     const instance = new compilerClass()
     if (instance == null) throw new Error("Compiler instance is null")
 
-    return instance.compileFromRoot(BlockRegistry.instance.root, true)
+    return instance.compileFromRoot(this.blockRegistry.root, true)
   }
 
   protected render() {

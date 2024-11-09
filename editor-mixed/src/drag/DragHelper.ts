@@ -8,10 +8,12 @@ import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
 export class DragHelper {
-  private renderer: BaseDragRenderer
-  private requestRerender: () => void
+  private readonly blockRegistry: BlockRegistry
+  private readonly renderer: BaseDragRenderer
+  private readonly requestRerender: () => void
 
-  constructor(renderer: BaseDragRenderer, rerender: () => void) {
+  constructor(blockRegistry: BlockRegistry, renderer: BaseDragRenderer, rerender: () => void) {
+    this.blockRegistry = blockRegistry
     this.renderer = renderer
     this.requestRerender = rerender
   }
@@ -47,7 +49,7 @@ export class DragHelper {
     )
 
     this.dragged.block.disconnectSelf()
-    BlockRegistry.instance.setDetached(this.dragged.block)
+    this.blockRegistry.setDetached(this.dragged.block)
 
     this.renderer.update(this.dragged, this.startPos, null)
     this.requestRerender()
@@ -58,7 +60,7 @@ export class DragHelper {
   ): AnyRegisteredBlock | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
-    return BlockRegistry.instance.getRegisteredById(blockId) ?? null
+    return this.blockRegistry.getRegisteredById(blockId) ?? null
   }
 
   //#region Update Drag
@@ -97,7 +99,7 @@ export class DragHelper {
       null
     ) {
       // Dropped on drawer
-      BlockRegistry.instance.attachToDrawer(this.dragged.block)
+      this.blockRegistry.attachToDrawer(this.dragged.block)
     } else {
       // Snapped to another connector on dropped in the workspace
       const snap = ConnectorRegistry.instance.selectConnectorForBlock(
@@ -114,7 +116,7 @@ export class DragHelper {
   }
 
   private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
-    const connectOnBlock = snap?.to.parentBlock ?? BlockRegistry.instance.root!
+    const connectOnBlock = snap?.to.parentBlock ?? this.blockRegistry.root!
     const snapOnConnection =
       snap ??
       new Connection(DefaultConnectors.Root, dragged.block.connectors.internal)
@@ -128,7 +130,7 @@ export class DragHelper {
 
   private reset() {
     this.dragged = null
-    BlockRegistry.instance.setDetached(null)
+    this.blockRegistry.setDetached(null)
     this.renderer.remove()
     this.startPos = Coordinates.zero
     this.dragX = 0

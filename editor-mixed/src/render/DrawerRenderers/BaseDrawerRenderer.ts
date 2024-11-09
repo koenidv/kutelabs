@@ -7,9 +7,9 @@ import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 
 export abstract class BaseDrawerRenderer {
-  blockRegistry: BlockRegistry
-  layouter: BaseLayouter
-  blockRenderer: BaseBlockRenderer
+  private readonly blockRegistry: BlockRegistry
+  private readonly layouter: BaseLayouter
+  private readonly blockRenderer: BaseBlockRenderer
 
   constructor(
     blockRegistry: BlockRegistry,
@@ -22,9 +22,9 @@ export abstract class BaseDrawerRenderer {
   }
 
   public renderElement(): TemplateResult<1> | typeof nothing {
-    if (!BlockRegistry.instance.drawer) return nothing
+    if (!this.blockRegistry.drawer) return nothing
 
-    const blocks = BlockRegistry.instance.drawer.blocks
+    const blocks = this.blockRegistry.drawer.blocks
     const withSize = this.measureAndSet(blocks)
     const layout = this.positionAndSet(withSize)
 
@@ -45,7 +45,7 @@ export abstract class BaseDrawerRenderer {
   private measureAndSet(blocks: AnyBlock[]): BlockAndSize[] {
     return blocks.map(block => {
       const size = this.layouter.measureBlock(block)
-      BlockRegistry.instance.setSize(block, size)
+      this.blockRegistry.setSize(block, size)
       return { block, size }
     })
   }
@@ -57,7 +57,7 @@ export abstract class BaseDrawerRenderer {
   } {
     const calculated = this.calculatePositions(blocks)
     calculated.positions.forEach(it => {
-      const registered = BlockRegistry.instance.setPosition(
+      const registered = this.blockRegistry.setPosition(
         it.block,
         it.position
       )

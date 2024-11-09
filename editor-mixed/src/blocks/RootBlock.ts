@@ -1,13 +1,14 @@
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
+import type { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
-  constructor() {
-    super(null, BlockType.Root, null, [DefaultConnectors.Root], false)
+  constructor(blockRegistry: BlockRegistry) {
+    super(null, BlockType.Root, null, [DefaultConnectors.Root], false, blockRegistry)
   }
 
   blocks: BlockAndCoordinates[] = []
