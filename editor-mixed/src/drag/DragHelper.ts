@@ -1,3 +1,4 @@
+import type { Ref } from "lit/directives/ref.js"
 import { Connection } from "../connections/Connection"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
@@ -9,25 +10,22 @@ export class DragHelper {
   private readonly blockRegistry: BlockRegistry
   private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
+  private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly requestRerender: () => void
 
   constructor(
     blockRegistry: BlockRegistry,
     connectorRegistry: ConnectorRegistry,
     renderer: BaseDragRenderer,
+    workspaceRef: Ref<SVGSVGElement>,
     rerender: () => void
   ) {
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
     this.renderer = renderer
+    this.workspaceRef = workspaceRef
     this.requestRerender = rerender
   }
-
-  private _observed: SVGSVGElement | null = null
-  public set observed(value: SVGSVGElement | null) {
-    this._observed = value
-  }
-
   private dragged: AnyRegisteredBlock | null = null
   private startPos = Coordinates.zero
   private dragX = 0
@@ -36,6 +34,8 @@ export class DragHelper {
   //#region Start Drag
 
   startDrag(evt: MouseEvent) {
+    if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
+
     const draggedParent = this.findParent(
       evt.target as HTMLElement,
       it => it.classList.contains("dragable"),
@@ -48,9 +48,9 @@ export class DragHelper {
 
     this.startPos = new Coordinates(
       draggedParent.getBoundingClientRect().left -
-        this._observed!.getBoundingClientRect().left,
+        this.workspaceRef.value.getBoundingClientRect().left,
       draggedParent.getBoundingClientRect().top -
-        this._observed!.getBoundingClientRect().top
+        this.workspaceRef.value.getBoundingClientRect().top
     )
 
     this.dragged.block.disconnectSelf()
@@ -74,7 +74,7 @@ export class DragHelper {
     if (!this.dragged) return
     evt.preventDefault()
 
-    const ctm = this._observed!.getScreenCTM()!
+    const ctm = this.workspaceRef.value!.getScreenCTM()!
     this.dragX += evt.movementX / ctm.a
     this.dragY += evt.movementY / ctm.d
 
@@ -124,7 +124,10 @@ export class DragHelper {
     const connectOnBlock = snap?.to.parentBlock ?? this.blockRegistry.root!
     const snapOnConnection =
       snap ??
-      new Connection(this.blockRegistry.root!.rootConnector, dragged.block.connectors.internal)
+      new Connection(
+        this.blockRegistry.root!.rootConnector,
+        dragged.block.connectors.internal
+      )
 
     connectOnBlock.connect(
       dragged.block,

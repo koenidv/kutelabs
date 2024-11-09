@@ -17,6 +17,7 @@ import { ConnectorRegistry } from "./registries/ConnectorRegistry"
 import type { MixedEditorConfig } from "./util/MixedEditorConfig"
 
 import "@kutelabs/shared"
+import { createRef, ref } from "lit/directives/ref.js"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -28,6 +29,8 @@ export class EditorMixed extends LitElement {
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
+
+  workspaceRef = createRef<SVGSVGElement>()
 
   declare config: MixedEditorConfig
   static properties = {
@@ -176,6 +179,7 @@ export class EditorMixed extends LitElement {
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
         <svg
+          ${ref(this.workspaceRef)}
           width="100%"
           height="100%"
           style="position: absolute; top: 0; left: 0;">
@@ -213,11 +217,6 @@ export class EditorMixed extends LitElement {
   }
 
   protected updated(changedProperties: PropertyValues): void {
-    if (!this.dragHelper?.observed && this.isCorrectlyConfigured) {
-      console.log("updating drag helper")
-      this.dragHelper!.observed = this.shadowRoot!.querySelector("svg") // todo use a ref for this
-    }
-
     if (
       changedProperties.has("config") &&
       this.config &&
@@ -244,10 +243,9 @@ export class EditorMixed extends LitElement {
           this.blockRegistry,
           this.connectorRegistry,
           this.dragRenderer,
+          this.workspaceRef,
           this.requestUpdate.bind(this)
         )
-
-        // this.requestUpdate()
       } catch (e) {
         console.error("Invalid editor config", this.config)
         console.error(e)
