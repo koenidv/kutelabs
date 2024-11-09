@@ -1,23 +1,20 @@
 import { css, html, LitElement, type PropertyValues } from "lit"
 import { customElement } from "lit/decorators.js"
 import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
-import { DebugBlockRenderer } from "./render/BlockRenderers/DebugBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
 import { Block } from "./blocks/Block"
 import { BlockType } from "./blocks/BlockType"
 import { Coordinates } from "./util/Coordinates"
-import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/ExtrasRenderer"
+import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
-import { DebugDragRenderer } from "./render/DragRenderers/DebugDragRenderer"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
 import { DefinedExpression } from "./blocks/DefinedExpression"
 import { DefaultConnectors } from "./connections/DefaultConnectors"
 import type { BaseCompiler } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
-import { DebugDrawerRenderer } from "./render/DrawerRenderers/DebugDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
-import { DebugLayouter } from "./render/Layouters/DebugLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
+import type { MixedEditorConfig } from "./util/MixedEditorConfig"
 
 import "@kutelabs/shared"
 
@@ -25,34 +22,27 @@ import "@kutelabs/shared"
 export class EditorMixed extends LitElement {
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
-  layouter: BaseLayouter
-  renderer: BaseBlockRenderer
-  drawerRenderer: BaseDrawerRenderer
-  extrasRenderer: ExtrasRenderer
-  dragRenderer: BaseDragRenderer
-  dragHelper: DragHelper
+  declare layouter: BaseLayouter
+  declare blockRenderer: BaseBlockRenderer
+  declare drawerRenderer: BaseDrawerRenderer
+  declare extrasRenderer: ExtrasRenderer
+  declare dragRenderer: BaseDragRenderer
+  dragHelper: DragHelper | undefined
+
+  declare config: MixedEditorConfig
+  static properties = {
+    config: { type: Object },
+    layouter: { type: Object, state: true },
+    blockRenderer: { type: Object, state: true },
+    drawerRenderer: { type: Object, state: true },
+    extrasRenderer: { type: Object, state: true },
+    dragRenderer: { type: Object, state: true },
+  }
 
   constructor() {
     super()
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-
-    this.layouter = new DebugLayouter(this.blockRegistry)
-    this.renderer = new DebugBlockRenderer(this.blockRegistry, this.layouter)
-    this.drawerRenderer = new DebugDrawerRenderer(
-      this.blockRegistry,
-      this.layouter,
-      this.renderer
-    )
-    this.extrasRenderer = new ExtrasRenderer()
-    this.dragRenderer = new DebugDragRenderer(this.blockRegistry, this.renderer)
-    this.dragHelper = new DragHelper(
-      this.blockRegistry,
-      this.connectorRegistry,
-      this.dragRenderer,
-      this.requestUpdate.bind(this)
-    )
-
     this.addDebugBlocks()
   }
 
@@ -162,6 +152,113 @@ export class EditorMixed extends LitElement {
     )
   }
 
+  static styles = css`
+    #editor-container {
+      height: 80vh;
+      width: 80vw;
+      border: 1px solid black;
+      user-select: none;
+    }
+  `
+
+  protected render() {
+    console.log("rendering")
+    if (!this.isCorrectlyConfigured) {
+      console.log("not correctly configured")
+      return
+    }
+    return html`
+      <div
+        id="editor-container"
+        style="position: relative"
+        @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
+        @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
+        @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
+        @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
+        <svg
+          width="100%"
+          height="100%"
+          style="position: absolute; top: 0; left: 0;">
+          ${this.extrasRenderer.renderBackground()}
+          ${this.blockRenderer.render()}
+        </svg>
+
+        <div
+          id="drawer-container"
+          style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
+          ${this.drawerRenderer!.renderElement()}
+        </div>
+
+        <svg
+          id="drag-layer"
+          width="100%"
+          height="100%"
+          style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
+          pointer-events="none">
+          ${this.dragRenderer!.render()}
+        </svg>
+      </div>
+    `
+  }
+
+  private get isCorrectlyConfigured(): boolean {
+    return (
+      this.layouter != undefined &&
+      this.blockRenderer != undefined &&
+      this.drawerRenderer != undefined &&
+      this.extrasRenderer != undefined &&
+      this.dragRenderer != undefined &&
+      this.dragHelper != undefined
+    )
+  }
+
+  protected updated(changedProperties: PropertyValues): void {
+    if (!this.dragHelper?.observed && this.isCorrectlyConfigured) {
+      console.log("updating drag helper")
+      this.dragHelper!.observed = this.shadowRoot!.querySelector("svg") // todo use a ref for this
+    }
+
+    if (
+      changedProperties.has("config") &&
+      this.config &&
+      this.config.layouter != null
+    ) {
+      try {
+        console.log("updating editor config", this.config)
+        this.layouter = new this.config.layouter(this.blockRegistry)
+        this.blockRenderer = new this.config.blockRenderer(
+          this.blockRegistry,
+          this.layouter
+        )
+        this.drawerRenderer = new this.config.drawerRenderer(
+          this.blockRegistry,
+          this.layouter,
+          this.blockRenderer
+        )
+        this.dragRenderer = new this.config.dragRenderer(
+          this.blockRegistry,
+          this.blockRenderer
+        )
+        this.extrasRenderer = new this.config.extrasRenderer()
+        this.dragHelper = new DragHelper(
+          this.blockRegistry,
+          this.connectorRegistry,
+          this.dragRenderer,
+          this.requestUpdate.bind(this)
+        )
+
+        // this.requestUpdate()
+      } catch (e) {
+        console.error("Invalid editor config", this.config)
+        console.error(e)
+      }
+    }
+  }
+
+  protected firstUpdated(_changedProperties: PropertyValues): void {
+    super.firstUpdated(_changedProperties)
+  }
+
   public compile<T>(compilerClass: {
     new (): T extends BaseCompiler ? T : null
   }): string {
@@ -174,52 +271,4 @@ export class EditorMixed extends LitElement {
 
     return instance.compileFromRoot(this.blockRegistry.root, true)
   }
-
-  protected render() {
-    return html`
-      <div
-        id="editor-container"
-        style="position: relative"
-        @mousedown="${(e: MouseEvent) => this.dragHelper.startDrag(e)}"
-        @mousemove="${(e: MouseEvent) => this.dragHelper.drag(e)}"
-        @mouseup="${(e: MouseEvent) => this.dragHelper.endDrag(e)}"
-        @mouseleave="${(e: MouseEvent) => this.dragHelper.endDrag(e)}">
-        <svg
-          width="100%"
-          height="100%"
-          style="position: absolute; top: 0; left: 0;">
-          ${this.extrasRenderer.renderBackground()} ${this.renderer.render()}
-        </svg>
-
-        <div
-          id="drawer-container"
-          style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
-          ${this.drawerRenderer.renderElement()}
-        </div>
-
-        <svg
-          id="drag-layer"
-          width="100%"
-          height="100%"
-          style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
-          pointer-events="none">
-          ${this.dragRenderer.render()}
-        </svg>
-      </div>
-    `
-  }
-
-  protected firstUpdated(_changedProperties: PropertyValues): void {
-    super.firstUpdated(_changedProperties)
-    this.dragHelper.observed = this.shadowRoot!.querySelector("svg")
-  }
-
-  static styles = css`
-    #editor-container {
-      height: 80vh;
-      width: 80vw;
-      border: 1px solid black;
-      user-select: none;
-    }
-  `
 }

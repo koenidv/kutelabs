@@ -114,3 +114,7 @@ export abstract class BaseBlockRenderer {
       )
   }
 }
+
+export type BlockRendererConstructorType = {
+  new (blockRegistry: BlockRegistry, layouter: BaseLayouter): BaseBlockRenderer
+}

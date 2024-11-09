@@ -77,3 +77,11 @@ export abstract class BaseDrawerRenderer {
     renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
   ): TemplateResult<2>
 }
+
+export type DrawerRendererConstructorType = {
+  new (
+    blockRegistry: BlockRegistry,
+    layouter: BaseLayouter,
+    blockRenderer: BaseBlockRenderer
+  ): BaseDrawerRenderer
+}

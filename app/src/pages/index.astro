@@ -14,7 +14,7 @@ import { EditorMixed } from "@kutelabs/editor-mixed"
     <div
       class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
       <h1>kutelabs. a kute way to learn kotlin :)</h1>
-      <EditorMixed client:only="lit" />
+      <EditorMixed id="editor-mixed" client:load />
       <button id="btn-tojs">to js</button>
       <button id="btn-execjs">exec js</button>
     </div>
@@ -24,13 +24,29 @@ import { EditorMixed } from "@kutelabs/editor-mixed"
 <script>
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
 
+  import { DebugBlockRenderer } from "@kutelabs/editor-mixed/src/render/BlockRenderers/DebugBlockRenderer"
+  import { DebugDragRenderer } from "@kutelabs/editor-mixed/src/render/DragRenderers/DebugDragRenderer"
+  import { DebugDrawerRenderer } from "@kutelabs/editor-mixed/src/render/DrawerRenderers/DebugDrawerRenderer"
+  import { ExtrasRenderer } from "@kutelabs/editor-mixed/src/render/ExtrasRenderers.ts/DefaultExtrasRenderer"
+  import { DebugLayouter } from "@kutelabs/editor-mixed/src/render/Layouters/DebugLayouter"
+  import { type MixedEditorConfig } from "@kutelabs/editor-mixed/src/util/MixedEditorConfig"
+
+  export const config: MixedEditorConfig = {
+    layouter: DebugLayouter,
+    blockRenderer: DebugBlockRenderer,
+    drawerRenderer: DebugDrawerRenderer,
+    dragRenderer: DebugDragRenderer,
+    extrasRenderer: ExtrasRenderer,
+  }
+
+  //@ts-ignore
+  document.querySelector("editor-mixed").config = config
+
   //@ts-ignore
   document.querySelector("#btn-tojs").addEventListener(
     "click",
     (() => {
-      console.log(
-        document.querySelector("editor-mixed").compile(JsCompiler)
-      )
+      console.log(document.querySelector("editor-mixed").compile(JsCompiler))
     }).bind(this)
   )
   //@ts-ignore

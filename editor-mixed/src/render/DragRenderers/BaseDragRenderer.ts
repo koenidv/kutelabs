@@ -117,3 +117,10 @@ export abstract class BaseDragRenderer {
     remoteConnector: Connector
   ): TemplateResult<2>
 }
+
+export type DragRendererConstructorType = {
+  new (
+    blockRegistry: BlockRegistry,
+    blockRenderer: BaseBlockRenderer
+  ): BaseDragRenderer
+}

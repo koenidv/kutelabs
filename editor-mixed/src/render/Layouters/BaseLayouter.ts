@@ -109,3 +109,7 @@ export abstract class BaseLayouter {
 
   //#endregion
 }
+
+export type LayouterConstructorType = {
+  new (blockRegistry: BlockRegistry): BaseLayouter
+}
