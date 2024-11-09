@@ -19,7 +19,7 @@ import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { DebugLayouter } from "./render/Layouters/DebugLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
 
-import "@kutelabs/shared/src/extensions"
+import "@kutelabs/shared"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {

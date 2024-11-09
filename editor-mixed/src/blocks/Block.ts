@@ -11,7 +11,7 @@ import type { BlockContract } from "./BlockContract"
 import { type BlockDataByType } from "./BlockData"
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
-import { IdGenerator } from "@kutelabs/shared/src/IdGenerator"
+import { IdGenerator } from "@kutelabs/shared"
 
 export type AnyBlock = Block<BlockType>
 
