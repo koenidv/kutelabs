@@ -6,17 +6,17 @@ import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
-import { IdGenerator } from "../util/IdGenerator"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
 import { type BlockDataByType } from "./BlockData"
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
+import { IdGenerator } from "@kutelabs/shared/src/IdGenerator"
 
 export type AnyBlock = Block<BlockType>
 
 export class Block<T extends BlockType> implements BlockContract {
-  readonly id: string = IdGenerator.instance.next
+  readonly id: string = IdGenerator.next
   readonly type: BlockType
   readonly draggable: boolean
   renderStale: boolean = false
