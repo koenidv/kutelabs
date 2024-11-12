@@ -1,4 +1,4 @@
-name: Build+Push Server Docker
+name: Build + Deploy Server
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   docker:
+    name: Build Docker & Push to Dockerhub
     runs-on: ubuntu-latest
     steps:
       -
@@ -31,3 +32,19 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
           tags: user/app:latest
+
+  deploy:
+    needs: docker
+    name: Deploy on koeniserv
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: install ssh keys
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} > ~/.ssh/known_hosts
+    - name: connect and pull
+      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "cd ${{ secrets.DEPLOY_DIR }} && docker compose pull && docker compose up -d && exit"
+    - name: cleanup
+      run: rm -rf ~/.ssh
