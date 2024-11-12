@@ -1,4 +1,4 @@
-  import { svg, type TemplateResult } from "lit"
+import { svg, type TemplateResult } from "lit"
 import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
@@ -10,7 +10,7 @@ import type { BlockDataExpression } from "../../blocks/BlockData"
 
 import "../../codeEditor/PrismKotlinEditor"
 
-export class DebugBlockRenderer extends BaseBlockRenderer {
+export class Debug2BlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
     block: AnyBlock,
     size: SizeProps,
@@ -24,9 +24,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         y="0"
         width=${size.fullWidth}
         height=${size.fullHeight}
-        fill="#fabcde"
-        opacity="0.6"
-        stroke="#000000aa"/>
+        fill="MidnightBlue"
+        stroke="Pink"/>
 
       ${this.renderBlockContents(block, size, position)}
 
@@ -58,8 +57,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         else break
       default:
         return svg`
-          <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
-          <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+          <text x="5" y="20" fill="white" style="user-select: none;">${BlockType[block.type]}</text>
+          <text x="5" y="40" fill="white" style="user-select: none;">${block.id}</text>
         `
     }
   }
