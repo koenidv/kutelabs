@@ -1,5 +1,6 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
+import { DefinedExpression } from "../blocks/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
@@ -28,26 +29,46 @@ export class JsCompiler extends BaseCompiler {
     // functions should not have after blocks; thus not compiling them here
   }
 
-  compileExpression(
+  compileDefinedExpression(
     block: Block<BlockType.Expression>,
     next: typeof this.compile
   ): string {
-    throw new Error("Method not implemented.")
+    switch (block.data.expression) {
+      case DefinedExpression.Println:
+        return `console.log(${this.chainInputs(block, next)});\n${next(block.after)}`
+      default:
+        throw new Error(
+          `Expression ${DefinedExpression[block.data.expression]} is not defined`
+        )
+    }
   }
 
-  compileInput(
-    block: Block<BlockType.Input>,
+  compileCustomExpression(
+    block: Block<BlockType.Expression>,
+    next: typeof this.compile
+  ): string {
+    // todo different langs
+    return `${block.data.expression}\n${next(block.after)}`
+  }
+
+  compileValue(
+    block: Block<BlockType.Value>,
     next: typeof this.compile
   ): string {
     throw new Error("Method not implemented.")
   }
 
-  compileVar(block: Block<BlockType.Var>, next: typeof this.compile): string {
+  compileVariable(
+    block: Block<BlockType.Variable>,
+    next: typeof this.compile
+  ): string {
     throw new Error("Method not implemented.")
   }
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
-    throw new Error("Method not implemented.")
+    return `while (${next(block.conditional)}) {
+      ${next(block.inners[0])}
+    }`
   }
 
   compileConditional(
@@ -59,5 +80,9 @@ export class JsCompiler extends BaseCompiler {
 
   mainCall(): string {
     return "main();"
+  }
+
+  chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
+    return block.inputs.map(it => next(it)).join(", ")
   }
 }

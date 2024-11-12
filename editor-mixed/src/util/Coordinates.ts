@@ -1,3 +1,7 @@
+import type { AnyBlock } from "../blocks/Block";
+
+export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
+
 export class Coordinates {
   readonly x: number
   readonly y: number

@@ -11,6 +11,8 @@ export enum WidthProp {
   Right,
 }
 
+export type BlockAndSize = { block: AnyBlock; size: SizeProps }
+
 export class SizeProps {
   heights: Map<HeightProp, number>
   widths: Map<WidthProp, number>

@@ -4,17 +4,17 @@ import { ConnectorType } from "../connections/ConnectorType"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { findKeyByValue } from "../util/MapUtils"
-import type { AnyBlock, Block } from "./Block"
+import type { AnyBlock } from "./Block"
 
 export class ConnectedBlocks {
   blocks: Map<Connector, AnyBlock> = new Map()
 
-  insertForConnector(block: AnyBlock, connector: Connector) {
-    if (this.blocks.has(connector)) this.handlePopBlock(connector, block)
+  insertForConnector(block: AnyBlock, connector: Connector, insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
+    if (this.blocks.has(connector)) this.handlePopBlock(connector, block, insertOnRoot)
     this.blocks.set(connector, block)
   }
 
-  private handlePopBlock(connector: Connector, newBlock: AnyBlock) {
+  private handlePopBlock(connector: Connector, newBlock: AnyBlock, insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
     if (!connector.isDownstram)
       console.warn("Popping block on upstream connector", connector)
     const popped = (
@@ -40,7 +40,7 @@ export class ConnectedBlocks {
       )
     }
 
-    BlockRegistry.instance.attachToRoot(popped, curr => {
+    insertOnRoot(popped, curr => {
       return Coordinates.addPopOffset(curr)
     })
   }
@@ -52,7 +52,7 @@ export class ConnectedBlocks {
   byConnector(connector: Connector | null): AnyBlock | null {
     if (connector === null) return null
     return this.blocks.get(connector) || null
-  }
+  } 
 
   popBlock(block: AnyBlock): BlockAndConnector | null {
     const connector = findKeyByValue(this.blocks, block)
