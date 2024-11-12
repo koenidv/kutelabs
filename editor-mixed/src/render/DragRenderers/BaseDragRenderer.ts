@@ -1,21 +1,20 @@
 import { nothing, svg, type TemplateResult } from "lit"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import type { AnyBlock } from "../../blocks/Block"
 import { Coordinates } from "../../util/Coordinates"
 import type { Connection } from "../../connections/Connection"
 import { ConnectorType } from "../../connections/ConnectorType"
 import type { Connector } from "../../connections/Connector"
+import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
+import type { BlockRegistry } from "../../registries/BlockRegistry"
 
 export abstract class BaseDragRenderer {
-  private _renderBlock: (
-    block: AnyBlock,
-    position: Coordinates
-  ) => TemplateResult<2>
+  protected readonly blockRegistry: BlockRegistry
+  private readonly blockRenderer: BaseBlockRenderer
 
-  constructor(
-    renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
-  ) {
-    this._renderBlock = renderBlock
+  constructor(blockRegistry: BlockRegistry, blockRenderer: BaseBlockRenderer) {
+    this.blockRegistry = blockRegistry
+    this.blockRenderer = blockRenderer
   }
 
   private dragged: AnyRegisteredBlock | null = null
@@ -40,7 +39,8 @@ export abstract class BaseDragRenderer {
   render() {
     if (this.dragged == null) return nothing
     return [
-      this._renderBlock(this.dragged.block, this.position),
+      // pointer-events="none" is required to detect dropping on the drawer
+      svg`<g pointer-events="none">${this.blockRenderer.renderBlock(this.dragged.block, this.position)}</g>`,
       this.renderSnap(),
     ]
   }
@@ -116,4 +116,11 @@ export abstract class BaseDragRenderer {
     remoteBlock: AnyBlock,
     remoteConnector: Connector
   ): TemplateResult<2>
+}
+
+export type DragRendererConstructorType = {
+  new (
+    blockRegistry: BlockRegistry,
+    blockRenderer: BaseBlockRenderer
+  ): BaseDragRenderer
 }

@@ -3,6 +3,8 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { env } from "./env"
 
+import "@kutelabs/shared"
+
 const app = new Hono()
 
 const routes = new Glob(__dirname + "/routes/**/index.ts")

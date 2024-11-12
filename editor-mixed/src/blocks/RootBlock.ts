@@ -1,14 +1,29 @@
 import { Connection } from "../connections/Connection"
-import { Connector } from "../connections/Connector"
-import { Coordinates } from "../util/Coordinates"
+import type { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
+import type { BlockRegistry } from "../registries/BlockRegistry"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./BlockType"
 
-export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
-
 export class RootBlock extends Block<BlockType.Root> {
-  constructor() {
-    super(null, BlockType.Root, null, [Connector.Root], false)
+  public readonly rootConnector: Connector
+  constructor(
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry
+  ) {
+    const rootConnector = DefaultConnectors.root()
+    super(
+      null,
+      BlockType.Root,
+      null,
+      [rootConnector],
+      false,
+      blockRegistry,
+      connectorRegistry
+    )
+    this.rootConnector = rootConnector
   }
 
   blocks: BlockAndCoordinates[] = []
@@ -19,7 +34,10 @@ export class RootBlock extends Block<BlockType.Root> {
     atPosition?: Coordinates,
     isOppositeAction: boolean = false
   ): void {
-    if (connection.from != Connector.Root && connection.to != Connector.Root)
+    if (
+      connection.from != this.rootConnector &&
+      connection.to != this.rootConnector
+    )
       throw new Error("Root block can only connect on root connector")
 
     if (this.findIndex(block) == -1) {
@@ -42,10 +60,10 @@ export class RootBlock extends Block<BlockType.Root> {
   }
 
   register(...values: BlockAndCoordinates[]) {
-    values.forEach(({ block, position }, _) =>
+    values.forEach(({ block, position }) =>
       this.connect(
         block,
-        new Connection(Connector.Root, block.connectors.internal),
+        new Connection(this.rootConnector, block.connectors.internal),
         position
       )
     )

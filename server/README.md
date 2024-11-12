@@ -36,7 +36,7 @@ Please ensure that [gVisor is installed](https://gvisor.dev/docs/user_guide/inst
 The transpiler image must be available before running the server, but you can [specify the image name](#env) in an environment variable.
 
 ```sh
-docker run -v /var/run/docker.sock:/var/run/docker.sock -v data:/data -e TRANSPILER_NAME=kutelabs-transpiler kutelabs-server:latest
+docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v data:/data -e TRANSPILER_NAME=kutelabs-transpiler kutelabs-server:latest
 ```
 
 ## Env

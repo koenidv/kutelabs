@@ -1,53 +1,51 @@
-import {
-  TranspilationStatus,
-  type TranspilationResult,
-} from "../../transpile/transpile"
-
-export enum TranspilatonError {
-  compilationError = "compilationError",
-  timeout = "timeout",
-  noCode = "noCode",
-  unknown = "unknown",
-}
+import { type TranspilationResult } from "../../transpile/transpile"
+import { TranspilationStatus } from "../../transpile/TranspilationStatus"
 
 export class ResultDTO {
+  status: TranspilationStatus
   transpiledCode: string | null
-  cached: boolean | null
-  error: TranspilatonError | null
+  message: string | null = null
+  cached: boolean = false
 
   private constructor(
-    transpiledCode: string | null,
-    cached: boolean | null,
-    error: TranspilatonError | null
+    status: TranspilationStatus,
+    transpiledCode: string | null = null,
+    message: string | null = null
   ) {
+    this.status = status
     this.transpiledCode = transpiledCode
-    this.cached = cached
-    this.error = error
+    this.message = message
   }
 
-  public static compiled(transpiledCode: string): ResultDTO {
-    return new ResultDTO(transpiledCode, false, null)
-  }
-
-  public static cached(transpiledCode: string): ResultDTO {
-    return new ResultDTO(transpiledCode, true, null)
-  }
-
-  public static error(error: TranspilatonError): ResultDTO {
-    return new ResultDTO(null, null, error)
+  public static error(
+    status: TranspilationStatus,
+    message: string | null = null
+  ) {
+    return new ResultDTO(status, null, message)
   }
 
   public static fromTranspilationResult(result: TranspilationResult) {
     switch (result.status) {
       case TranspilationStatus.Success:
-        return ResultDTO.compiled(result.transpiled!)
+        return new ResultDTO(TranspilationStatus.Success, result.transpiled!)
       case TranspilationStatus.CompilationError:
-        return ResultDTO.error(TranspilatonError.compilationError)
       case TranspilationStatus.Timeout:
-        return ResultDTO.error(TranspilatonError.timeout)
-      case TranspilationStatus.UnknownError:
+        return ResultDTO.error(result.status, result.message)
       default:
-        return ResultDTO.error(TranspilatonError.unknown)
+        return ResultDTO.error(TranspilationStatus.UnknownError)
     }
+  }
+
+  public setAsCached(): ResultDTO {
+    this.cached = true
+    return this
+  }
+
+  public toString(): string {
+    return JSON.stringify(this)
+  }
+
+  public static fromJSON(json: string): ResultDTO {
+    return JSON.parse(json)
   }
 }

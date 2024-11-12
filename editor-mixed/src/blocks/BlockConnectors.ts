@@ -2,15 +2,20 @@ import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import type { AnyBlock } from "./Block"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 
 export class BlockConnectors {
   private _connectors: Map<ConnectorType, Connector> = new Map()
   private _innerConnectors: Connector[] = []
   private _extensionConnectors: Connector[] = []
 
-  addConnector(parentBlock: AnyBlock, ...connectors: Connector[]) {
+  addConnector(
+    parentBlock: AnyBlock,
+    registry: ConnectorRegistry,
+    ...connectors: Connector[]
+  ) {
     connectors.forEach(connector => {
-      connector.parentBlock = parentBlock
+      connector.register(registry, parentBlock)
 
       switch (connector.type) {
         case ConnectorType.Inner:

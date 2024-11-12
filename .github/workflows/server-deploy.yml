@@ -1,0 +1,50 @@
+name: Build + Deploy Server
+
+on:
+  push:
+    branches:
+      - release/server
+
+jobs:
+  docker:
+    name: Build Docker & Push to Dockerhub
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: koenidv/kutelabs-server:latest
+
+  deploy:
+    needs: docker
+    name: Deploy on koeniserv
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: install ssh keys
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} > ~/.ssh/known_hosts
+    - name: connect and pull
+      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "cd ${{ secrets.DEPLOY_DIR }} && docker compose pull && docker compose up -d && exit"
+    - name: cleanup
+      run: rm -rf ~/.ssh

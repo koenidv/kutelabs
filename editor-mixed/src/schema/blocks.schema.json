@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/schema/blocks.schema.json",
+  "title": "Mixed Content Editor Block",
+  "description": "Block within the mixed content editor",
+  "type": "object",
+  "$defs": {
+    "ExpressionBlock": {
+      "type": "object",
+      "description": "Expression Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an expression block",
+          "type": "string",
+          "const": "expression"
+        },
+        "data": {
+          "description": "Expression Block Data",
+          "type": "object",
+          "properties": {
+            "expression": {
+              "description": "Standard expression to be evaluated",
+              "type": "string",
+              "enum": [
+                "Custom",
+                "Println"
+              ]
+            }
+          },
+          "required": [
+            "expression"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    }
+  },
+  "properties": {
+    "block": {
+      "type": "object",
+      "description": "A block. Use \"type\" to determine the type of block",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ExpressionBlock"
+        }
+      ]
+    }
+  },
+  "required": [
+    "block"
+  ]
+}

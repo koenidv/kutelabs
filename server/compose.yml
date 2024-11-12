@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  kutelabs-server:
+    image: koenidv/kutelabs-server:latest
+    container_name: kutelabs-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - "kutelabs_data:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - TRANSPILER_NAME=koenidv/kutelabs-transpiler
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kutelabs.rule=Host(`test.api.kutelabs.koeni.dev`)"
+    networks:
+      - traefik
+      - default
+    depends_on:
+      - pull-transpiler
+
+  pull-transpiler:
+    image: koenidv/kutelabs-transpiler:latest
+    runtime: runsc
+    entrypoint: ["echo", "pulled transpiler"]
+
+volumes:
+  kutelabs_data:
+
+networks:
+  traefik:
+    name: traefik_proxy
+    external: true

@@ -1,25 +1,29 @@
-import type { AnyBlock, Block } from "../blocks/Block"
+import type { AnyBlock } from "../blocks/Block"
 import { BlockType } from "../blocks/BlockType"
+import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { SizeProps } from "../render/SizeProps"
-import type { Coordinates } from "../util/Coordinates"
+import { Coordinates } from "../util/Coordinates"
+import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
 export class BlockRegistry {
-  private static _instance: BlockRegistry | null = null
-  static get instance(): BlockRegistry {
-    if (!BlockRegistry._instance) BlockRegistry._instance = new BlockRegistry()
-    return BlockRegistry._instance
+  private _root: RootBlock | null = null
+  public get root() {
+    return this._root
   }
 
-  private _root: RootBlock | null = null
-  public set root(value: RootBlock | null) {
-    this._root = value
+  private _drawer: DrawerBlock | null = null
+  public get drawer() {
+    return this._drawer
   }
-  public initRoot() {
-    this.root = new RootBlock()
+
+  constructor(connectorRegistry: ConnectorRegistry) {
+    this._root = new RootBlock(this, connectorRegistry)
+    this._drawer = new DrawerBlock(this, connectorRegistry)
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
@@ -45,7 +49,10 @@ export class BlockRegistry {
     return registered.size
   }
 
-  public setPosition(block: AnyBlock, position: Coordinates): AnyRegisteredBlock {
+  public setPosition(
+    block: AnyBlock,
+    position: Coordinates
+  ): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
@@ -62,13 +69,32 @@ export class BlockRegistry {
     block: AnyBlock | null,
     modifyPosition: (current: Coordinates) => Coordinates
   ) {
-    if (!block) return
     if (!this._root) throw new Error("Root is not set")
+    this.attach(block, this._root, this._root.rootConnector, modifyPosition)
+  }
+
+  public attachToDrawer(block: AnyBlock | null) {
+    if (!this._drawer) throw new Error("Drawer is not set")
+    this.attach(
+      block,
+      this._drawer,
+      this._drawer.drawerConnector,
+      () => Coordinates.zero
+    )
+  }
+
+  private attach(
+    block: AnyBlock | null,
+    to: RootBlock | DrawerBlock,
+    on: Connector,
+    modifyPosition: (c: Coordinates) => Coordinates
+  ) {
+    if (!block) return
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
-    this._root.connect(
+    to.connect(
       block,
-      new Connection(Connector.Root, block.connectors.internal),
+      new Connection(on, block.connectors.internal),
       modifyPosition(registered.globalPosition)
     )
   }
@@ -85,9 +111,6 @@ export class BlockRegistry {
     ]
   }
 
-  public get root() {
-    return this._root
-  }
   public get leafs(): AnyBlock[] {
     return [...this._blocks.keys()].filter(
       b =>

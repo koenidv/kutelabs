@@ -1,92 +1,16 @@
-import { svg, type TemplateResult } from "lit"
+  import { svg, type TemplateResult } from "lit"
 import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
-import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
+import { SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/BlockType"
-import { BlockRegistry } from "../../registries/BlockRegistry"
-import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
+import type { BlockDataExpression } from "../../blocks/BlockData"
+
+import "../../codeEditor/PrismKotlinEditor"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
-  protected measureBlock(block: AnyBlock): SizeProps {
-    const size = SizeProps.empty()
-    size.addWidth(WidthProp.Left, 100)
-
-    size.addHeight(
-      HeightProp.Head,
-      block.extensions.length > 0
-        ? BlockRegistry.instance.getSize(block.extensions[0]).fullHeight
-        : block.type == BlockType.Input ? 30 : 50
-    )
-
-    // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
-    if (block.inners.length > 0)
-      size.addHeight(HeightProp.Body, this.measureStackHeight(block.inners[0]))
-
-    size.addHeight(HeightProp.Tail, 50)
-
-    return size
-  }
-
-  private measureStackHeight(block: AnyBlock): number {
-    let height = BlockRegistry.instance.getSize(block).fullHeight
-    let after = block.after
-    while (after != null) {
-      height += BlockRegistry.instance.getSize(after).fullHeight
-      after = after.after
-    }
-    return height
-  }
-
-  protected calculateBlockPosition(
-    _block: AnyBlock,
-    _size: SizeProps,
-    registeredParent: AnyRegisteredBlock,
-    parentConnector: Connector
-  ): Coordinates {
-    // todo this doesn't support multiple extensions; will need to know the extension index
-    if (parentConnector.type == ConnectorType.Extension) {
-      return new Coordinates(
-        registeredParent.globalPosition.x + registeredParent.size!.fullWidth,
-        registeredParent.globalPosition.y
-      )
-    }
-
-    return parentConnector.globalPosition
-  }
-
-  protected calculateConnectorOffset(
-    connector: Connector,
-    block: AnyBlock,
-    _blockPosition: Coordinates,
-    blockSize: SizeProps
-  ): Coordinates {
-    switch (connector.type) {
-      case ConnectorType.Before:
-        if (block.type == BlockType.Input)
-          return new Coordinates(0, blockSize.fullHeight / 2)
-        else return Coordinates.zero
-      case ConnectorType.After:
-        return new Coordinates(0, blockSize.fullHeight)
-      case ConnectorType.Inner:
-        return new Coordinates(
-          blockSize.fullWidth / 2,
-          blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight / 4
-        )
-      case ConnectorType.Extension:
-        return new Coordinates(
-          blockSize.fullWidth,
-          (blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight) / 2
-        )
-      case ConnectorType.Internal:
-        return new Coordinates(0, 0)
-      default:
-        return Coordinates.zero
-    }
-  }
-
   protected renderBlockElement(
     block: AnyBlock,
     size: SizeProps,
@@ -103,9 +27,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         fill="#fabcde"
         opacity="0.6"
         stroke="#000000aa"/>
-      
-      <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
-      <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+
+      ${this.renderBlockContents(block, size, position)}
 
       ${block.connectors.all.map(connector => this.renderConnector(connector, position))}
       
@@ -117,6 +40,45 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 	  </g>
     `
     // todo inner blocks, extension blocks
+  }
+
+  private renderBlockContents(
+    block: AnyBlock,
+    size: SizeProps,
+    position: Coordinates
+  ): TemplateResult<2> | undefined {
+    switch (block.type) {
+      case BlockType.Expression:
+        if ((block as Block<BlockType.Expression>).data.editable)
+          return this.renderEditableCodeContents(
+            block,
+            block.data as BlockDataExpression,
+            size
+          )
+        else break
+      default:
+        return svg`
+          <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
+          <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+        `
+    }
+  }
+
+  private renderEditableCodeContents(
+    block: Block<BlockType.Expression>,
+    data: BlockDataExpression,
+    size: SizeProps
+  ): TemplateResult<2> {
+    return svg`
+        <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
+          <prism-kotlin-editor
+            .input="${data.customExpression || ""}"
+            style="width: 100%; height: 100%;" 
+            @code-change=${(e: CustomEvent) => (block.data.customExpression = e.detail.code)}
+          />
+
+        </foreignObject>
+        `
   }
 
   private renderConnector(

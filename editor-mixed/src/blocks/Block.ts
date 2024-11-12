@@ -1,41 +1,54 @@
 import { Connection } from "../connections/Connection"
 import { Connector, type BlockAndConnector } from "../connections/Connector"
+import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
+import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
-import { IdGenerator } from "../util/IdGenerator"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
 import { type BlockDataByType } from "./BlockData"
 import type { BlockType } from "./BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
+import { IdGenerator } from "@kutelabs/shared"
 
 export type AnyBlock = Block<BlockType>
 
 export class Block<T extends BlockType> implements BlockContract {
-  readonly id: string = IdGenerator.instance.next
+  readonly id: string = IdGenerator.next
   readonly type: BlockType
   readonly draggable: boolean
   renderStale: boolean = false
+  isInDrawer: boolean = false
   data: BlockDataByType<T>
+  private readonly insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
 
   constructor(
     previous: AnyBlock | null,
     type: T,
     data: BlockDataByType<T>,
     connectors: Connector[],
-    draggable: boolean
+    draggable: boolean,
+    blockRegistry: BlockRegistry,
+    connectorRegistry: ConnectorRegistry
   ) {
     this.type = type
     this.draggable = draggable
 
     this.data = data
 
-    this.connectors.addConnector(this, Connector.internal(), ...connectors)
+    this.connectors.addConnector(
+      this,
+      connectorRegistry,
+      DefaultConnectors.internal(),
+      ...connectors
+    )
 
     if (previous != null) this.connectToPrevious(previous)
 
-    BlockRegistry.instance.register(this)
+    blockRegistry.register(this)
+    this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
   //#region Connect/Disconnect
@@ -76,7 +89,11 @@ export class Block<T extends BlockType> implements BlockContract {
       )
     }
 
-    this.connectedBlocks.insertForConnector(block, localConnector)
+    this.connectedBlocks.insertForConnector(
+      block,
+      localConnector,
+      this.insertOnRoot
+    )
     if (isOppositeAction) return
 
     // todo invalidate position
@@ -114,7 +131,7 @@ export class Block<T extends BlockType> implements BlockContract {
         return
       } else {
         block.lastAfter.connect(this.disconnectSelf(), connection)
-        BlockRegistry.instance.attachToRoot(block, curr => atPosition ?? curr)
+        this.insertOnRoot(block, curr => atPosition ?? curr)
         return
       }
     } else
@@ -159,6 +176,21 @@ export class Block<T extends BlockType> implements BlockContract {
     return this.connectors.extensions
       .map(connector => this.connectedBlocks.byConnector(connector))
       .filter(block => block !== null) as AnyBlock[]
+  }
+
+  get inputs() {
+    return this.connectors
+      .byRole(ConnectorRole.Input)
+      .map(connection => this.connectedBlocks.byConnector(connection))
+  }
+
+  get conditional(): Block<T> | null {
+    return (
+      this.connectors
+        .byRole(ConnectorRole.Conditional)
+        .firstOrNull()
+        ?.let(c => this.connectedBlocks.byConnector(c)) ?? null
+    )
   }
 
   get allConnectedRecursive(): AnyBlock[] {

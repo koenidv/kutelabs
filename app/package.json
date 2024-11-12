@@ -10,12 +10,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@kutelabs/editor-mixed": "workspace:*",
-    "@kutelabs/shared": "workspace:*",
     "@astrojs/check": "^0.9.4",
     "@astrojs/lit": "^4.3.0",
     "@astrojs/netlify": "^5.5.3",
     "@astrojs/tailwind": "^5.1.2",
+    "@kutelabs/editor-mixed": "workspace:*",
+    "@kutelabs/shared": "workspace:*",
+    "@sentry/astro": "^8.37.1",
+    "@spotlightjs/astro": "^2.1.11",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "astro": "^4.16.0",
     "lit": "^3.2.1",
