@@ -1,9 +1,61 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" version="24.8.4">
   <diagram name="Page-1" id="_XyzfsdCK_fdieIqt6iL">
-    <mxGraphModel>
+    <mxGraphModel dx="1166" dy="737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-19" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;strokeColor=default;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="410" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-20" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=none;arcSize=12;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+          <mxGeometry x="206.99" y="180" width="154" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WH4xHT_71Cof7-2RT7R9-1" target="WH4xHT_71Cof7-2RT7R9-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-17" value="Triggers build" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="WH4xHT_71Cof7-2RT7R9-13">
+          <mxGeometry x="0.11" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-1" value="" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.weblogos.github" vertex="1" parent="1">
+          <mxGeometry x="112.5" y="200" width="35" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-12" value="Merges into&lt;div&gt;release/server&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WH4xHT_71Cof7-2RT7R9-2" target="WH4xHT_71Cof7-2RT7R9-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-2" value="Dev" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="366" width="20" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-14" value="Pushes built image" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="WH4xHT_71Cof7-2RT7R9-4" target="WH4xHT_71Cof7-2RT7R9-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;curved=1;" edge="1" parent="1" source="WH4xHT_71Cof7-2RT7R9-4" target="WH4xHT_71Cof7-2RT7R9-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-18" value="Deploys&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="WH4xHT_71Cof7-2RT7R9-15">
+          <mxGeometry x="-0.229" y="-6" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-16" value="Pulls updated image" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;elbow=vertical;curved=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="WH4xHT_71Cof7-2RT7R9-5" target="WH4xHT_71Cof7-2RT7R9-8">
+          <mxGeometry x="-0.2266" y="16" relative="1" as="geometry">
+            <mxPoint x="330" y="396.0000000000001" as="sourcePoint" />
+            <mxPoint x="440" y="360" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-4" value="Builder GH Action" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://www.svgrepo.com/show/306098/githubactions.svg;imageBackground=none;" vertex="1" parent="1">
+          <mxGeometry x="264.12" y="197.62" width="39.75" height="39.75" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-5" value="Dockerhub" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/boxicons-logos/24/bxl-docker-128.png" vertex="1" parent="1">
+          <mxGeometry x="260" y="362" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="WH4xHT_71Cof7-2RT7R9-8" value="VCS on Hetzner" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;strokeWidth=1;align=center;outlineConnect=0;dashed=0;outlineConnect=0;shape=mxgraph.aws3d.dataServer;strokeColor=#5E5E5E;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="406" y="280" width="49.17" height="42.38" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
