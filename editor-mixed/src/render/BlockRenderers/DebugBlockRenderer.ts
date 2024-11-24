@@ -72,9 +72,9 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     return svg`
         <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
           <prism-kotlin-editor
-            .input="${data.customExpression || ""}"
+            .input="${data.customExpression?.get("kt") ?? ""}"
             style="width: 100%; height: 100%;" 
-            @code-change=${(e: CustomEvent) => (block.data.customExpression = e.detail.code)}
+            @code-change=${(e: CustomEvent) => (block.data.customExpression?.set("kt", e.detail.code))}
           />
 
         </foreignObject>

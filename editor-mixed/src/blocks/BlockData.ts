@@ -17,7 +17,7 @@ export type BlockDataFunction = {
 
 export type BlockDataExpression = {
   expression: DefinedExpression
-  customExpression?: string
+  customExpression?: Map<string, string> // lang -> expression
   editable?: boolean
 }
 

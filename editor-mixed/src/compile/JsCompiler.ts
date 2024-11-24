@@ -47,8 +47,7 @@ export class JsCompiler extends BaseCompiler {
     block: Block<BlockType.Expression>,
     next: typeof this.compile
   ): string {
-    // todo different langs
-    return `${block.data.expression}\n${next(block.after)}`
+    return `${block.data.customExpression?.get("js") ?? ""}\n${next(block.after)}`
   }
 
   compileValue(

@@ -93,7 +93,9 @@ export class EditorMixed extends LitElement {
         BlockType.Expression,
         {
           expression: DefinedExpression.Custom,
-          customExpression: 'val test = "Hello, World!"',
+          customExpression: new Map()
+            .set("js", 'let test = "Hello, World!"')
+            .set("kt", 'val test = "Hello, World!"'),
           editable: true,
         },
         [DefaultConnectors.before(), DefaultConnectors.after()],
