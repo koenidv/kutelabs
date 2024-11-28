@@ -1,7 +1,6 @@
 import type { AnyBlock } from "../../blocks/Block"
 import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 import { BlockType } from "../../blocks/configuration/BlockType"
-import { DefinedExpression } from "../../blocks/configuration/DefinedExpression"
 import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"

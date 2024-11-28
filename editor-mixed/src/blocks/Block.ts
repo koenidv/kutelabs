@@ -27,7 +27,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   constructor(
     type: T,
     data: BlockDataByType<T, S>,
-    connectors: {connector: Connector, connected?: AnyBlock | undefined}[],
+    connectors: { connector: Connector; connected?: AnyBlock | undefined }[],
     draggable: boolean,
     blockRegistry: BlockRegistry,
     connectorRegistry: ConnectorRegistry
@@ -37,12 +37,19 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
     this.data = data
 
-    this.connectors.addConnector(this, connectorRegistry, DefaultConnectors.internal())
-    for (const {connector, connected} of connectors) {
+    this.connectors.addConnector(
+      this,
+      connectorRegistry,
+      DefaultConnectors.internal()
+    )
+    for (const { connector, connected } of connectors) {
       this.connectors.addConnector(this, connectorRegistry, connector)
       if (connected) {
-        this.connect(connected, new Connection(connector, connected.connectors.internal))
-      }  
+        this.connect(
+          connected,
+          new Connection(connector, connected.upstreamConnector)
+        )
+      }
     }
 
     blockRegistry.register(this)
@@ -117,7 +124,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       }
     } else
       throw new Error(
-        `Connecting to upstream connector type "${ConnectorType[localType]}" is not implemented`
+        `Connecting to upstream connector type "${localType}" is not implemented`
       )
   }
 
@@ -190,6 +197,10 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   get upstreamConnectorInUse(): Connector | null {
     if (this.before) return this.connectors.before
     return this.connectors.internal
+  }
+
+  get upstreamConnector(): Connector {
+    return this.connectors.before ?? this.connectors.internal
   }
 
   disconnect(block: AnyBlock): AnyBlock | null {

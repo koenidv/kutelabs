@@ -1,8 +1,6 @@
-import { Block, type AnyBlock } from "../blocks/Block"
+import { type AnyBlock } from "../blocks/Block"
 import type {
-  BlockDataByType,
   BlockDataExpression,
-  BlockDataValue,
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import {
@@ -17,7 +15,6 @@ import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import type {
-  AnyBlockConnected,
   MixedContentEditorBlock,
   MixedContentEditorConfiguration,
   MixedContentEditorConnector,

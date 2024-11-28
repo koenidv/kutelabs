@@ -1,0 +1,54 @@
+{
+  "$schema": "../../schema/challenge.schema.json",
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 400,
+          "y": 200
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          },
+          "connectedBlocks": [
+            {
+              "on": "innerLoop",
+              "type": "expression",
+              "data": {
+                "expression": "Println"
+              },
+              "connectedBlocks": [
+                {
+                  "on": "inputExtension",
+                  "type": "variable",
+                  "data": {
+                    "name": "imavar",
+                    "type": "string"
+                  }
+                },
+                {
+                  "on": "after",
+                  "type": "expression",
+                  "data": {
+                    "expression": "Custom"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "function",
+        "data": {
+          "name": "not-main"
+        }
+      }
+    ]
+  }
+}

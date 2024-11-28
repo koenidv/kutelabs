@@ -4,7 +4,6 @@ import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
-import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
@@ -120,11 +119,11 @@ export class BlockRegistry {
     )
   }
   public downstreamBlocksMeasuredAndValid(block: AnyBlock): boolean {
-    block.downstreamWithConnectors.forEach(({ block }) => {
-      const registered = this._blocks.get(block)
+    for (const connected of block.downstreamWithConnectors) {
+      const registered = this._blocks.get(connected.block)
       if (!registered) throw new Error("Block is not registered")
       if (registered.isInvalidated || registered.size == null) return false
-    })
+    }
     return true
   }
 

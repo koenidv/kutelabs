@@ -2,14 +2,9 @@ import { css, html, LitElement, type PropertyValues } from "lit"
 import { customElement } from "lit/decorators.js"
 import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
-import { Block } from "./blocks/Block"
-import { BlockType } from "./blocks/configuration/BlockType"
-import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
-import { DefinedExpression } from "./blocks/configuration/DefinedExpression"
-import { DefaultConnectors } from "./connections/DefaultConnectors"
 import type { BaseCompiler } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
@@ -50,119 +45,6 @@ export class EditorMixed extends LitElement {
     super()
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-  }
-
-
-  // todo remove this, keeping it for reference for now
-  private addDebugBlocks() {
-    const mainFn = new Block(
-      null,
-      BlockType.Function,
-      { name: "main" },
-      [DefaultConnectors.innerLoop()],
-      true,
-      this.blockRegistry,
-      this.connectorRegistry
-    )
-    this.blockRegistry.attachToRoot(mainFn, () => new Coordinates(200, 200))
-    const block1 = new Block(
-      mainFn,
-      BlockType.Expression,
-      { expression: DefinedExpression.Println },
-      [
-        DefaultConnectors.before(),
-        DefaultConnectors.after(),
-        DefaultConnectors.inputExtension(),
-      ],
-      true,
-      this.blockRegistry,
-      this.connectorRegistry
-    )
-    new Block(
-      block1,
-      BlockType.Loop,
-      null,
-      [
-        DefaultConnectors.before(),
-        DefaultConnectors.after(),
-        DefaultConnectors.inputExtension(),
-        DefaultConnectors.innerLoop(),
-      ],
-      true,
-      this.blockRegistry,
-      this.connectorRegistry
-    )
-    this.blockRegistry.attachToRoot(
-      new Block(
-        null,
-        BlockType.Expression,
-        {
-          expression: DefinedExpression.Custom,
-          customExpression: new Map()
-            .set("js", 'let test = "Hello, World!"')
-            .set("kt", 'val test = "Hello, World!"'),
-          editable: {
-            lang: "kt",
-            linesHeight: 4,
-          },
-        },
-        [DefaultConnectors.before(), DefaultConnectors.after()],
-        true,
-        this.blockRegistry,
-        this.connectorRegistry
-      ),
-      () => new Coordinates(450, 100)
-    )
-    this.blockRegistry.attachToRoot(
-      new Block(
-        null,
-        BlockType.Value,
-        { input: "Hello" },
-        [DefaultConnectors.extender()],
-        true,
-        this.blockRegistry,
-        this.connectorRegistry
-      ),
-      () => new Coordinates(375, 300)
-    )
-    this.blockRegistry.attachToRoot(
-      new Block(
-        null,
-        BlockType.Value,
-        { input: "World" },
-        [DefaultConnectors.extender()],
-        true,
-        this.blockRegistry,
-        this.connectorRegistry
-      ),
-      () => new Coordinates(374, 400)
-    )
-    this.blockRegistry.attachToDrawer(
-      new Block(
-        null,
-        BlockType.Expression,
-        { expression: DefinedExpression.Println },
-        [
-          DefaultConnectors.before(),
-          DefaultConnectors.after(),
-          DefaultConnectors.inputExtension(),
-        ],
-        true,
-        this.blockRegistry,
-        this.connectorRegistry
-      )
-    )
-    this.blockRegistry.attachToDrawer(
-      new Block(
-        null,
-        BlockType.Value,
-        { input: "Hello" },
-        [DefaultConnectors.extender()],
-        true,
-        this.blockRegistry,
-        this.connectorRegistry
-      )
-    )
   }
 
   static styles = css`

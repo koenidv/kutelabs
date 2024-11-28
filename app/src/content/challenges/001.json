@@ -19,16 +19,42 @@
               "type": "expression",
               "data": {
                 "expression": "Println"
-              }
+              },
+              "connectedBlocks": [
+                {
+                  "on": "inputExtension",
+                  "type": "value",
+                  "data": {
+                    "type": "string",
+                    "value": "Hello World"
+                  }
+                },
+                {
+                  "on": "inputExtension",
+                  "type": "variable",
+                  "data": {
+                    "name": "imavar",
+                    "type": "string"
+                  }
+                },
+                {
+                  "on": "after",
+                  "type": "expression",
+                  "data": {
+                    "expression": "Custom"
+                  }
+                }
+              ]
             }
           ]
         }
       },
       {
         "block": {
-          "type": "expression",
+          "type": "value",
           "data": {
-            "expression": "Println"
+            "type": "string",
+            "value": "dongs"
           }
         },
         "coordinates": {
