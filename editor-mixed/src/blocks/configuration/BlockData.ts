@@ -1,5 +1,5 @@
 import { BlockType } from "./BlockType"
-import type { DefinedExpression } from "./DefinedExpression"
+import type { DefinedExpression } from "../DefinedExpression"
 import { ValueDataType, type TsTypeByValueType } from "./ValueDataType"
 
 export type BlockDataByType<

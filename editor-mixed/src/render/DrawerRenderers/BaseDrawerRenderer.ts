@@ -36,6 +36,8 @@ export abstract class BaseDrawerRenderer {
         style="min-height: 100%; display: block;">
         ${this.renderDrawer(
           layout.positions,
+          layout.fullWidth,
+          layout.fullHeight,
           this.blockRenderer.renderBlock.bind(this.blockRenderer)
         )}
       </svg>
@@ -74,6 +76,8 @@ export abstract class BaseDrawerRenderer {
 
   protected abstract renderDrawer(
     blocks: BlockAndCoordinates[],
+    contentWidth: number,
+    contentHeight: number,
     renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
   ): TemplateResult<2>
 }
