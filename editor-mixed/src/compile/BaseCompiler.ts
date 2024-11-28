@@ -1,5 +1,5 @@
 import type { Block } from "../blocks/Block"
-import { BlockType } from "../blocks/BlockType"
+import { BlockType } from "../blocks/configuration/BlockType"
 import type { RootBlock } from "../blocks/RootBlock"
 
 export abstract class BaseCompiler {

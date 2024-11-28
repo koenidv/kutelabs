@@ -2,7 +2,20 @@
   "$schema": "./schema/challenge.schema.json",
   "editor": {
     "type": "mixed",
+    
     "initialBlocks": [
+      {
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main",
+          }
+        },
+        "coordinates": {
+          "x": 100,
+          "y": 100
+        }
+      },
       {
         "block": {
           "type": "expression",
@@ -14,7 +27,30 @@
           "x": 100,
           "y": 100
         }
+      },
+      {
+        "block": {
+          "type": "value",
+          "data": {
+            "type": "array<int>",
+            "value": [1, 2, 3]
+          }
+        },
+        "coordinates": {
+          "x": 100,
+          "y": 100
+        }
+      }
+    ],
+
+    "initialDrawerBlocks": [
+      {
+        "type": "function",
+        "data": {
+          "name": "not-main"
+        }
       }
     ]
+      
   }
 }

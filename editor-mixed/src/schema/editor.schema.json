@@ -10,6 +10,7 @@
       "type": "string",
       "const": "mixed"
     },
+
     "initialBlocks": {
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
@@ -60,10 +61,19 @@
           }
         ]
       }
+    },
+
+    "initialDrawerBlocks": {
+      "description": "Initial blocks to be loaded into the editor",
+      "type": "array",
+      "items" : {
+        "$ref": "./blocks.schema.json"
+      }
     }
   },
   "required": [
     "type",
-    "initialBlocks"
+    "initialBlocks",
+    "initialDrawerBlocks"
   ]
 }

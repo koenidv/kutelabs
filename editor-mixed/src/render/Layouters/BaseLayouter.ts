@@ -1,5 +1,5 @@
 import type { AnyBlock } from "../../blocks/Block"
-import { BlockType } from "../../blocks/BlockType"
+import { BlockType } from "../../blocks/configuration/BlockType"
 import type { Connector } from "../../connections/Connector"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"

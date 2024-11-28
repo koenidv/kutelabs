@@ -1,6 +1,6 @@
 import type { AnyBlock } from "../../blocks/Block"
-import type { BlockDataExpression } from "../../blocks/BlockData"
-import { BlockType } from "../../blocks/BlockType"
+import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
+import { BlockType } from "../../blocks/configuration/BlockType"
 import { DefinedExpression } from "../../blocks/DefinedExpression"
 import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"

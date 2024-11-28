@@ -5,7 +5,7 @@ import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
-import { BlockType } from "./BlockType"
+import { BlockType } from "./configuration/BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
   public readonly rootConnector: Connector

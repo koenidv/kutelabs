@@ -1,5 +1,5 @@
 import type { AnyBlock } from "../blocks/Block"
-import { BlockType } from "../blocks/BlockType"
+import { BlockType } from "../blocks/configuration/BlockType"
 import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"

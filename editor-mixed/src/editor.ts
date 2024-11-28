@@ -3,7 +3,7 @@ import { customElement } from "lit/decorators.js"
 import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
 import { BlockRegistry } from "./registries/BlockRegistry"
 import { Block } from "./blocks/Block"
-import { BlockType } from "./blocks/BlockType"
+import { BlockType } from "./blocks/configuration/BlockType"
 import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
@@ -96,7 +96,10 @@ export class EditorMixed extends LitElement {
           customExpression: new Map()
             .set("js", 'let test = "Hello, World!"')
             .set("kt", 'val test = "Hello, World!"'),
-          editable: true,
+          editable: {
+            lang: "kt",
+            linesHeight: 4,
+          },
         },
         [DefaultConnectors.before(), DefaultConnectors.after()],
         true,

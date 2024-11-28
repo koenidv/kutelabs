@@ -1,5 +1,5 @@
 import type { Block } from "../blocks/Block"
-import { BlockType } from "../blocks/BlockType"
+import { BlockType } from "../blocks/configuration/BlockType"
 import { DefinedExpression } from "../blocks/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"

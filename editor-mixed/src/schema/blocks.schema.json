@@ -5,6 +5,36 @@
   "description": "Block within the mixed content editor",
   "type": "object",
   "$defs": {
+
+    "FunctionBlock": {
+      "type": "object",
+      "description": "Function Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a function block",
+          "type": "string",
+          "const": "function"
+        },
+        "data": {
+          "description": "Function Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the function",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    
     "ExpressionBlock": {
       "type": "object",
       "description": "Expression Block",
@@ -36,6 +66,232 @@
         "type",
         "data"
       ]
+    },
+
+    "ValueBlock": {
+      "type": "object",
+      "description": "Value Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an value block",
+          "type": "string",
+          "const": "value"
+        },
+        "data": {
+          "description": "Value Block Data",
+          "type": "object",
+          "properties": {
+            "type": {
+              "description": "Value type (from ValueDataType)",
+              "type": "string",
+              "enum": [
+                "int",
+                "float",
+                "string",
+                "boolean",
+                "array<int>",
+                "array<float>",
+                "array<string>",
+                "array<boolean>"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "int"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "float"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "string"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "boolean"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "array<int>"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "array<float>"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "array<string>"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "array<boolean>"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "required": [
+            "type",
+            "value"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+
+    "VariableBlock": {
+      "type": "object",
+      "description": "Variable Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an variable block",
+          "type": "string",
+          "const": "value"
+        },
+        "data": {
+          "description": "Variable Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the variable",
+              "type": "string"
+            },
+            "type": {
+              "description": "Variable type (from ValueDataType)",
+              "type": "string",
+              "enum": [
+                "int",
+                "float",
+                "string",
+                "boolean",
+                "array<int>",
+                "array<float>",
+                "array<string>",
+                "array<boolean>"
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
     }
   },
   "properties": {
@@ -44,7 +300,16 @@
       "description": "A block. Use \"type\" to determine the type of block",
       "oneOf": [
         {
+          "$ref": "#/$defs/FunctionBlock"
+        },
+        {
           "$ref": "#/$defs/ExpressionBlock"
+        },
+        {
+          "$ref": "#/$defs/ValueBlock"
+        },
+        {
+          "$ref": "#/$defs/VariableBlock"
         }
       ]
     }

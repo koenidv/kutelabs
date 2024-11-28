@@ -1,12 +1,12 @@
-  import { svg, type TemplateResult } from "lit"
+import { svg, type TemplateResult } from "lit"
 import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
-import { BlockType } from "../../blocks/BlockType"
-import type { BlockDataExpression } from "../../blocks/BlockData"
+import { BlockType } from "../../blocks/configuration/BlockType"
+import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 
 import "../../codeEditor/PrismKotlinEditor"
 
@@ -74,7 +74,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           <prism-kotlin-editor
             .input="${data.customExpression?.get("kt") ?? ""}"
             style="width: 100%; height: 100%;" 
-            @code-change=${(e: CustomEvent) => (block.data.customExpression?.set("kt", e.detail.code))}
+            @code-change=${(e: CustomEvent) => data.customExpression?.set(data.editable ? data.editable.lang : "kt", e.detail.code)}
           />
 
         </foreignObject>

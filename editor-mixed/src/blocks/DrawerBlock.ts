@@ -5,7 +5,7 @@ import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
-import { BlockType } from "./BlockType"
+import { BlockType } from "./configuration/BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
   public readonly drawerConnector: Connector
