@@ -12,22 +12,20 @@ export class BlockConnectors {
   addConnector(
     parentBlock: AnyBlock,
     registry: ConnectorRegistry,
-    ...connectors: Connector[]
+    connector: Connector
   ) {
-    connectors.forEach(connector => {
-      connector.register(registry, parentBlock)
+    connector.register(registry, parentBlock)
 
-      switch (connector.type) {
-        case ConnectorType.Inner:
-          this.addInner(connector)
-          break
-        case ConnectorType.Extension:
-          this.addExtension(connector)
-          break
-        default:
-          this.addRegular(connector)
-      }
-    })
+    switch (connector.type) {
+      case ConnectorType.Inner:
+        this.addInner(connector)
+        break
+      case ConnectorType.Extension:
+        this.addExtension(connector)
+        break
+      default:
+        this.addRegular(connector)
+    }
   }
 
   private addRegular(connector: Connector) {

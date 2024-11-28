@@ -6,6 +6,9 @@ import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { Coordinates } from "../../util/Coordinates"
 import type { SizeProps } from "../SizeProps"
 
+/**
+ * The Layouter measures and positions blocks
+ */
 export abstract class BaseLayouter {
   blockRegistry: BlockRegistry
 
@@ -15,6 +18,10 @@ export abstract class BaseLayouter {
 
   //#region Measure block sizes
 
+  /**
+   * Measures all registered blocks, beginning from each leaf and working upstream
+   * A block's size might be dependent on the size of its connected blocks
+   */
   public measureSetAll() {
     for (const leaf of this.blockRegistry.leafs) {
       this.blockRegistry.setSize(leaf, this.measureBlock(leaf))
@@ -22,15 +29,26 @@ export abstract class BaseLayouter {
     }
   }
 
+  /**
+   * Measures the next connected upstream block
+   * The upstream block will only be measured if all downstream blocks are
+   * already measured and valid, otherwise this will fail silently
+   * @param from Measured block with a block connected upstream
+   */
   protected measureSetUpstream(from: AnyBlock) {
     const upstream = from.upstream
     if (!upstream) throw new Error("Block has no upstream")
     if (upstream.type == BlockType.Root) return
-    if (!this.blockRegistry.allConnectedBlocksMeasuredAndValid(upstream)) return
+    if (!this.blockRegistry.downstreamBlocksMeasuredAndValid(upstream)) return
     this.blockRegistry.setSize(upstream, this.measureBlock(upstream))
     this.measureSetUpstream(upstream)
   }
 
+  /**
+   * Accumulates the height of all blocks in an after-chain
+   * @param block Block to start accumulating from
+   * @returns Height of the stack from the block
+   */
   protected getMeasuredStackHeight(block: AnyBlock): number {
     let height = this.blockRegistry.getSize(block).fullHeight
     let after = block.after
@@ -41,12 +59,18 @@ export abstract class BaseLayouter {
     return height
   }
 
+  /**
+   * Measures a Block
+   * @param block Block to measure
+   * @returns Size of the block as @see{SizeProps}
+   */
   abstract measureBlock(block: AnyBlock): SizeProps
-
-  //#endregion
 
   //#region Calculate positions
 
+  /**
+   * Calculates the global positions of all registered blocks, beginning from the root
+   */
   public calculatePositionsFromRoot() {
     this.blockRegistry.root?.blocks.forEach(({ block, position }) => {
       this.setPositionsRecursive(block, position)
@@ -106,8 +130,6 @@ export abstract class BaseLayouter {
     blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates
-
-  //#endregion
 }
 
 export type LayouterConstructorType = {

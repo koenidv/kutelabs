@@ -15,10 +15,9 @@ export class RootBlock extends Block<BlockType.Root> {
   ) {
     const rootConnector = DefaultConnectors.root()
     super(
-      null,
       BlockType.Root,
       null,
-      [rootConnector],
+      [{connector: rootConnector}],
       false,
       blockRegistry,
       connectorRegistry

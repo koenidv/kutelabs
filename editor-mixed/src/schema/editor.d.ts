@@ -8,18 +8,18 @@
 /**
  * Block
  */
-export type MixedContentEditorBlock = AnyBlock
+export type MixedContentEditorBlock = AnyBlockConnected
 /**
  * A block. Use "type" to determine the type of block
  */
-export type AnyBlock = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
+export type AnyBlockConnected = AnyBlock & {
   /**
    * Connected Blocks
    */
   connectedBlocks?: ({
     on: MixedContentEditorConnector
     [k: string]: unknown
-  } & AnyBlock1)[]
+  } & AnyBlockConnected1)[]
   [k: string]: unknown
 } & {
   type?: unknown
@@ -27,6 +27,7 @@ export type AnyBlock = (FunctionBlock | ExpressionBlock | ValueBlock | VariableB
   connectedBlocks?: unknown
   on?: unknown
 }
+export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock
 /**
  * Connector on this block
  */
@@ -40,14 +41,14 @@ export type MixedContentEditorConnector =
 /**
  * Connected Block
  */
-export type AnyBlock1 = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
+export type AnyBlockConnected1 = AnyBlock & {
   /**
    * Connected Blocks
    */
   connectedBlocks?: ({
     on: MixedContentEditorConnector
     [k: string]: unknown
-  } & AnyBlock1)[]
+  } & AnyBlockConnected1)[]
   [k: string]: unknown
 } & {
   type?: unknown
@@ -56,9 +57,12 @@ export type AnyBlock1 = (FunctionBlock | ExpressionBlock | ValueBlock | Variable
   on?: unknown
 }
 /**
- * Block within the mixed content editor
+ * A block without connected Blocks. Use "type" to determine the type of block
  */
-export type MixedContentEditorBlock1 = AnyBlock
+export type AnyBlockSingle = {
+  type?: unknown
+  data?: unknown
+} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock)
 
 /**
  * Configuration for the mixed content editor within a kutelabs challenge
@@ -84,7 +88,7 @@ export interface MixedContentEditorConfiguration {
   /**
    * Initial blocks to be loaded into the editor
    */
-  initialDrawerBlocks: MixedContentEditorBlock1[]
+  initialDrawerBlocks: AnyBlockSingle[]
 }
 /**
  * Function Block

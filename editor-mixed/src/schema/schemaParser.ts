@@ -11,11 +11,16 @@ import {
   createValueBlock,
   createVariableBlock,
 } from "../blocks/DefaultBlocks"
+import type { Connector } from "../connections/Connector"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import { Coordinates } from "../util/Coordinates"
 import type {
+  AnyBlockConnected,
   MixedContentEditorBlock,
   MixedContentEditorConfiguration,
+  MixedContentEditorConnector,
 } from "./editor"
 
 export function applyData(
@@ -24,6 +29,7 @@ export function applyData(
   connectorRegistry: ConnectorRegistry
 ): void {
   applyDrawerBlocks(data, blockRegistry, connectorRegistry)
+  applyWorkspaceBlocks(data, blockRegistry, connectorRegistry)
 }
 
 function applyDrawerBlocks(
@@ -31,55 +37,61 @@ function applyDrawerBlocks(
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): void {
-  console.log("data.initialDrawerBlocks :>> ", data.initialDrawerBlocks)
   for (const block of data.initialDrawerBlocks) {
-    console.log("block :>> ", block)
     blockRegistry.attachToDrawer(
-      parseBlock(block, null, blockRegistry, connectorRegistry)
+      parseBlockRecursive(block, null, blockRegistry, connectorRegistry)
     )
   }
 }
 
-// function applyWorkspaceBlocks(
-//   data: MixedContentEditorConfiguration,
-//   blockRegistry: BlockRegistry,
-//   connectorRegistry: ConnectorRegistry
-// ): void {
-//   for (const block of data.initialBlocks) {
-//     if ("previousBlockId" in block) {
-//       const previousBlock = blockRegistry.getRegisteredById(
-//         block.previousBlockId
-//       )?.block
-      
-//       if (!previousBlock) {
-//         console.error(`Previous block (${block.previousBlockId}) not found! Is it defined before this block and is the block id correct?`)
-//         continue
-//       }
+function applyWorkspaceBlocks(
+  data: MixedContentEditorConfiguration,
+  blockRegistry: BlockRegistry,
+  connectorRegistry: ConnectorRegistry
+): void {
+  for (const { block, coordinates } of data.initialBlocks) {
+    const parsed = parseBlockRecursive(
+      block,
+      block.connectedBlocks,
+      blockRegistry,
+      connectorRegistry
+    )
 
-//       // blockRegistry.attachToRoot(
-//       //   parseBlock(block, previousBlock, blockRegistry, connectorRegistry)
-//       // )
-//     }
+    blockRegistry.attachToRoot(parsed, _ => Coordinates.parse(coordinates))
+  }
+}
 
-//     if (block.previousBlockId == null) {
-//     blockRegistry
-//     blockRegistry.attachToRoot(
-//       parseBlock(block, blockRegistry, connectorRegistry)
-//     )
-//   }
-// }
-
-function parseBlock(
+function parseBlockRecursive(
   block: MixedContentEditorBlock,
-  previousBlock: AnyBlock | null,
+  parseConnected:
+    | ({
+        on: MixedContentEditorConnector
+      } & MixedContentEditorBlock)[]
+    | undefined
+    | null,
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
+  const connectedBlocks: { connector: Connector; connected: AnyBlock }[] = []
+  if (parseConnected) {
+    for (const connectedBlock of parseConnected) {
+      connectedBlocks.push({
+        connector: parseDefaultConnector(connectedBlock.on),
+        connected: parseBlockRecursive(
+          connectedBlock,
+          connectedBlock.connectedBlocks,
+          blockRegistry,
+          connectorRegistry
+        ),
+      })
+    }
+  }
+
   switch (block.type) {
     case "function":
       return createFunctionBlock(
-        previousBlock,
         block.data,
+        connectedBlocks,
         blockRegistry,
         connectorRegistry
       )
@@ -90,25 +102,42 @@ function parseBlock(
         )
       }
       return createExpressionBlock(
-        previousBlock,
         block.data as BlockDataExpression,
+        connectedBlocks,
         blockRegistry,
         connectorRegistry
       )
     case "value":
       return createValueBlock(
-        previousBlock,
         block.data as any, // todo
+        connectedBlocks,
         blockRegistry,
         connectorRegistry
       )
     case "variable":
       return createVariableBlock(
-        previousBlock,
         block.data as any, // todo
+        connectedBlocks,
         blockRegistry,
         connectorRegistry
       )
+  }
+}
+
+function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
+  switch (type) {
+    case "before":
+      return DefaultConnectors.before()
+    case "after":
+      return DefaultConnectors.after()
+    case "inputExtension":
+      return DefaultConnectors.inputExtension()
+    case "conditionalExtension":
+      return DefaultConnectors.conditionalExtension()
+    case "innerLoop":
+      return DefaultConnectors.innerLoop()
+    case "extender":
+      return DefaultConnectors.extender()
   }
 }
 

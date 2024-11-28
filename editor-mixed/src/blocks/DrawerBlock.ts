@@ -15,10 +15,9 @@ export class DrawerBlock extends Block<BlockType.Root> {
   ) {
     const drawerConnector = DefaultConnectors.drawer()
     super(
-      null,
       BlockType.Root,
       null,
-      [drawerConnector],
+      [{connector: drawerConnector}],
       false,
       blockRegistry,
       connectorRegistry

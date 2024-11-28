@@ -1,4 +1,4 @@
-import type { AnyBlock } from "../blocks/Block";
+import type { AnyBlock } from "../blocks/Block"
 
 export type BlockAndCoordinates = { block: AnyBlock; position: Coordinates }
 
@@ -9,6 +9,10 @@ export class Coordinates {
   constructor(x: number, y: number) {
     this.x = x
     this.y = y
+  }
+
+  static parse({ x, y }: { x: number; y: number }): Coordinates {
+    return new Coordinates(x, y)
   }
 
   static add(...coordinates: Coordinates[]): Coordinates {

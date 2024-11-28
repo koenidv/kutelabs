@@ -1,11 +1,11 @@
 export enum ConnectorRole {
-  Default,
-  If_True,
-  If_False,
-  Loop_Inner,
-  Conditional,
-  Input,
-  Output,
-  Root,
-  Drawer
+  Default = "default",
+  If_True = "if_true",
+  If_False = "if_false",
+  Loop_Inner = "loop_inner",
+  Conditional = "conditional",
+  Input = "input",
+  Output = "output",
+  Root = "root",
+  Drawer = "drawer",
 }

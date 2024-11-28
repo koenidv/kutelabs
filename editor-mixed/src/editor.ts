@@ -50,9 +50,10 @@ export class EditorMixed extends LitElement {
     super()
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-    this.addDebugBlocks()
   }
 
+
+  // todo remove this, keeping it for reference for now
   private addDebugBlocks() {
     const mainFn = new Block(
       null,

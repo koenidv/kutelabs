@@ -119,9 +119,8 @@ export class BlockRegistry {
         !this.detachedBlockIds.includes(b.id)
     )
   }
-  public allConnectedBlocksMeasuredAndValid(block: AnyBlock) {
-    const connected: Map<Connector, AnyBlock> = block.connectedBlocks.blocks
-    connected.forEach((block, _connector) => {
+  public downstreamBlocksMeasuredAndValid(block: AnyBlock): boolean {
+    block.downstreamWithConnectors.forEach(({ block }) => {
       const registered = this._blocks.get(block)
       if (!registered) throw new Error("Block is not registered")
       if (registered.isInvalidated || registered.size == null) return false

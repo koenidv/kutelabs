@@ -5,8 +5,8 @@
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 100,
-          "y": 100
+          "x": 400,
+          "y": 200
         },
         "block": {
           "type": "function",
@@ -32,7 +32,7 @@
           }
         },
         "coordinates": {
-          "x": 100,
+          "x": 600,
           "y": 100
         }
       },
@@ -49,8 +49,8 @@
           }
         },
         "coordinates": {
-          "x": 100,
-          "y": 100
+          "x": 800,
+          "y": 200
         }
       }
     ],

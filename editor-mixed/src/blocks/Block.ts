@@ -25,10 +25,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   private readonly insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
 
   constructor(
-    previous: AnyBlock | null,
     type: T,
     data: BlockDataByType<T, S>,
-    connectors: Connector[],
+    connectors: {connector: Connector, connected?: AnyBlock | undefined}[],
     draggable: boolean,
     blockRegistry: BlockRegistry,
     connectorRegistry: ConnectorRegistry
@@ -38,37 +37,19 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
     this.data = data
 
-    this.connectors.addConnector(
-      this,
-      connectorRegistry,
-      DefaultConnectors.internal(),
-      ...connectors
-    )
-
-    if (previous != null) this.connectToPrevious(previous)
+    this.connectors.addConnector(this, connectorRegistry, DefaultConnectors.internal())
+    for (const {connector, connected} of connectors) {
+      this.connectors.addConnector(this, connectorRegistry, connector)
+      if (connected) {
+        this.connect(connected, new Connection(connector, connected.connectors.internal))
+      }  
+    }
 
     blockRegistry.register(this)
     this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
   //#region Connect/Disconnect
-
-  private connectToPrevious(previous: AnyBlock) {
-    if (this.connectors.before === null)
-      throw new Error(
-        "Block must have before connector to be initialized with previous block"
-      )
-    const previousDownstreamConnector =
-      previous.connectors.after ?? previous.connectors.inners[0] ?? null
-    if (previousDownstreamConnector === null)
-      throw new Error(
-        "Previous block must have after or inner connector to be initialized as before block"
-      )
-    previous.connect(
-      this,
-      new Connection(previousDownstreamConnector, this.connectors.before)
-    )
-  }
 
   connect(
     block: AnyBlock,

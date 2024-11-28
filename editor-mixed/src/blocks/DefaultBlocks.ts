@@ -1,3 +1,4 @@
+import type { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
@@ -11,17 +12,34 @@ import type {
 import { BlockType } from "./configuration/BlockType"
 import type { ValueDataType } from "./configuration/ValueDataType"
 
+function mergeConnectors(
+  incoming: { connector: Connector; connected?: AnyBlock | undefined }[],
+  existing: Connector[]
+): { connector: Connector; connected?: AnyBlock | undefined }[] {
+  existing.forEach(connector => {
+    if (
+      !incoming.find(
+        it =>
+          it.connector.type === connector.type &&
+          it.connector.role === connector.role
+      )
+    ) {
+      incoming.push({ connector, connected: undefined })
+    }
+  })
+  return incoming
+}
+
 export function createFunctionBlock(
-  previousBlock: AnyBlock | null,
   data: BlockDataFunction,
+  connectedBlocks: { connector: Connector; connected?: AnyBlock | undefined }[],
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): Block<BlockType.Function> {
   return new Block<BlockType.Function>(
-    previousBlock,
     BlockType.Function,
     data,
-    [DefaultConnectors.innerLoop()],
+    mergeConnectors(connectedBlocks, [DefaultConnectors.innerLoop()]),
     true,
     blockRegistry,
     connectorRegistry
@@ -29,20 +47,19 @@ export function createFunctionBlock(
 }
 
 export function createExpressionBlock(
-  previousBlock: AnyBlock | null,
   data: BlockDataExpression,
+  connectedBlocks: { connector: Connector; connected?: AnyBlock | undefined }[],
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): Block<BlockType.Expression> {
   return new Block<BlockType.Expression>(
-    previousBlock,
     BlockType.Expression,
     data,
-    [
+    mergeConnectors(connectedBlocks, [
       DefaultConnectors.before(),
       DefaultConnectors.after(),
       DefaultConnectors.inputExtension(), // todo variable input count
-    ],
+    ]),
     true,
     blockRegistry,
     connectorRegistry
@@ -50,16 +67,15 @@ export function createExpressionBlock(
 }
 
 export function createValueBlock<T extends ValueDataType>(
-  previousBlock: AnyBlock | null,
   data: BlockDataValue<T>,
+  connectedBlocks: { connector: Connector; connected?: AnyBlock | undefined }[],
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): Block<BlockType.Value> {
   return new Block<BlockType.Value, T extends ValueDataType ? T : never>(
-    previousBlock,
     BlockType.Value,
     data,
-    [DefaultConnectors.extender()],
+    mergeConnectors(connectedBlocks, [DefaultConnectors.extender()]),
     true,
     blockRegistry,
     connectorRegistry
@@ -67,16 +83,15 @@ export function createValueBlock<T extends ValueDataType>(
 }
 
 export function createVariableBlock<T extends ValueDataType>(
-  previousBlock: AnyBlock | null,
   data: BlockDataVariable<T>,
+  connectedBlocks: { connector: Connector; connected?: AnyBlock | undefined }[],
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): Block<BlockType.Variable, T extends ValueDataType ? T : never> {
   return new Block<BlockType.Variable, T extends ValueDataType ? T : never>(
-    previousBlock,
     BlockType.Variable,
     data,
-    [DefaultConnectors.extender()],
+    mergeConnectors(connectedBlocks, [DefaultConnectors.extender()]),
     true,
     blockRegistry,
     connectorRegistry
