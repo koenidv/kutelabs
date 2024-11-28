@@ -47,43 +47,41 @@
     ],
     "initialDrawerBlocks": [
       {
-        "block": {
+        "type": "function",
+        "data": {
+          "name": "not-main"
+        },
+        "connectedBlock": {
           "type": "function",
           "data": {
-            "name": "not-main"
+            "name": "main"
           }
         }
       },
       {
-        "block": {
-          "type": "expression",
-          "data": {
-            "expression": "Custom",
-            "customExpression": {
-              "kt": "1 + 2"
-            },
-            "editable": {
-              "lang": "kt"
-            }
+        "type": "expression",
+        "data": {
+          "expression": "Custom",
+          "customExpression": {
+            "kt": "1 + 2"
+          },
+          "editable": {
+            "lang": "kt"
           }
         }
       },
       {
-        "block": {
-          "type": "value",
-          "data": {
-            "type": "string",
-            "value": "moin"
-          }
+        "type": "value",
+        "data": {
+          "type": "string",
+          "value": "moin"
         }
       },
       {
-        "block": {
-          "type": "variable",
-          "data": {
-            "name": "imavar",
-            "type": "string"
-          }
+        "type": "variable",
+        "data": {
+          "name": "imavar",
+          "type": "string"
         }
       }
     ]

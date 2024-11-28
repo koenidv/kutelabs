@@ -5,6 +5,42 @@
   "description": "Block within the mixed content editor",
   "type": "object",
   "$defs": {
+    "AnyBlock": {
+      "type": "object",
+      "description": "A block. Use \"type\" to determine the type of block",
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/ExpressionBlock"
+            },
+            {
+              "$ref": "#/$defs/ValueBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableBlock"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "connectedBlock": {
+              "description": "Connected Block",
+              "$ref": "#/$defs/AnyBlock"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "type": true,
+        "data": true,
+        "connectedBlock": true
+      },
+      "additionalProperties": false
+    },
     "FunctionBlock": {
       "type": "object",
       "description": "Function Block",
@@ -32,8 +68,7 @@
       "required": [
         "type",
         "data"
-      ],
-      "additionalProperties": false
+      ]
     },
     "ExpressionBlock": {
       "type": "object",
@@ -109,8 +144,7 @@
       "required": [
         "type",
         "data"
-      ],
-      "additionalProperties": false
+      ]
     },
     "ValueBlock": {
       "type": "object",
@@ -291,8 +325,7 @@
       "required": [
         "type",
         "data"
-      ],
-      "additionalProperties": false
+      ]
     },
     "VariableBlock": {
       "type": "object",
@@ -336,32 +369,12 @@
       "required": [
         "type",
         "data"
-      ],
-      "additionalProperties": false
-    }
-  },
-  "properties": {
-    "block": {
-      "type": "object",
-      "description": "A block. Use \"type\" to determine the type of block",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/FunctionBlock"
-        },
-        {
-          "$ref": "#/$defs/ExpressionBlock"
-        },
-        {
-          "$ref": "#/$defs/ValueBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableBlock"
-        }
       ]
     }
   },
-  "required": [
-    "block"
-  ],
-  "additionalProperties": false
+  "allOf": [
+    {
+      "$ref": "#/$defs/AnyBlock"
+    }
+  ]
 }

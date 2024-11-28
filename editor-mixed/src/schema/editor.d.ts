@@ -6,6 +6,37 @@
  */
 
 /**
+ * Block
+ */
+export type MixedContentEditorBlock = AnyBlock
+/**
+ * A block. Use "type" to determine the type of block
+ */
+export type AnyBlock = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
+  connectedBlock?: AnyBlock1
+  [k: string]: unknown
+} & {
+  type?: unknown
+  data?: unknown
+  connectedBlock?: unknown
+}
+/**
+ * Connected Block
+ */
+export type AnyBlock1 = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
+  connectedBlock?: AnyBlock1
+  [k: string]: unknown
+} & {
+  type?: unknown
+  data?: unknown
+  connectedBlock?: unknown
+}
+/**
+ * Block within the mixed content editor
+ */
+export type MixedContentEditorBlock1 = AnyBlock
+
+/**
  * Configuration for the mixed content editor within a kutelabs challenge
  */
 export interface MixedContentEditorConfiguration {
@@ -16,29 +47,20 @@ export interface MixedContentEditorConfiguration {
   /**
    * Initial blocks to be loaded into the editor
    */
-  initialBlocks: (
-    | (MixedContentEditorBlock & {
-        coordinates: {
-          [k: string]: unknown
-        }
-      })
-    | (MixedContentEditorBlock & {
-        previousBlockId: string
-      })
-  )[]
+  initialBlocks: {
+    block: MixedContentEditorBlock
+    /**
+     * Coordinates of the block
+     */
+    coordinates: {
+      x: number
+      y: number
+    }
+  }[]
   /**
    * Initial blocks to be loaded into the editor
    */
-  initialDrawerBlocks: MixedContentEditorBlock[]
-}
-/**
- * Block within the mixed content editor
- */
-export interface MixedContentEditorBlock {
-  /**
-   * A block. Use "type" to determine the type of block
-   */
-  block: FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock
+  initialDrawerBlocks: MixedContentEditorBlock1[]
 }
 /**
  * Function Block
@@ -57,6 +79,7 @@ export interface FunctionBlock {
      */
     name: string
   }
+  [k: string]: unknown
 }
 /**
  * Expression Block
@@ -73,7 +96,7 @@ export interface ExpressionBlock {
     /**
      * Standard expression to be evaluated or Custom to use customExpression
      */
-    definedExpression?: "Custom" | "Println"
+    expression: "Custom" | "Println"
     /**
      * Custom expression to be evaluated
      */
@@ -90,6 +113,7 @@ export interface ExpressionBlock {
           maxLines?: number
         }
   }
+  [k: string]: unknown
 }
 /**
  * Value Block
@@ -105,6 +129,7 @@ export interface ValueBlock {
   data: {
     [k: string]: unknown
   }
+  [k: string]: unknown
 }
 /**
  * Variable Block
@@ -127,4 +152,5 @@ export interface VariableBlock {
      */
     type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
   }
+  [k: string]: unknown
 }

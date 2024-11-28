@@ -35,29 +35,50 @@ function applyDrawerBlocks(
   for (const block of data.initialDrawerBlocks) {
     console.log("block :>> ", block)
     blockRegistry.attachToDrawer(
-      parseBlock(block, blockRegistry, connectorRegistry)
+      parseBlock(block, null, blockRegistry, connectorRegistry)
     )
   }
 }
 
+// function applyWorkspaceBlocks(
+//   data: MixedContentEditorConfiguration,
+//   blockRegistry: BlockRegistry,
+//   connectorRegistry: ConnectorRegistry
+// ): void {
+//   for (const block of data.initialBlocks) {
+//     if ("previousBlockId" in block) {
+//       const previousBlock = blockRegistry.getRegisteredById(
+//         block.previousBlockId
+//       )?.block
+      
+//       if (!previousBlock) {
+//         console.error(`Previous block (${block.previousBlockId}) not found! Is it defined before this block and is the block id correct?`)
+//         continue
+//       }
+
+//       // blockRegistry.attachToRoot(
+//       //   parseBlock(block, previousBlock, blockRegistry, connectorRegistry)
+//       // )
+//     }
+
+//     if (block.previousBlockId == null) {
+//     blockRegistry
+//     blockRegistry.attachToRoot(
+//       parseBlock(block, blockRegistry, connectorRegistry)
+//     )
+//   }
+// }
+
 function parseBlock(
-  {
-    block,
-    previousBlockId,
-    coordinates,
-  }: MixedContentEditorBlock & {
-    previousBlockId?: string
-    coordinates?: {
-      [k: string]: unknown
-    }
-  },
+  block: MixedContentEditorBlock,
+  previousBlock: AnyBlock | null,
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
   switch (block.type) {
     case "function":
       return createFunctionBlock(
-        previousBlockId,
+        previousBlock,
         block.data,
         blockRegistry,
         connectorRegistry
@@ -69,21 +90,21 @@ function parseBlock(
         )
       }
       return createExpressionBlock(
-        previousBlockId,
+        previousBlock,
         block.data as BlockDataExpression,
         blockRegistry,
         connectorRegistry
       )
     case "value":
       return createValueBlock(
-        previousBlockId,
+        previousBlock,
         block.data as any, // todo
         blockRegistry,
         connectorRegistry
       )
     case "variable":
       return createVariableBlock(
-        previousBlockId,
+        previousBlock,
         block.data as any, // todo
         blockRegistry,
         connectorRegistry

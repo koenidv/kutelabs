@@ -10,65 +10,46 @@
       "type": "string",
       "const": "mixed"
     },
-
     "initialBlocks": {
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
       "items": {
-        "oneOf": [
-          {
-            "type": "object",
-            "description": "Root block with coordinates",
-            "allOf": [
-              {
-                "$ref": "./blocks.schema.json"
-              },
-              {
-                "properties": {
-                  "coordinates": {
-                    "x": {
-                      "type": "number"
-                    },
-                    "y": {
-                      "type": "number"
-                    }
-                  }
-                },
-                "required": [
-                  "coordinates"
-                ],
-                "additionalProperties": false
-              }
-            ]
+        "type": "object",
+        "description": "Root block with coordinates",
+        "properties": {
+          "block": {
+            "description": "Block",
+            "$ref": "./blocks.schema.json"
           },
-          {
+          "coordinates": {
+            "description": "Coordinates of the block",
             "type": "object",
-            "description": "Connecting block with previous block id",
-            "allOf": [
-              {
-                "$ref": "./blocks.schema.json"
+            "properties": {
+              "x": {
+                "type": "number"
               },
-              {
-                "properties": {
-                  "previousBlockId": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "previousBlockId"
-                ],
-                "additionalProperties": false
+              "y": {
+                "type": "number"
               }
-            ]
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
           }
-        ]
+        },
+        "required": [
+          "block",
+          "coordinates"
+        ],
+        "additionalProperties": false
       }
     },
-
     "initialDrawerBlocks": {
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
-      "items" : {
+      "items": {
         "$ref": "./blocks.schema.json"
       }
     }
