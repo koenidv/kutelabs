@@ -9,7 +9,7 @@
       "anyOf": [
         {
           "description": "Use and configure the mixed content editor",
-          "$ref": "../../../../../editor-mixed/src/schema/editor.schema.json"
+          "$ref": "../../../editor-mixed/src/schema/editor.schema.json"
         },
         {
           "description": "Use and configure the text editor",

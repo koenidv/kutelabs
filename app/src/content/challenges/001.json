@@ -1,14 +1,13 @@
 {
-  "$schema": "./schema/challenge.schema.json",
+  "$schema": "../../schema/challenge.schema.json",
   "editor": {
     "type": "mixed",
-    
     "initialBlocks": [
       {
         "block": {
           "type": "function",
           "data": {
-            "name": "main",
+            "name": "main"
           }
         },
         "coordinates": {
@@ -33,7 +32,11 @@
           "type": "value",
           "data": {
             "type": "array<int>",
-            "value": [1, 2, 3]
+            "value": [
+              1,
+              2,
+              3
+            ]
           }
         },
         "coordinates": {
@@ -42,15 +45,47 @@
         }
       }
     ],
-
     "initialDrawerBlocks": [
       {
-        "type": "function",
-        "data": {
-          "name": "not-main"
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "not-main"
+          }
+        }
+      },
+      {
+        "block": {
+          "type": "expression",
+          "data": {
+            "expression": "Custom",
+            "customExpression": {
+              "kt": "1 + 2"
+            },
+            "editable": {
+              "lang": "kt"
+            }
+          }
+        }
+      },
+      {
+        "block": {
+          "type": "value",
+          "data": {
+            "type": "string",
+            "value": "moin"
+          }
+        }
+      },
+      {
+        "block": {
+          "type": "variable",
+          "data": {
+            "name": "imavar",
+            "type": "string"
+          }
         }
       }
     ]
-      
   }
 }

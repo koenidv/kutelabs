@@ -5,7 +5,6 @@
   "description": "Block within the mixed content editor",
   "type": "object",
   "$defs": {
-
     "FunctionBlock": {
       "type": "object",
       "description": "Function Block",
@@ -26,15 +25,16 @@
           },
           "required": [
             "name"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "type",
         "data"
-      ]
+      ],
+      "additionalProperties": false
     },
-    
     "ExpressionBlock": {
       "type": "object",
       "description": "Expression Block",
@@ -49,25 +49,69 @@
           "type": "object",
           "properties": {
             "expression": {
-              "description": "Standard expression to be evaluated",
+              "description": "Standard expression to be evaluated or Custom to use customExpression",
               "type": "string",
               "enum": [
                 "Custom",
                 "Println"
               ]
+            },
+            "customExpression": {
+              "description": "Custom expression to be evaluated",
+              "type": "object",
+              "properties": {
+                "kt": {
+                  "type": "string"
+                },
+                "js": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "editable": {
+              "oneOf": [
+                {
+                  "type": "boolean",
+                  "enum": [
+                    false
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "lang": {
+                      "type": "string"
+                    },
+                    "linesHeight": {
+                      "type": "number"
+                    },
+                    "maxLines": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "lang"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             }
           },
           "required": [
             "expression"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "type",
         "data"
-      ]
+      ],
+      "additionalProperties": false
     },
-
     "ValueBlock": {
       "type": "object",
       "description": "Value Block",
@@ -247,9 +291,9 @@
       "required": [
         "type",
         "data"
-      ]
+      ],
+      "additionalProperties": false
     },
-
     "VariableBlock": {
       "type": "object",
       "description": "Variable Block",
@@ -257,7 +301,7 @@
         "type": {
           "description": "Defines this block as an variable block",
           "type": "string",
-          "const": "value"
+          "const": "variable"
         },
         "data": {
           "description": "Variable Block Data",
@@ -285,13 +329,15 @@
           "required": [
             "name",
             "type"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "type",
         "data"
-      ]
+      ],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -316,5 +362,6 @@
   },
   "required": [
     "block"
-  ]
+  ],
+  "additionalProperties": false
 }

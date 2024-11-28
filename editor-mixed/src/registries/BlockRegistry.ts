@@ -128,4 +128,10 @@ export class BlockRegistry {
     })
     return true
   }
+
+  public clear() {
+    this._blocks.clear()
+    this._root?.clear()
+    this._drawer?.clear()
+  }
 }

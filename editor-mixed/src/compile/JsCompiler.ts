@@ -1,6 +1,6 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
-import { DefinedExpression } from "../blocks/DefinedExpression"
+import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 

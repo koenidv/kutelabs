@@ -8,16 +8,18 @@ import { Coordinates } from "./util/Coordinates"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
-import { DefinedExpression } from "./blocks/DefinedExpression"
+import { DefinedExpression } from "./blocks/configuration/DefinedExpression"
 import { DefaultConnectors } from "./connections/DefaultConnectors"
 import type { BaseCompiler } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
 import type { MixedEditorConfig } from "./util/MixedEditorConfig"
+import { createRef, ref } from "lit/directives/ref.js"
 
 import "@kutelabs/shared"
-import { createRef, ref } from "lit/directives/ref.js"
+import type { MixedContentEditorConfiguration } from "./schema/editor"
+import { applyData } from "./schema/schemaParser"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -33,8 +35,10 @@ export class EditorMixed extends LitElement {
   workspaceRef = createRef<SVGSVGElement>()
 
   declare config: MixedEditorConfig
+  declare data: MixedContentEditorConfiguration
   static properties = {
     config: { type: Object },
+    data: { type: Object },
     layouter: { type: Object, state: true },
     blockRenderer: { type: Object, state: true },
     drawerRenderer: { type: Object, state: true },
@@ -171,6 +175,7 @@ export class EditorMixed extends LitElement {
 
   protected render() {
     console.log("rendering")
+    console.log(this.data)
     if (!this.isCorrectlyConfigured) {
       console.log("not correctly configured")
       return
@@ -222,6 +227,10 @@ export class EditorMixed extends LitElement {
   }
 
   protected updated(changedProperties: PropertyValues): void {
+    if (changedProperties.has("data")) {
+      this.handleDataChanged(this.data)
+    }
+
     if (
       changedProperties.has("config") &&
       this.config &&
@@ -256,6 +265,17 @@ export class EditorMixed extends LitElement {
         console.error(e)
       }
     }
+  }
+
+  private handleDataChanged(newData: MixedContentEditorConfiguration) {
+    console.log("data changed")
+
+    this.blockRegistry.clear()
+    this.connectorRegistry.clear()
+
+    applyData(newData, this.blockRegistry, this.connectorRegistry)
+
+    this.requestUpdate()
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {

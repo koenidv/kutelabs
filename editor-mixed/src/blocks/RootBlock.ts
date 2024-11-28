@@ -72,4 +72,8 @@ export class RootBlock extends Block<BlockType.Root> {
   private findIndex(block: AnyBlock) {
     return this.blocks.findIndex(b => b.block === block)
   }
+
+  public clear() {
+    this.blocks = []
+  }
 }

@@ -1,5 +1,8 @@
 ---
 import { EditorMixed } from "@kutelabs/editor-mixed"
+import { getCollection } from 'astro:content';
+
+const challenges = await getCollection('challenges');
 ---
 
 <html lang="en">
@@ -14,7 +17,7 @@ import { EditorMixed } from "@kutelabs/editor-mixed"
     <div
       class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
       <h1>kutelabs. a kute way to learn kotlin :)</h1>
-      <EditorMixed client:load />
+      <EditorMixed client:load data={challenges[0].data.editor} />
       <button id="btn-tojs">to js</button>
       <button id="btn-execjs">exec js</button>
     </div>

@@ -69,6 +69,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     data: BlockDataExpression,
     size: SizeProps
   ): TemplateResult<2> {
+console.log('data.customExpression :>> ', data.customExpression);
     return svg`
         <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
           <prism-kotlin-editor

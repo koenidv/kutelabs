@@ -79,4 +79,8 @@ export class DrawerBlock extends Block<BlockType.Root> {
       )
     )
   }
+
+  public clear() {
+    this.blocks = []
+  }
 }

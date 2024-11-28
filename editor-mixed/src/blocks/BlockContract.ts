@@ -1,8 +1,8 @@
 import type { Connection } from "../connections/Connection";
 import type { Coordinates } from "../util/Coordinates";
-import type { Block } from "./Block";
+import type { AnyBlock, Block } from "./Block";
 
 export interface BlockContract {
-  connect(block: Block, connection: Connection, atPosition?: Coordinates, isOppositeAction?: boolean): void;
-  disconnect(block: Block): Block | null;
+  connect(block: AnyBlock, connection: Connection, atPosition?: Coordinates, isOppositeAction?: boolean): void;
+  disconnect(block: AnyBlock): AnyBlock | null;
 }

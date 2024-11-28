@@ -15,7 +15,7 @@ import { IdGenerator } from "@kutelabs/shared"
 
 export type AnyBlock = Block<BlockType>
 
-export class Block<T extends BlockType> implements BlockContract {
+export class Block<T extends BlockType, S = never> implements BlockContract {
   readonly id: string = IdGenerator.next
   readonly type: BlockType
   readonly draggable: boolean
@@ -27,7 +27,7 @@ export class Block<T extends BlockType> implements BlockContract {
   constructor(
     previous: AnyBlock | null,
     type: T,
-    data: BlockDataByType<T>,
+    data: BlockDataByType<T, S>,
     connectors: Connector[],
     draggable: boolean,
     blockRegistry: BlockRegistry,

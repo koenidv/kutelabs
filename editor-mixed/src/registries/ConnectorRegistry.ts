@@ -159,4 +159,8 @@ export class ConnectorRegistry {
       return aDistance - bDistance
     })
   }
+
+  public clear() {
+    this._connectors = []
+  }
 }
