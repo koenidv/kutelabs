@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/schema/connector.schema.json",
+  "title": "Mixed Content Editor Connector",
+  "description": "Connector on a Block within the mixed content editor",
+  "$defs": {
+    "DefaultConnector": {
+      "description": "Default Connector Type",
+      "type": "string",
+      "enum": [
+        "before",
+        "after",
+        "inputExtension",
+        "conditionalExtension",
+        "extender",
+        "innerLoop"
+      ]
+    }
+  },
+  "$ref": "#/$defs/DefaultConnector"
+}

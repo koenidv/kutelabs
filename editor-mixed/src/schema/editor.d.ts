@@ -13,23 +13,47 @@ export type MixedContentEditorBlock = AnyBlock
  * A block. Use "type" to determine the type of block
  */
 export type AnyBlock = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
-  connectedBlock?: AnyBlock1
+  /**
+   * Connected Blocks
+   */
+  connectedBlocks?: ({
+    on: MixedContentEditorConnector
+    [k: string]: unknown
+  } & AnyBlock1)[]
   [k: string]: unknown
 } & {
   type?: unknown
   data?: unknown
-  connectedBlock?: unknown
+  connectedBlocks?: unknown
+  on?: unknown
 }
+/**
+ * Connector on this block
+ */
+export type MixedContentEditorConnector =
+  | "before"
+  | "after"
+  | "inputExtension"
+  | "conditionalExtension"
+  | "extender"
+  | "innerLoop"
 /**
  * Connected Block
  */
 export type AnyBlock1 = (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock) & {
-  connectedBlock?: AnyBlock1
+  /**
+   * Connected Blocks
+   */
+  connectedBlocks?: ({
+    on: MixedContentEditorConnector
+    [k: string]: unknown
+  } & AnyBlock1)[]
   [k: string]: unknown
 } & {
   type?: unknown
   data?: unknown
-  connectedBlock?: unknown
+  connectedBlocks?: unknown
+  on?: unknown
 }
 /**
  * Block within the mixed content editor

@@ -7,29 +7,62 @@
   "$defs": {
     "AnyBlock": {
       "type": "object",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/FunctionBlock"
+        },
+        {
+          "$ref": "#/$defs/ExpressionBlock"
+        },
+        {
+          "$ref": "#/$defs/ValueBlock"
+        },
+        {
+          "$ref": "#/$defs/VariableBlock"
+        }
+      ]
+    },
+    "AnyBlockSingle": {
+      "type": "object",
+      "description": "A block without connected Blocks. Use \"type\" to determine the type of block",
+      "$ref": "#/$defs/AnyBlock",
+      "properties": {
+        "type": true,
+        "data": true
+      },
+      "additionalProperties": false
+    },
+    "AnyBlockConnected": {
+      "type": "object",
       "description": "A block. Use \"type\" to determine the type of block",
       "allOf": [
         {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/FunctionBlock"
-            },
-            {
-              "$ref": "#/$defs/ExpressionBlock"
-            },
-            {
-              "$ref": "#/$defs/ValueBlock"
-            },
-            {
-              "$ref": "#/$defs/VariableBlock"
-            }
-          ]
+          "$ref": "#/$defs/AnyBlock"
         },
         {
           "properties": {
-            "connectedBlock": {
-              "description": "Connected Block",
-              "$ref": "#/$defs/AnyBlock"
+            "connectedBlocks": {
+              "description": "Connected Blocks",
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "on": {
+                        "description": "Connector on this block",
+                        "$ref": "./connector.schema.json"
+                      }
+                    },
+                    "required": [
+                      "on"
+                    ]
+                  },
+                  {
+                    "description": "Connected Block",
+                    "$ref": "#/$defs/AnyBlockConnected"
+                  }
+                ]
+              }
             }
           }
         }
@@ -37,7 +70,8 @@
       "properties": {
         "type": true,
         "data": true,
-        "connectedBlock": true
+        "connectedBlocks": true,
+        "on": true
       },
       "additionalProperties": false
     },
@@ -374,7 +408,7 @@
   },
   "allOf": [
     {
-      "$ref": "#/$defs/AnyBlock"
+      "$ref": "#/$defs/AnyBlockConnected"
     }
   ]
 }

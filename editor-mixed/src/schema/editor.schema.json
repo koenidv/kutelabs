@@ -50,7 +50,7 @@
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
       "items": {
-        "$ref": "./blocks.schema.json"
+        "$ref": "./blocks.schema.json#/$defs/AnyBlockSingle"
       }
     }
   },

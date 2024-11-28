@@ -4,15 +4,24 @@
     "type": "mixed",
     "initialBlocks": [
       {
+        "coordinates": {
+          "x": 100,
+          "y": 100
+        },
         "block": {
           "type": "function",
           "data": {
             "name": "main"
-          }
-        },
-        "coordinates": {
-          "x": 100,
-          "y": 100
+          },
+          "connectedBlocks": [
+            {
+              "on": "innerLoop",
+              "type": "expression",
+              "data": {
+                "expression": "Println"
+              }
+            }
+          ]
         }
       },
       {
@@ -50,12 +59,6 @@
         "type": "function",
         "data": {
           "name": "not-main"
-        },
-        "connectedBlock": {
-          "type": "function",
-          "data": {
-            "name": "main"
-          }
         }
       },
       {
