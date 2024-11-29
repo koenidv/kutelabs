@@ -51,7 +51,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           y=${(heightOffset += sizing.value) - sizing.value}
           width=${size.fullWidth}
           height=${sizing.value}
-          fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : sizing.prop == HeightProp.Intermediate ? "#d6d6d6" :"#fabcde"}
+          fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : sizing.prop == HeightProp.Intermediate ? "#d6d6d6" : "#fabcde"}
           opacity="0.6"
           stroke="#909090"/>
       </g>
@@ -92,7 +92,10 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       default:
         return svg`
           <text x="5" y="20" fill="black" style="user-select: none;">${block.type}</text>
-          <text x="5" y="40" fill="black" style="user-select: none;">${JSON.stringify(block.data)}</text>
+          ${
+            block.data !== null &&
+            svg`<text x="5" y="40" width=${size.fullWidth} fill="black" style="user-select: none; opacity: 0.6;">${JSON.stringify(block.data)}</text>`
+          }
         `
     }
   }

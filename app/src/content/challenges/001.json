@@ -58,8 +58,8 @@
         "block": {
           "type": "value",
           "data": {
-            "type": "string",
-            "value": "dongs"
+            "type": "boolean",
+            "value": true
           }
         },
         "coordinates": {

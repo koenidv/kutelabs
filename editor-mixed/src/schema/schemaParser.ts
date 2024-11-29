@@ -1,13 +1,6 @@
-import { type AnyBlock } from "../blocks/Block"
-import type { BlockDataExpression } from "../blocks/configuration/BlockData"
+import { Block, type AnyBlock } from "../blocks/Block"
+import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
-import {
-  createConditionalBlock,
-  createExpressionBlock,
-  createFunctionBlock,
-  createValueBlock,
-  createVariableBlock,
-} from "../blocks/DefaultBlocks"
 import type { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
@@ -34,9 +27,7 @@ function applyDrawerBlocks(
   connectorRegistry: ConnectorRegistry
 ): void {
   for (const block of data.initialDrawerBlocks) {
-    blockRegistry.attachToDrawer(
-      parseBlockRecursive(block, null, blockRegistry, connectorRegistry)
-    )
+    blockRegistry.attachToDrawer(parseBlockRecursive(block, null, blockRegistry, connectorRegistry))
   }
 }
 
@@ -58,7 +49,7 @@ function applyWorkspaceBlocks(
 }
 
 function parseBlockRecursive(
-  block: MixedContentEditorBlock,
+  data: MixedContentEditorBlock,
   parseConnected:
     | ({
         on: MixedContentEditorConnector
@@ -83,50 +74,27 @@ function parseBlockRecursive(
     }
   }
 
-  switch (block.type) {
-    case "function":
-      return createFunctionBlock(
-        block.data,
-        connectedBlocks,
-        blockRegistry,
-        connectorRegistry
-      )
-    case "expression":
-      if (block.data.customExpression) {
-        ;(block.data as BlockDataExpression).customExpression = new Map(
-          Object.entries(block.data.customExpression as object)
-        )
-      }
-      return createExpressionBlock(
-        block.data as BlockDataExpression,
-        connectedBlocks,
-        blockRegistry,
-        connectorRegistry
-      )
-    case "value":
-      return createValueBlock(
-        block.data as any, // todo
-        connectedBlocks,
-        blockRegistry,
-        connectorRegistry
-      )
-    case "variable":
-      return createVariableBlock(
-        block.data as any, // todo
-        connectedBlocks,
-        blockRegistry,
-        connectorRegistry
-      )
-    case "conditional":
-      return createConditionalBlock(
-        connectedBlocks,
-        "elsebranch" in block ? block["elsebranch"] == true : false,
-        blockRegistry,
-        connectorRegistry
-      )
-    default:
-      console.error("Could not parse block", JSON.stringify(block))
+  const type = parseBlockType(data.type)
+
+  if (type == BlockType.Expression && (data.data as BlockDataExpression)?.editable) {
+    ;(data.data as BlockDataExpression).customExpression = new Map(
+      Object.entries((data.data as BlockDataExpression).customExpression as object)
+    )
   }
+
+  const defaultConnectors = DefaultConnectors.byBlockType(type)
+  if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
+    defaultConnectors.push(DefaultConnectors.conditionalFalse())
+  }
+
+  return new Block<typeof type>(
+    type,
+    data.data as BlockDataByType<typeof type>,
+    mergeConnectors(connectedBlocks, defaultConnectors),
+    true,
+    blockRegistry,
+    connectorRegistry
+  )
 }
 
 function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
@@ -152,4 +120,20 @@ function parseBlockType(typeName: string): BlockType {
   ) as keyof typeof BlockType
   if (!key) throw new Error(`Block type not found for value: ${typeName}`)
   return BlockType[key]
+}
+
+function mergeConnectors(
+  incoming: { connector: Connector; connected?: AnyBlock | undefined }[],
+  existing: Connector[]
+): { connector: Connector; connected?: AnyBlock | undefined }[] {
+  existing.forEach(connector => {
+    if (
+      !incoming.find(
+        it => it.connector.type === connector.type && it.connector.role === connector.role
+      )
+    ) {
+      incoming.push({ connector, connected: undefined })
+    }
+  })
+  return incoming
 }

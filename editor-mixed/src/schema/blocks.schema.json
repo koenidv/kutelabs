@@ -419,7 +419,7 @@
         },
         "elsebranch": {
           "description": "Include else branch?",
-          "type": "boolean"
+          "type": "boolean"boolea
         }
       },
       "required": [
