@@ -1,9 +1,8 @@
 import { type AnyBlock } from "../blocks/Block"
-import type {
-  BlockDataExpression,
-} from "../blocks/configuration/BlockData"
+import type { BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import {
+  createConditionalBlock,
   createExpressionBlock,
   createFunctionBlock,
   createValueBlock,
@@ -118,6 +117,15 @@ function parseBlockRecursive(
         blockRegistry,
         connectorRegistry
       )
+    case "conditional":
+      return createConditionalBlock(
+        connectedBlocks,
+        "elsebranch" in block ? block["elsebranch"] == true : false,
+        blockRegistry,
+        connectorRegistry
+      )
+    default:
+      console.error("Could not parse block", JSON.stringify(block))
   }
 }
 

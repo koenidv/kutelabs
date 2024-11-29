@@ -1,4 +1,4 @@
-{
+^{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/schema/blocks.schema.json",
   "title": "Mixed Content Editor Block",
@@ -19,6 +19,9 @@
         },
         {
           "$ref": "#/$defs/VariableBlock"
+        },
+        {
+          "$ref": "#/$defs/ConditionalBlock"
         }
       ]
     },
@@ -403,6 +406,24 @@
       "required": [
         "type",
         "data"
+      ]
+    },
+    "ConditionalBlock": {
+      "type": "object",
+      "description": "Conditional Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a conditional block",
+          "type": "string",
+          "const": "conditional"
+        },
+        "elsebranch": {
+          "description": "Include else branch?",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type"
       ]
     }
   },

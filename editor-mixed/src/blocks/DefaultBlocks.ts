@@ -1,4 +1,6 @@
-import type { Connector } from "../connections/Connector"
+import { Connector } from "../connections/Connector"
+import { ConnectorRole } from "../connections/ConnectorRole"
+import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
@@ -29,6 +31,8 @@ function mergeConnectors(
   })
   return incoming
 }
+
+// todo refactor this to use DefaultConnectors.forBlockType and inline in schemaParser
 
 export function createFunctionBlock(
   data: BlockDataFunction,
@@ -92,6 +96,28 @@ export function createVariableBlock<T extends ValueDataType>(
     BlockType.Variable,
     data,
     mergeConnectors(connectedBlocks, [DefaultConnectors.extender()]),
+    true,
+    blockRegistry,
+    connectorRegistry
+  )
+}
+
+export function createConditionalBlock(
+  connectedBlocks: { connector: Connector; connected?: AnyBlock | undefined }[],
+  withElse: boolean,
+  blockRegistry: BlockRegistry,
+  connectorRegistry: ConnectorRegistry
+): Block<BlockType.Conditional> {
+  return new Block<BlockType.Conditional>(
+    BlockType.Conditional,
+    null,
+    mergeConnectors(connectedBlocks, [
+      DefaultConnectors.before(),
+      DefaultConnectors.after(),
+      DefaultConnectors.conditionalExtension(),
+      new Connector(ConnectorType.Inner, ConnectorRole.If_True),
+      withElse ? new Connector(ConnectorType.Inner, ConnectorRole.If_False) : undefined,
+    ].filter(it => it != undefined)),
     true,
     blockRegistry,
     connectorRegistry

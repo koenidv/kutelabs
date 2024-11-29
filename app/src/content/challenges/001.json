@@ -45,6 +45,11 @@
                   }
                 }
               ]
+            },
+            {
+              "on": "after",
+              "type": "conditional",
+              "elsebranch": true
             }
           ]
         }

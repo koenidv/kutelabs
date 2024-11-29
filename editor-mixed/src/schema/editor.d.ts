@@ -27,7 +27,7 @@ export type AnyBlockConnected = AnyBlock & {
   connectedBlocks?: unknown
   on?: unknown
 }
-export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock
+export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock
 /**
  * Connector on this block
  */
@@ -62,7 +62,7 @@ export type AnyBlockConnected1 = AnyBlock & {
 export type AnyBlockSingle = {
   type?: unknown
   data?: unknown
-} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock)
+} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock)
 
 /**
  * Configuration for the mixed content editor within a kutelabs challenge
@@ -180,5 +180,15 @@ export interface VariableBlock {
      */
     type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
   }
+  [k: string]: unknown
+}
+/**
+ * Conditional Block
+ */
+export interface ConditionalBlock {
+  /**
+   * Defines this block as a conditional block
+   */
+  type: "conditional"
   [k: string]: unknown
 }
