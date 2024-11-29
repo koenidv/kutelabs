@@ -42,14 +42,16 @@
                   "type": "expression",
                   "data": {
                     "expression": "Custom"
-                  }
+                  },
+                  "connectedBlocks": [
+                    {
+                      "on": "after",
+                      "type": "conditional",
+                      "elsebranch": true
+                    }
+                  ]
                 }
               ]
-            },
-            {
-              "on": "after",
-              "type": "conditional",
-              "elsebranch": true
             }
           ]
         }

@@ -55,6 +55,8 @@ export class KtCompiler extends BaseCompiler {
           return Number(block.data.value).toString()
         case ValueDataType.String:
           return `"${block.data.value}"`
+        case ValueDataType.Boolean:
+          return block.data.value == true ? "true" : "false"
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
@@ -80,7 +82,22 @@ export class KtCompiler extends BaseCompiler {
     block: Block<BlockType.Conditional>,
     next: typeof this.compile
   ): string {
-    throw new Error("Method not implemented.")
+    const ifBlock = block.connectedBlocks.byConnector(
+      block.connectors.byRole(ConnectorRole.If_True)[0]
+    )
+    const elseBlock = block.connectedBlocks.byConnector(
+      block.connectors.byRole(ConnectorRole.If_False)[0]
+    )
+
+    let compiled = `
+    if (${next(block.conditional)}) {
+      ${next(ifBlock)}
+    }`
+
+    if (elseBlock)
+      compiled += ` else {\n${next(elseBlock)}\n}`
+
+    return compiled + `\n${next(block.after)}`
   }
 
   mainCall(): string {

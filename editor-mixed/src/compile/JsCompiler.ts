@@ -6,18 +6,13 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
 export class JsCompiler extends BaseCompiler {
-  compileFunction(
-    block: Block<BlockType.Function>,
-    next: typeof this.compile
-  ): string {
+  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
 
     let ret = ""
     const outputConnectors = block.connectors.byRole(ConnectorRole.Output)
     if (outputConnectors.length > 0) {
-      const firstOutputBlock = block.connectedBlocks.byConnector(
-        outputConnectors[0]
-      )
+      const firstOutputBlock = block.connectedBlocks.byConnector(outputConnectors[0])
       if (firstOutputBlock == null) ret += "return;"
       else ret += `return ${next(firstOutputBlock)};`
     }
@@ -26,10 +21,7 @@ export class JsCompiler extends BaseCompiler {
     // functions should not have after blocks; thus not compiling them here
   }
 
-  compileDefinedExpression(
-    block: Block<BlockType.Expression>,
-    next: typeof this.compile
-  ): string {
+  compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
     switch (block.data.expression) {
       case DefinedExpression.Println:
         return `console.log(${this.chainInputs(block, next)});\n${next(block.after)}`
@@ -38,10 +30,7 @@ export class JsCompiler extends BaseCompiler {
     }
   }
 
-  compileCustomExpression(
-    block: Block<BlockType.Expression>,
-    next: typeof this.compile
-  ): string {
+  compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
     return `${block.data.customExpression?.get("js") ?? ""}\n${next(block.after)}`
   }
 
@@ -55,6 +44,8 @@ export class JsCompiler extends BaseCompiler {
           return Number(block.data.value).toString()
         case ValueDataType.String:
           return `"${block.data.value}"`
+        case ValueDataType.Boolean:
+          return block.data.value == true ? "true" : "false"
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
@@ -62,10 +53,7 @@ export class JsCompiler extends BaseCompiler {
     // value blocks are always leafs, thus not compiling connected blocks
   }
 
-  compileVariable(
-    block: Block<BlockType.Variable>,
-    _next: typeof this.compile
-  ): string {
+  compileVariable(block: Block<BlockType.Variable>, _next: typeof this.compile): string {
     return block.data.name
     // variable blocks are always leafs, thus not compiling connected blocks
   }
@@ -76,11 +64,23 @@ export class JsCompiler extends BaseCompiler {
     }`
   }
 
-  compileConditional(
-    block: Block<BlockType.Conditional>,
-    next: typeof this.compile
-  ): string {
-    throw new Error("Method not implemented.")
+  compileConditional(block: Block<BlockType.Conditional>, next: typeof this.compile): string {
+    const ifBlock = block.connectedBlocks.byConnector(
+      block.connectors.byRole(ConnectorRole.If_True)[0]
+    )
+    const elseBlock = block.connectedBlocks.byConnector(
+      block.connectors.byRole(ConnectorRole.If_False)[0]
+    )
+
+    let compiled = `
+    if (${next(block.conditional)}) {
+      ${next(ifBlock)}
+    }`
+
+    if (elseBlock)
+      compiled += ` else {\n${next(elseBlock)}\n}`
+
+    return compiled + `\n${next(block.after)}`
   }
 
   mainCall(): string {
