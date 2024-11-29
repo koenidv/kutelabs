@@ -9,7 +9,12 @@ import { Coordinates } from "../../util/Coordinates"
 import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
 import { BaseLayouter } from "./BaseLayouter"
 
+const MIN_HEIGHT = 100
+const DEFAULT_HEAD_HEIGHT = 50
+const DEFAULT_TAIL_HEIGHT = 30
 const DEFAULT_CONNECTOR_HEIGHT = 40
+const DEFAULT_INNER_HEIGHT = 60
+const DEFAULT_INTERMEDIATE_HEIGHT = 15
 
 export class DebugLayouter extends BaseLayouter {
   measureBlock(block: AnyBlock): SizeProps {
@@ -29,39 +34,34 @@ export class DebugLayouter extends BaseLayouter {
         }
       })
     } else {
-      size.addHeight(HeightProp.Head, 100)
+      size.addHeight(HeightProp.Head, DEFAULT_HEAD_HEIGHT)
     }
 
-    // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
-    if (block.inners.length > 0)
-      size.addHeight(
-        HeightProp.Body,
-        block.inners.reduce(
-          (acc, curr) => acc + this.getMeasuredStackHeight(curr),
-          0
-        )
-      )
+    const inners = block.connectors.inners
+    if (inners.length > 0)
+      inners.map((connector, index) => {
+        const connected = block.connectedBlocks.byConnector(connector)
+        if (connected != null) {
+          size.addHeight(
+            HeightProp.Body,
+            this.getMeasuredStackHeight(connected)
+          )
+        } else {
+          size.addHeight(HeightProp.Body, DEFAULT_INNER_HEIGHT)
+        }
+        if (index < inners.length - 1)
+          size.addHeight(HeightProp.Intermediate, DEFAULT_INTERMEDIATE_HEIGHT)
+      })
 
     const fullHeight = size.fullHeight
-    if (fullHeight < 100)
-      size.addHeight(HeightProp.Tail, Math.max(100 - fullHeight, 50))
+    if (inners.length > 0) size.addHeight(HeightProp.Tail, DEFAULT_TAIL_HEIGHT)
+    else if (fullHeight < MIN_HEIGHT)
+      size.addHeight(
+        HeightProp.Tail,
+        Math.max(MIN_HEIGHT - fullHeight, DEFAULT_TAIL_HEIGHT)
+      )
 
     return size
-  }
-
-  protected determineHeadHeight(block: AnyBlock): number {
-    let height = 0
-
-    block.connectors.extensions.map(connector => {
-      const connected = block.connectedBlocks.byConnector(connector)
-      if (connected != null) {
-        height += this.blockRegistry.getSize(connected).fullHeight
-      } else {
-        height += DEFAULT_CONNECTOR_HEIGHT
-      }
-    })
-
-    return Math.max(height, block.type == BlockType.Value ? 30 : 50)
   }
 
   protected determineWidth(block: AnyBlock): number {
@@ -80,9 +80,14 @@ export class DebugLayouter extends BaseLayouter {
     parentConnector: Connector
   ): Coordinates {
     if (parentConnector.role == ConnectorRole.Input) {
+      const inputIndex =
+        registeredParent.block.connectors.extensions.indexOf(parentConnector)
       return new Coordinates(
         parentConnector.globalPosition.x,
-        parentConnector.globalPosition.y - DEFAULT_CONNECTOR_HEIGHT / 2
+        registeredParent.globalPosition.y +
+          registeredParent
+            .size!.heads.splice(0, inputIndex)
+            .reduce((acc, h) => acc + h, 0)
       )
     }
 
@@ -102,12 +107,29 @@ export class DebugLayouter extends BaseLayouter {
         else return Coordinates.zero
       case ConnectorType.After:
         return new Coordinates(0, blockSize.fullHeight)
-      case ConnectorType.Inner:
-        return new Coordinates(
-          blockSize.fullWidth / 2,
-          blockSize.fullHeadHeight ?? blockSize.fullHeight / 4
+      case ConnectorType.Inner: {
+        const index = block.connectors.inners.indexOf(connector)
+        let bodiesCount = 0
+        const xOffset = blockSize.bodiesAndIntermediates.reduce(
+          (acc, sizing) => {
+            if (bodiesCount == index) {
+              if (sizing.prop == HeightProp.Intermediate)
+                acc += DEFAULT_INTERMEDIATE_HEIGHT
+              bodiesCount++
+            }
+            if (bodiesCount > index) return acc
+            if (sizing.prop == HeightProp.Body) bodiesCount++
+            return acc + sizing.value
+          },
+          0
         )
-      case ConnectorType.Extension:
+
+        return new Coordinates(
+          blockSize.fullWidth / 4,
+          blockSize.fullHeadHeight + xOffset
+        )
+      }
+      case ConnectorType.Extension: {
         const index = block.connectors.extensions.indexOf(connector)
 
         const previousHeights = block.connectors.extensions
@@ -124,8 +146,8 @@ export class DebugLayouter extends BaseLayouter {
         return new Coordinates(
           blockSize.fullWidth,
           previousHeights + DEFAULT_CONNECTOR_HEIGHT / 2
-          // (blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight) / 2
         )
+      }
       case ConnectorType.Internal:
         return new Coordinates(0, 0)
       default:

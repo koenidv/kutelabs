@@ -3,6 +3,7 @@ import type { AnyBlock } from "../blocks/Block"
 export enum HeightProp {
   Head,
   Body,
+  Intermediate,
   Tail,
 }
 
@@ -44,22 +45,27 @@ export class SizeProps {
     this.widths.push({ prop, value })
   }
 
-  byProp<T extends HeightProp | WidthProp>(list: { prop: T; value: number }[], prop: T) {
-    return list.filter(h => h.prop === prop).map(h => h.value)
+  byProp<T extends HeightProp | WidthProp>(
+    list: { prop: T; value: number }[],
+    prop: T
+  ) {
+    return list.filter(h => h.prop == prop).map(h => h.value)
   }
 
   get fullHeight() {
     return this.heights.reduce((acc, h) => acc + h.value, 0)
   }
-                                                                                                                                                         
+
   get heads(): number[] {
     return this.byProp(this.heights, HeightProp.Head)
   }
   get fullHeadHeight() {
     return this.heads.reduce((acc, h) => acc + h, 0)
   }
-  get bodies(): number[] {
-    return this.byProp(this.heights, HeightProp.Body)
+  get bodiesAndIntermediates(): { prop: HeightProp; value: number }[] {
+    return this.heights.filter(
+      h => h.prop == HeightProp.Body || h.prop == HeightProp.Intermediate
+    )
   }
   get tails(): number[] {
     return this.byProp(this.heights, HeightProp.Tail)

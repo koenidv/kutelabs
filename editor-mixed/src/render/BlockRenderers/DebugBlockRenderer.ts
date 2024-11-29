@@ -51,7 +51,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           y=${(heightOffset += sizing.value) - sizing.value}
           width=${size.fullWidth}
           height=${sizing.value}
-          fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : "#fabcde"}
+          fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : sizing.prop == HeightProp.Intermediate ? "#d6d6d6" :"#fabcde"}
           opacity="0.6"
           stroke="#909090"/>
       </g>
@@ -67,7 +67,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           width=${size.fullWidth}
           height=${size.fullHeight}
           fill="transparent"
-          stroke="#404040"/>
+          stroke="#303030"/>
       </g>
       `
     )
