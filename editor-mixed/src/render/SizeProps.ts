@@ -1,10 +1,8 @@
-import type { AnyBlock } from "../blocks/Block";
+import type { AnyBlock } from "../blocks/Block"
 
 export enum HeightProp {
   Head,
   Body,
-  BodyIntermediary,
-  BodySecondary,
   Tail,
 }
 
@@ -16,40 +14,58 @@ export enum WidthProp {
 export type BlockAndSize = { block: AnyBlock; size: SizeProps }
 
 export class SizeProps {
-  heights: Map<HeightProp, number>
-  widths: Map<WidthProp, number>
+  heights: { prop: HeightProp; value: number }[]
+  widths: { prop: WidthProp; value: number }[]
 
   constructor(
-    heights: Map<HeightProp, number>,
-    widths: Map<WidthProp, number>
+    heights: { prop: HeightProp; value: number }[],
+    widths: { prop: WidthProp; value: number }[]
   ) {
     this.heights = heights
     this.widths = widths
   }
 
   static empty() {
-    return new SizeProps(new Map(), new Map())
+    return new SizeProps([], [])
   }
 
   static simple(height: number, width: number) {
     return new SizeProps(
-      new Map([[HeightProp.Head, height]]),
-      new Map([[WidthProp.Left, width]])
+      [{ prop: HeightProp.Head, value: height }],
+      [{ prop: WidthProp.Left, value: width }]
     )
   }
 
   addHeight(prop: HeightProp, value: number) {
-    this.heights.set(prop, value)
+    this.heights.push({ prop, value })
   }
 
   addWidth(prop: WidthProp, value: number) {
-    this.widths.set(prop, value)
+    this.widths.push({ prop, value })
+  }
+
+  byProp<T extends HeightProp | WidthProp>(list: { prop: T; value: number }[], prop: T) {
+    return list.filter(h => h.prop === prop).map(h => h.value)
   }
 
   get fullHeight() {
-    return [...this.heights.values()].reduce((acc, h) => acc + h, 0)
+    return this.heights.reduce((acc, h) => acc + h.value, 0)
   }
+                                                                                                                                                         
+  get heads(): number[] {
+    return this.byProp(this.heights, HeightProp.Head)
+  }
+  get fullHeadHeight() {
+    return this.heads.reduce((acc, h) => acc + h, 0)
+  }
+  get bodies(): number[] {
+    return this.byProp(this.heights, HeightProp.Body)
+  }
+  get tails(): number[] {
+    return this.byProp(this.heights, HeightProp.Tail)
+  }
+
   get fullWidth() {
-    return [...this.widths.values()].reduce((acc, w) => acc + w, 0)
+    return this.widths.reduce((acc, w) => acc + w.value, 0)
   }
 }

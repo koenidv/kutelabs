@@ -16,17 +16,35 @@ export class DebugLayouter extends BaseLayouter {
     const size = SizeProps.empty()
     size.addWidth(WidthProp.Left, this.determineWidth(block))
 
-    size.addHeight(HeightProp.Head, this.determineHeadHeight(block))
+    if (block.connectors.extensions.length > 0) {
+      block.connectors.extensions.map(connector => {
+        const connected = block.connectedBlocks.byConnector(connector)
+        if (connected != null) {
+          size.addHeight(
+            HeightProp.Head,
+            this.blockRegistry.getSize(connected).fullHeight
+          )
+        } else {
+          size.addHeight(HeightProp.Head, DEFAULT_CONNECTOR_HEIGHT)
+        }
+      })
+    } else {
+      size.addHeight(HeightProp.Head, 100)
+    }
 
     // todo this only supports one inner connection; SizeProps needs to be updated to support an array of bodies (also heads for multiple inputs?)
     if (block.inners.length > 0)
       size.addHeight(
         HeightProp.Body,
-        this.getMeasuredStackHeight(block.inners[0])
+        block.inners.reduce(
+          (acc, curr) => acc + this.getMeasuredStackHeight(curr),
+          0
+        )
       )
 
     const fullHeight = size.fullHeight
-    if (fullHeight < 100) size.addHeight(HeightProp.Tail, Math.max(100-fullHeight, 50))
+    if (fullHeight < 100)
+      size.addHeight(HeightProp.Tail, Math.max(100 - fullHeight, 50))
 
     return size
   }
@@ -87,7 +105,7 @@ export class DebugLayouter extends BaseLayouter {
       case ConnectorType.Inner:
         return new Coordinates(
           blockSize.fullWidth / 2,
-          blockSize.heights.get(HeightProp.Head) ?? blockSize.fullHeight / 4
+          blockSize.fullHeadHeight ?? blockSize.fullHeight / 4
         )
       case ConnectorType.Extension:
         const index = block.connectors.extensions.indexOf(connector)

@@ -3,7 +3,7 @@ import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
-import { SizeProps } from "../SizeProps"
+import { HeightProp, SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
@@ -18,15 +18,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="block-${BlockType[block.type]}">
-      <rect
-        x="0"
-        y="0"
-        width=${size.fullWidth}
-        height=${size.fullHeight}
-        fill="#fabcde"
-        opacity="0.6"
-        stroke="#000000aa"/>
+    <g class="block-${block.type}">
+      ${this.renderBlockContainer(block, size, position)}
 
       ${this.renderBlockContents(block, size, position)}
 
@@ -40,6 +33,46 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
 	  </g>
     `
     // todo inner blocks, extension blocks
+  }
+
+  private renderBlockContainer(
+    block: AnyBlock,
+    size: SizeProps,
+    position: Coordinates
+  ): TemplateResult<2>[] {
+    let heightOffset = 0
+
+    const boxes = size.heights.map(
+      sizing =>
+        svg`
+      <g class="block-${block.type}">
+        <rect
+          x="0"
+          y=${(heightOffset += sizing.value) - sizing.value}
+          width=${size.fullWidth}
+          height=${sizing.value}
+          fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : "#fabcde"}
+          opacity="0.6"
+          stroke="#909090"/>
+      </g>
+      `
+    )
+
+    boxes.push(
+      svg`
+      <g class="block-${block.type}">
+        <rect
+          x="0"
+          y="0"
+          width=${size.fullWidth}
+          height=${size.fullHeight}
+          fill="transparent"
+          stroke="#404040"/>
+      </g>
+      `
+    )
+
+    return boxes
   }
 
   private renderBlockContents(
