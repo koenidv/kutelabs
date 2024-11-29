@@ -2,7 +2,7 @@ export enum ConnectorRole {
   Default = "default",
   If_True = "if_true",
   If_False = "if_false",
-  Loop_Inner = "loop_inner",
+  Inner = "inner",
   Conditional = "conditional",
   Input = "input",
   Output = "output",

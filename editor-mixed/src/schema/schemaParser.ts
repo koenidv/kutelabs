@@ -2,6 +2,8 @@ import { Block, type AnyBlock } from "../blocks/Block"
 import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { Connector } from "../connections/Connector"
+import { ConnectorRole } from "../connections/ConnectorRole"
+import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
@@ -107,10 +109,14 @@ function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
       return DefaultConnectors.inputExtension()
     case "conditionalExtension":
       return DefaultConnectors.conditionalExtension()
-    case "innerLoop":
-      return DefaultConnectors.innerLoop()
+    case "inner":
+      return DefaultConnectors.inner()
     case "extender":
       return DefaultConnectors.extender()
+    case "ifTrue":
+      return DefaultConnectors.conditionalTrue()
+    case "ifFalse":
+      return DefaultConnectors.conditionalFalse()
   }
 }
 
@@ -132,8 +138,17 @@ function mergeConnectors(
         it => it.connector.type === connector.type && it.connector.role === connector.role
       )
     ) {
-      incoming.push({ connector, connected: undefined })
+      incoming.unshift({ connector, connected: undefined })
     }
   })
+
+  const typeOrder = Object.values(ConnectorType)
+  const roleOrder = Object.values(ConnectorRole)
+  incoming.sort((a, b) => {
+    const typeComparison = typeOrder.indexOf(a.connector.type) - typeOrder.indexOf(b.connector.type)
+    if (typeComparison !== 0) return typeComparison
+    return roleOrder.indexOf(a.connector.role) - roleOrder.indexOf(b.connector.role)
+  })
+
   return incoming
 }

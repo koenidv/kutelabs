@@ -15,7 +15,7 @@
           },
           "connectedBlocks": [
             {
-              "on": "innerLoop",
+              "on": "inner",
               "type": "expression",
               "data": {
                 "expression": "Println"
@@ -39,15 +39,19 @@
                 },
                 {
                   "on": "after",
-                  "type": "expression",
-                  "data": {
-                    "expression": "Custom"
-                  },
+                  "type": "conditional",
+                  "elsebranch": true,
                   "connectedBlocks": [
                     {
-                      "on": "after",
-                      "type": "conditional",
-                      "elsebranch": true
+                      "on": "ifTrue",
+                      "type": "expression",
+                      "data": {
+                        "expression": "Custom",
+                        "customExpression": {
+                          "js": "1 + 2",
+                          "kt": "1 + 2"
+                        }
+                      }
                     }
                   ]
                 }

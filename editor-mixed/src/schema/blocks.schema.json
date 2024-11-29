@@ -1,4 +1,4 @@
-^{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/editor-mixed/schema/blocks.schema.json",
   "title": "Mixed Content Editor Block",
@@ -31,7 +31,8 @@
       "$ref": "#/$defs/AnyBlock",
       "properties": {
         "type": true,
-        "data": true
+        "data": true,
+        "elsebranch": true
       },
       "additionalProperties": false
     },
@@ -74,7 +75,8 @@
         "type": true,
         "data": true,
         "connectedBlocks": true,
-        "on": true
+        "on": true,
+        "elsebranch": true
       },
       "additionalProperties": false
     },
@@ -419,7 +421,7 @@
         },
         "elsebranch": {
           "description": "Include else branch?",
-          "type": "boolean"boolea
+          "type": "boolean"
         }
       },
       "required": [

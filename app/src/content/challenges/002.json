@@ -15,7 +15,7 @@
           },
           "connectedBlocks": [
             {
-              "on": "innerLoop",
+              "on": "inner",
               "type": "expression",
               "data": {
                 "expression": "Println"

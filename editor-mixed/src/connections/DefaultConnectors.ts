@@ -8,7 +8,7 @@ export class DefaultConnectors {
   static byBlockType(type: BlockType): Connector[] {
     switch (type) {
       case BlockType.Function:
-        return [DefaultConnectors.innerLoop()]
+        return [DefaultConnectors.inner()]
       case BlockType.Expression:
         return [
           DefaultConnectors.before(),
@@ -82,8 +82,8 @@ export class DefaultConnectors {
     ])
   }
 
-  static innerLoop() {
-    return new Connector(ConnectorType.Inner, ConnectorRole.Loop_Inner, [
+  static inner() {
+    return new Connector(ConnectorType.Inner, ConnectorRole.Inner, [
       remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Default,
     ])
   }

@@ -26,6 +26,7 @@ export type AnyBlockConnected = AnyBlock & {
   data?: unknown
   connectedBlocks?: unknown
   on?: unknown
+  elsebranch?: unknown
 }
 export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock
 /**
@@ -37,7 +38,9 @@ export type MixedContentEditorConnector =
   | "inputExtension"
   | "conditionalExtension"
   | "extender"
-  | "innerLoop"
+  | "inner"
+  | "ifTrue"
+  | "ifFalse"
 /**
  * Connected Block
  */
@@ -55,6 +58,7 @@ export type AnyBlockConnected1 = AnyBlock & {
   data?: unknown
   connectedBlocks?: unknown
   on?: unknown
+  elsebranch?: unknown
 }
 /**
  * A block without connected Blocks. Use "type" to determine the type of block
@@ -62,6 +66,7 @@ export type AnyBlockConnected1 = AnyBlock & {
 export type AnyBlockSingle = {
   type?: unknown
   data?: unknown
+  elsebranch?: unknown
 } & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock)
 
 /**
@@ -190,5 +195,9 @@ export interface ConditionalBlock {
    * Defines this block as a conditional block
    */
   type: "conditional"
+  /**
+   * Include else branch?
+   */
+  elsebranch?: boolean
   [k: string]: unknown
 }

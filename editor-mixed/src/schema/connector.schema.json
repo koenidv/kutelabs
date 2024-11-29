@@ -13,7 +13,9 @@
         "inputExtension",
         "conditionalExtension",
         "extender",
-        "innerLoop"
+        "inner",
+        "ifTrue",
+        "ifFalse"
       ]
     }
   },
