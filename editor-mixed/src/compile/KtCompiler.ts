@@ -5,7 +5,7 @@ import { ValueDataType } from "../blocks/configuration/ValueDataType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
-export class JsCompiler extends BaseCompiler {
+export class KtCompiler extends BaseCompiler {
   compileFunction(
     block: Block<BlockType.Function>,
     next: typeof this.compile
@@ -22,7 +22,7 @@ export class JsCompiler extends BaseCompiler {
       else ret += `return ${next(firstOutputBlock)};`
     }
 
-    return `function ${block.data.name}() {\n\t${inner}}` // todo function inputs
+    return `fun ${block.data.name}() {\n\t${inner}}` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 
@@ -32,7 +32,7 @@ export class JsCompiler extends BaseCompiler {
   ): string {
     switch (block.data.expression) {
       case DefinedExpression.Println:
-        return `console.log(${this.chainInputs(block, next)});\n${next(block.after)}`
+        return `println(${this.chainToStringTemplate(block, next)});\n${next(block.after)}`
       default:
         throw new Error(`Expression ${block.data.expression} is not defined`)
     }
@@ -42,7 +42,7 @@ export class JsCompiler extends BaseCompiler {
     block: Block<BlockType.Expression>,
     next: typeof this.compile
   ): string {
-    return `${block.data.customExpression?.get("js") ?? ""}\n${next(block.after)}`
+    return `${block.data.customExpression?.get("kt") ?? ""}\n${next(block.after)}`
   }
 
   compileValue<S extends ValueDataType>(
@@ -84,10 +84,22 @@ export class JsCompiler extends BaseCompiler {
   }
 
   mainCall(): string {
-    return "main();"
+    return ""
+    // main call will be added by the transpiler
   }
 
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
+  }
+
+  /**
+   * Chains multiple input variables into a string using template literals
+   * This is useful for methods like println that only take one argument in Kotlin, but multiple in Js
+   * @param block parent block for the inputs
+   * @param next function to compile the input blocks
+   * @returns string template with the inputs
+   */
+  chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
+    return "\"" + block.inputs.map(it => "\${" + next(it) + "}").join(", ") + "\""
   }
 }

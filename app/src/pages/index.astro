@@ -20,12 +20,14 @@ const challenges = await getCollection('challenges');
       <EditorMixed client:load data={challenges[0].data.editor} />
       <button id="btn-tojs">to js</button>
       <button id="btn-execjs">exec js</button>
+      <button id="btn-tokt">to kt</button>
     </div>
   </body>
 </html>
 
 <script>
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
+  import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
 
   import { DebugBlockRenderer } from "@kutelabs/editor-mixed/src/render/BlockRenderers/DebugBlockRenderer"
   import { DebugDragRenderer } from "@kutelabs/editor-mixed/src/render/DragRenderers/DebugDragRenderer"
@@ -59,6 +61,14 @@ const challenges = await getCollection('challenges');
     (() => {
       //@ts-ignore
       console.log("exec js not yet imeplemented")
+    }).bind(this)
+  )
+    //@ts-ignore
+    document.querySelector("#btn-tokt").addEventListener(
+    "click",
+    (() => {
+      //@ts-ignore
+      console.log(document.querySelector("editor-mixed").compile(KtCompiler))
     }).bind(this)
   )
 </script>
