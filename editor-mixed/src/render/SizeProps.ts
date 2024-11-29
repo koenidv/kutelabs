@@ -1,3 +1,5 @@
+import type { AnyBlock } from "../blocks/Block";
+
 export enum HeightProp {
   Head,
   Body,

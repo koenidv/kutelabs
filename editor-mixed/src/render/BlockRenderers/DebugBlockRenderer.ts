@@ -58,8 +58,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         else break
       default:
         return svg`
-          <text x="5" y="20" fill="black" style="user-select: none;">${BlockType[block.type]}</text>
-          <text x="5" y="40" fill="black" style="user-select: none;">${block.id}</text>
+          <text x="5" y="20" fill="black" style="user-select: none;">${block.type}</text>
+          <text x="5" y="40" fill="black" style="user-select: none;">${JSON.stringify(block.data)}</text>
         `
     }
   }
