@@ -58,11 +58,7 @@ export class EditorMixed extends LitElement {
 
   protected render() {
     console.log("rendering")
-    console.log(this.data)
-    if (!this.isCorrectlyConfigured) {
-      console.log("not correctly configured")
-      return
-    }
+    if (!this.isCorrectlyConfigured) return
     return html`
       <div
         id="editor-container"
@@ -120,7 +116,6 @@ export class EditorMixed extends LitElement {
       this.config.layouter != null
     ) {
       try {
-        console.log("updating editor config", this.config)
         this.layouter = new this.config.layouter(this.blockRegistry)
         this.blockRenderer = new this.config.blockRenderer(
           this.blockRegistry,
@@ -148,17 +143,16 @@ export class EditorMixed extends LitElement {
         console.error(e)
       }
     }
+
+    if (changedProperties.has("data") || changedProperties.has("config")) {
+      this.requestUpdate()
+    }
   }
 
   private handleDataChanged(newData: MixedContentEditorConfiguration) {
-    console.log("data changed")
-
     this.blockRegistry.clear()
     this.connectorRegistry.clear()
-
     applyData(newData, this.blockRegistry, this.connectorRegistry)
-
-    this.requestUpdate()
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {

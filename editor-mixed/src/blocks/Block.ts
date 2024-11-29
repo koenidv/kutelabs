@@ -21,7 +21,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   readonly draggable: boolean
   renderStale: boolean = false
   isInDrawer: boolean = false
-  data: BlockDataByType<T>
+  data: BlockDataByType<T, S>
   private readonly insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
 
   constructor(

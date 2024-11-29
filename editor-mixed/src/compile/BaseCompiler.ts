@@ -1,5 +1,7 @@
 import type { Block } from "../blocks/Block"
+import type { BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
+import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { RootBlock } from "../blocks/RootBlock"
 
 export abstract class BaseCompiler {
@@ -19,7 +21,14 @@ export abstract class BaseCompiler {
       case BlockType.Function:
         return this.compileFunction(block, this.compile.bind(this))
       case BlockType.Expression:
-        return this.compileDefinedExpression(block, this.compile.bind(this))
+        if (
+          (block.data as BlockDataExpression).expression ==
+          DefinedExpression.Custom
+        ) {
+          return this.compileCustomExpression(block, this.compile.bind(this))
+        } else {
+          return this.compileDefinedExpression(block, this.compile.bind(this))
+        }
       case BlockType.Value:
         return this.compileValue(block, this.compile.bind(this))
       case BlockType.Variable:
@@ -30,7 +39,7 @@ export abstract class BaseCompiler {
         return this.compileConditional(block, this.compile.bind(this))
       default:
         throw new Error(
-          `Block type ${BlockType[block.type]} is not implemented in base compiler`
+          `Block type ${block.type} is not implemented in base compiler`
         )
     }
   }

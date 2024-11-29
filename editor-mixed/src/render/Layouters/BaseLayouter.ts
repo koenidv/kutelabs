@@ -39,7 +39,6 @@ export abstract class BaseLayouter {
     const upstream = from.upstream
     if (!upstream) throw new Error("Block has no upstream")
     if (upstream.type == BlockType.Root) return
-    console.log("is downstream valid?", this.blockRegistry.downstreamBlocksMeasuredAndValid(upstream))
     if (!this.blockRegistry.downstreamBlocksMeasuredAndValid(upstream)) return
     this.blockRegistry.setSize(upstream, this.measureBlock(upstream))
     this.measureSetUpstream(upstream)
