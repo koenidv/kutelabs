@@ -23,7 +23,6 @@ export class PanZoomHelper {
   //#region Workspace mutation
 
   private pan(deltaX: number, deltaY: number, panFactor = this.panFactor) {
-    // todo ease animval with easing
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     if (!viewBox) {
       console.error("Could not pan; Workspace not initialized")
@@ -85,8 +84,6 @@ export class PanZoomHelper {
   // then wheel for zoom on mouse and for pan on trackpad
   // todo handle deltaMode (0: pixels, 1: lines, 2: pages), different browsers have different defaults
 
-  // todo pinch zoom events
-
   //#region Trackpad / Mouse Wheel
 
   onWheel(evt: WheelEvent) {
@@ -102,65 +99,98 @@ export class PanZoomHelper {
 
   //#region Mouse Panning
 
-  private panningCTM: DOMMatrix | null = null
+  private userInputActive: boolean = false
 
   onMouseDown(evt: MouseEvent) {
     if ((evt.target as SVGElement).id != "workspace-background") return
     evt.preventDefault()
-    this.panningCTM = this.workspaceRef.value?.getScreenCTM() ?? null
-    if (!this.panningCTM) console.error("Cannot pan; Workspace not initialized")
+    this.userInputActive = true
   }
 
   onMouseMove(evt: MouseEvent) {
-    if (this.panningCTM == null) return
+    const ctm = this.workspaceRef.value?.getScreenCTM()
+    if (!this.userInputActive || !ctm) return
     evt.preventDefault()
-    this.pan(-evt.movementX / this.panningCTM.a, -evt.movementY / this.panningCTM.d, 1)
+    this.pan(-evt.movementX / ctm.a, -evt.movementY / ctm.d, 1)
   }
 
   onMouseUpOrLeave() {
-    this.panningCTM = null
+    this.userInputActive = false
   }
 
-  //#region Touch Panning
+  //#region Touch Pan & Zoom
 
-  private currentTouchX = 0
-  private currentTouchY = 0
+  private lastTouches: { x: number; y: number }[] = []
 
   onTouchStart(evt: TouchEvent) {
-    if (
-      evt.touches.length != 1 ||
-      (evt.touches[0].target as SVGElement).id != "workspace-background"
-    ) {
-      return
-    }
+    if ((evt.touches[0].target as SVGElement).id != "workspace-background") return
     evt.preventDefault()
-    this.panningCTM = this.workspaceRef.value?.getScreenCTM() ?? null
-    if (!this.panningCTM) console.error("Cannot pan; Workspace not initialized")
-    this.currentTouchX = evt.touches[0].clientX
-    this.currentTouchY = evt.touches[0].clientY
+
+    this.userInputActive = true
+    this.setTouches(evt)
   }
 
-  onTouchMove(evt: TouchEvent) {
-    if (!this.panningCTM) return
-    if (evt.touches.length != 1) {
-      this.panningCTM = null
-      return
-    }
+  private setTouches(evt: TouchEvent) {
+    this.lastTouches = Array.from({ length: evt.touches.length }, (_, i) => ({
+      x: evt.touches[i].clientX,
+      y: evt.touches[i].clientY,
+    }))
+  }
+
+  onTouchMove(evt: TouchEvent) { 
+    if (!this.userInputActive) return
+
+    if (evt.touches.length == 1) this.handleTouchPan(evt)
+    else this.handlePinchZoom(evt)
+  }
+
+  /**
+   * When one touch is registered, pan the workspace by the delta from the last touch
+   * @param evt
+   * @returns
+   */
+  private handleTouchPan(evt: TouchEvent) {
+    const ctm = this.workspaceRef.value?.getScreenCTM()
+    if (!this.userInputActive || !ctm) return
     evt.preventDefault()
 
     this.pan(
-      -(evt.touches[0].clientX - this.currentTouchX) / this.panningCTM.a,
-      -(evt.touches[0].clientY - this.currentTouchY) / this.panningCTM.d,
+      -(evt.touches[0].clientX - this.lastTouches[0].x) / ctm.a,
+      -(evt.touches[0].clientY - this.lastTouches[0].y) / ctm.d,
       1
     )
 
-    this.currentTouchX = evt.touches[0].clientX
-    this.currentTouchY = evt.touches[0].clientY
+    this.setTouches(evt)
   }
 
-  onTouchEnd() {
-    this.panningCTM = null
-    this.currentTouchX = 0
-    this.currentTouchY = 0
+  /**
+   * When two touches are registered, zoom in or out based on the distance between them
+   * @param evt current touch event including two touches
+   */
+  private handlePinchZoom(evt: TouchEvent) {
+    if (!this.userInputActive) return
+    evt.preventDefault()
+
+    const previousDelta = Math.hypot(
+      this.lastTouches[0].x - this.lastTouches[1].x,
+      this.lastTouches[0].y - this.lastTouches[1].y
+    )
+    const currentDelta = Math.hypot(
+      evt.touches[0].clientX - evt.touches[1].clientX,
+      evt.touches[0].clientY - evt.touches[1].clientY
+    )
+    const center = {
+      x: (evt.touches[0].clientX + evt.touches[1].clientX) / 2,
+      y: (evt.touches[0].clientY + evt.touches[1].clientY) / 2,
+    }
+
+    this.zoom(previousDelta - currentDelta, center.x, center.y, this.zoomFactor)
+
+    this.setTouches(evt)
+  }
+
+  onTouchEnd(evt: TouchEvent) {
+    this.setTouches(evt)
+    if (this.lastTouches.length == 0) this.userInputActive = false
   }
 }
