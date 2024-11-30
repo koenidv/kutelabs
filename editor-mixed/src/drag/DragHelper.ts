@@ -5,6 +5,7 @@ import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
+import { type AppTouchEvent } from "../util/browserCheck"
 
 export class DragHelper {
   private readonly blockRegistry: BlockRegistry
@@ -35,10 +36,10 @@ export class DragHelper {
 
   //#region Start Drag
 
-  startDrag(evt: MouseEvent | TouchEvent) {
+  startDrag(evt: MouseEvent | AppTouchEvent) {
     if (evt.defaultPrevented) return
     if (evt instanceof MouseEvent && evt.button != 0) return
-    if (evt instanceof TouchEvent && evt.touches.length != 1) return
+    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1) return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
 
     const draggedParent = this.findParent(
@@ -53,7 +54,7 @@ export class DragHelper {
 
     this.startPos = this.blockRegistry.getPosition(this.dragged.block)
 
-    if (evt instanceof TouchEvent) this.handleTouchStart(evt)
+    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) this.handleTouchStart(evt)
 
     this.dragged.block.disconnectSelf()
     this.blockRegistry.setDetached(this.dragged.block)
