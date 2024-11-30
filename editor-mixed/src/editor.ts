@@ -67,6 +67,7 @@ export class EditorMixed extends LitElement {
         id="editor-container"
         style="position: relative"
         @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
+        @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">

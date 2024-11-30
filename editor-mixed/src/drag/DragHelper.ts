@@ -30,10 +30,14 @@ export class DragHelper {
   private startPos = Coordinates.zero
   private dragX = 0
   private dragY = 0
+  private currentTouchX = 0
+  private currentTouchY = 0
 
   //#region Start Drag
 
-  startDrag(evt: MouseEvent) {
+  startDrag(evt: MouseEvent | TouchEvent) {
+    if (evt.defaultPrevented) return
+    if (evt instanceof TouchEvent && evt.touches.length != 1) return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
 
     const draggedParent = this.findParent(
@@ -48,6 +52,8 @@ export class DragHelper {
 
     this.startPos = this.blockRegistry.getPosition(this.dragged.block)
 
+    if (evt instanceof TouchEvent) this.handleTouchStart(evt)
+
     this.dragged.block.disconnectSelf()
     this.blockRegistry.setDetached(this.dragged.block)
 
@@ -55,12 +61,27 @@ export class DragHelper {
     this.requestRerender()
   }
 
-  private getDraggedData(
-    draggableParent: HTMLElement | null
-  ): AnyRegisteredBlock | null {
+  private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
     return this.blockRegistry.getRegisteredById(blockId) ?? null
+  }
+
+  private handleTouchStart(evt: TouchEvent) {
+    this.currentTouchX = evt.touches[0].clientX
+    this.currentTouchY = evt.touches[0].clientY
+    // attaching touch events to the target as they would break on rerender
+    // see https://stackoverflow.com/questions/33298828/touch-move-event-dont-fire-after-touch-start-target-is-removed
+    const onTouchMove = this.touchDrag.bind(this) as EventListener
+    const onTouchEnd = ((e: TouchEvent) => {
+      evt.target?.removeEventListener("touchmove", onTouchMove)
+      evt.target?.removeEventListener("touchend", onTouchEnd)
+      evt.target?.removeEventListener("touchcancel", onTouchEnd)
+      this.endDrag(e)
+    }).bind(this) as EventListener
+    evt.target!.addEventListener("touchmove", onTouchMove)
+    evt.target!.addEventListener("touchend", onTouchEnd)
+    evt.target!.addEventListener("touchcancel", onTouchEnd)
   }
 
   //#region Update Drag
@@ -73,15 +94,33 @@ export class DragHelper {
     this.dragX += evt.movementX / ctm.a
     this.dragY += evt.movementY / ctm.d
 
+    this.afterDrag(this.dragged, this.dragX, this.dragY)
+  }
+
+  touchDrag(evt: TouchEvent) {
+    if (!this.dragged || evt.touches.length != 1) return
+    evt.preventDefault()
+
+    const ctm = this.workspaceRef.value!.getScreenCTM()!
+    this.dragX += (evt.touches[0].clientX - this.currentTouchX) / ctm.a
+    this.dragY += (evt.touches[0].clientY - this.currentTouchY) / ctm.d
+
+    this.currentTouchX = evt.touches[0].clientX
+    this.currentTouchY = evt.touches[0].clientY
+
+    this.afterDrag(this.dragged, this.dragX, this.dragY)
+  }
+
+  private afterDrag(dragged: AnyRegisteredBlock, dragX: number, dragY: number) {
     const snap = this.connectorRegistry.selectConnectorForBlock(
-      this.dragged.block,
-      new Coordinates(this.dragX, this.dragY),
+      dragged.block,
+      new Coordinates(dragX, dragY),
       25
     )
 
     this.renderer.update(
-      this.dragged,
-      Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY)),
+      dragged,
+      Coordinates.add(this.startPos, new Coordinates(dragX, dragY)),
       snap
     )
 
@@ -90,14 +129,11 @@ export class DragHelper {
 
   //#region Finalize Drag
 
-  endDrag(evt: MouseEvent) {
+  endDrag(evt: MouseEvent | TouchEvent) {
     if (!this.dragged) return
     evt.preventDefault()
 
-    if (
-      this.findParent(evt.target as HTMLElement, it => it.id == "drawer") !=
-      null
-    ) {
+    if (this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null) {
       // Dropped on drawer
       this.blockRegistry.attachToDrawer(this.dragged.block)
     } else {
@@ -119,10 +155,7 @@ export class DragHelper {
     const connectOnBlock = snap?.to.parentBlock ?? this.blockRegistry.root!
     const snapOnConnection =
       snap ??
-      new Connection(
-        this.blockRegistry.root!.rootConnector,
-        dragged.block.connectors.internal
-      )
+      new Connection(this.blockRegistry.root!.rootConnector, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
       dragged.block,
@@ -136,8 +169,8 @@ export class DragHelper {
     this.blockRegistry.setDetached(null)
     this.renderer.remove()
     this.startPos = Coordinates.zero
-    this.dragX = 0
-    this.dragY = 0
+    this.dragX = this.dragY = 0
+    this.currentTouchX = this.currentTouchY = 0
   }
 
   private findParent(

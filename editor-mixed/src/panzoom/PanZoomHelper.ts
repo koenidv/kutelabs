@@ -113,6 +113,7 @@ export class PanZoomHelper {
 
   onMouseMove(evt: MouseEvent) {
     if (this.panningCTM == null) return
+    evt.preventDefault()
     this.pan(-evt.movementX / this.panningCTM.a, -evt.movementY / this.panningCTM.d, 1)
   }
 
@@ -145,6 +146,7 @@ export class PanZoomHelper {
       this.panningCTM = null
       return
     }
+    evt.preventDefault()
 
     this.pan(
       -(evt.touches[0].clientX - this.currentTouchX) / this.panningCTM.a,
