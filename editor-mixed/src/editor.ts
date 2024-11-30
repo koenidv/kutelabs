@@ -72,6 +72,7 @@ export class EditorMixed extends LitElement {
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
         <div
+          tabindex="0"
           class="panzoom"
           @wheel="${(e: WheelEvent) => this.panzoomHelper.onWheel(e)}"
           @mousedown="${(e: MouseEvent) => this.panzoomHelper.onMouseDown(e)}"

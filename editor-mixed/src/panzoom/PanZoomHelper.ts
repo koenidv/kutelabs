@@ -1,5 +1,5 @@
 import type { Ref } from "lit/directives/ref.js"
-import { ScrollInputHelper } from "./ScrollInputHelper"
+import { ScrollInputHelper, ScrollInputType } from "./ScrollInputHelper"
 
 export class PanZoomHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
@@ -17,7 +17,11 @@ export class PanZoomHelper {
     maxZoom: 2000,
   } // todo make configurable and use factors of the original size for zoom
 
-  constructor(workspaceRef: Ref<SVGSVGElement>, syncRefs: Ref<SVGSVGElement>[] = [], scrollInputHelper: ScrollInputHelper = new ScrollInputHelper()) {
+  constructor(
+    workspaceRef: Ref<SVGSVGElement>,
+    syncRefs: Ref<SVGSVGElement>[] = [],
+    scrollInputHelper: ScrollInputHelper = new ScrollInputHelper()
+  ) {
     this.workspaceRef = workspaceRef
     this.syncRefs = syncRefs
     this.scrollInputHelper = scrollInputHelper
@@ -84,20 +88,22 @@ export class PanZoomHelper {
   }
 
   // todo on first interaction, observe a few events to determine trackpad or mouse
-  // then wheel for zoom on mouse and for pan on trackpad
-  // todo handle deltaMode (0: pixels, 1: lines, 2: pages), different browsers have different defaults
 
   //#region Trackpad / Mouse Wheel
 
   onWheel(evt: WheelEvent) {
     if (evt.shiftKey) return // escape panzoom on shift
     evt.preventDefault()
-    this.handleTrackpadWheel(evt)
-  }
 
-  private handleTrackpadWheel(evt: WheelEvent) {
-    if (evt.ctrlKey || evt.metaKey) this.zoom(evt.deltaY, evt.clientX, evt.clientY)
-    else this.pan(evt.deltaX, evt.deltaY)
+    if (
+      evt.ctrlKey ||
+      evt.metaKey ||
+      this.scrollInputHelper.determineInputType(evt) == ScrollInputType.Mouse
+    ) {
+      this.zoom(evt.deltaY, evt.clientX, evt.clientY)
+    } else {
+      this.pan(evt.deltaX, evt.deltaY)
+    }
   }
 
   //#region Mouse Panning
@@ -105,7 +111,7 @@ export class PanZoomHelper {
   private userInputActive: boolean = false
 
   onMouseDown(evt: MouseEvent) {
-    if ((evt.target as SVGElement).id != "workspace-background") return
+    if (evt.button != 0 || (evt.target as SVGElement).id != "workspace-background") return
     evt.preventDefault()
     this.userInputActive = true
   }
@@ -140,7 +146,7 @@ export class PanZoomHelper {
     }))
   }
 
-  onTouchMove(evt: TouchEvent) { 
+  onTouchMove(evt: TouchEvent) {
     if (!this.userInputActive) return
 
     if (evt.touches.length == 1) this.handleTouchPan(evt)

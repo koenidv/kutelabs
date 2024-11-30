@@ -1,4 +1,4 @@
-enum ScrollInputType {
+export enum ScrollInputType {
   Mouse,
   Trackpad,
 }

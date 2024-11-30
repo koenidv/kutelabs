@@ -18,9 +18,9 @@ const challenges = await getCollection('challenges');
       class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
       <h1>kutelabs. a kute way to learn kotlin :)</h1>
       <EditorMixed client:load data={challenges[0].data.editor} />
-      <button id="btn-tojs">to js</button>
-      <button id="btn-execjs">exec js</button>
-      <button id="btn-tokt">to kt</button>
+      <button id="btn-tojs" tabindex="0">to js</button>
+      <button id="btn-execjs" tabindex="0">exec js</button>
+      <button id="btn-tokt" tabindex="0">to kt</button>
     </div>
   </body>
 </html>

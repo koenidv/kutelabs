@@ -37,6 +37,7 @@ export class DragHelper {
 
   startDrag(evt: MouseEvent | TouchEvent) {
     if (evt.defaultPrevented) return
+    if (evt instanceof MouseEvent && evt.button != 0) return
     if (evt instanceof TouchEvent && evt.touches.length != 1) return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
 
