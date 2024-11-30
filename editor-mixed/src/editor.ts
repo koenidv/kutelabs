@@ -16,6 +16,7 @@ import "@kutelabs/shared"
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { PanZoomHelper } from "./panzoom/PanZoomHelper"
+import { isSafari } from "./util/browserCheck"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -30,7 +31,10 @@ export class EditorMixed extends LitElement {
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
-  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragLayerRef])
+  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragLayerRef], scale => {
+    this.blockRenderer?.setWorkspaceScaleFactor?.(scale)
+    if (isSafari) this.requestUpdate() // rerender to apply foreign object scaling to work around [safari bug 23113](https://bugs.webkit.org/show_bug.cgi?id=23113)
+  })
 
   declare config: MixedEditorConfig
   declare data: MixedContentEditorConfiguration
@@ -82,8 +86,7 @@ export class EditorMixed extends LitElement {
           @mouseup="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @mouseleave="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @touchend="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
-          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
-          >
+          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}">
           <svg
             ${ref(this.workspaceRef)}
             width="100%"

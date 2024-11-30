@@ -9,6 +9,7 @@ import { BlockType } from "../../blocks/configuration/BlockType"
 import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 
 import "../../codeEditor/PrismKotlinEditor"
+import { isSafari } from "../../util/browserCheck"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
@@ -83,11 +84,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     switch (block.type) {
       case BlockType.Expression:
         if ((block as Block<BlockType.Expression>).data.editable)
-          return this.renderEditableCodeContents(
-            block,
-            block.data as BlockDataExpression,
-            size
-          )
+          return this.renderEditableCodeContents(block, block.data as BlockDataExpression, size)
         else break
       default:
         return svg`
@@ -105,11 +102,14 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     data: BlockDataExpression,
     size: SizeProps
   ): TemplateResult<2> {
+    const safariTransform = isSafari
+      ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
+      : ""
     return svg`
         <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
           <prism-kotlin-editor
             .input="${data.customExpression?.get("kt") ?? ""}"
-            style="width: 100%; height: 100%;" 
+            style="width: 100%; height: 100%; ${safariTransform}" 
             @code-change=${(e: CustomEvent) => data.customExpression?.set(data.editable ? data.editable.lang : "kt", e.detail.code)}
           />
 
@@ -117,10 +117,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         `
   }
 
-  private renderConnector(
-    connector: Connector,
-    blockPosition: Coordinates
-  ): TemplateResult<2> {
+  private renderConnector(connector: Connector, blockPosition: Coordinates): TemplateResult<2> {
     // console.log("Rendering connector of type", ConnectorType[connector.type], "at position", Coordinates.subtract(connector.globalPosition, )
     let color
     switch (connector.type) {

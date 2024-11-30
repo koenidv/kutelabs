@@ -6,8 +6,8 @@ export class PanZoomHelper {
   private readonly syncRefs: Ref<SVGSVGElement>[]
   private readonly scrollInputHelper: ScrollInputHelper
 
-  private panFactor = 1.3
-  private zoomFactor = 1.5
+  private panSpeed = 1.3
+  private zoomSpeed = 1.5
   private bounds = {
     minX: -1000,
     minY: -1000,
@@ -17,19 +17,24 @@ export class PanZoomHelper {
     maxZoom: 2000,
   } // todo make configurable and use factors of the original size for zoom
 
+  private initialWorkspaceSize: { width: number; height: number } | null = null
+  private onScaleChanged: (scale: number) => void = () => {}
+
   constructor(
     workspaceRef: Ref<SVGSVGElement>,
     syncRefs: Ref<SVGSVGElement>[] = [],
+    onScaleChanged: (scale: number) => void = () => {},
     scrollInputHelper: ScrollInputHelper = new ScrollInputHelper()
   ) {
     this.workspaceRef = workspaceRef
     this.syncRefs = syncRefs
     this.scrollInputHelper = scrollInputHelper
+    this.onScaleChanged = onScaleChanged
   }
 
   //#region Workspace mutation
 
-  private pan(deltaX: number, deltaY: number, panFactor = this.panFactor) {
+  private pan(deltaX: number, deltaY: number, panFactor = this.panSpeed) {
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     if (!viewBox) {
       console.error("Could not pan; Workspace not initialized")
@@ -48,7 +53,8 @@ export class PanZoomHelper {
     })
   }
 
-  private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomFactor) {
+  private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomSpeed) {
+    this.setInitialWorkspaceSize()
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     const clientRect = this.workspaceRef?.value?.getBoundingClientRect()
     if (!viewBox || !clientRect) {
@@ -85,7 +91,19 @@ export class PanZoomHelper {
       -cursorY * (appliedDelta / viewBox.height),
       1
     )
+
+    console.log(newSize, this.initialWorkspaceSize!.width, newSize / this.initialWorkspaceSize!.width)
+    this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
   }
+
+  private setInitialWorkspaceSize() {
+    if (this.initialWorkspaceSize != null) return
+    this.initialWorkspaceSize = {
+      width: this.workspaceRef.value?.viewBox.baseVal.width ?? 0,
+      height: this.workspaceRef.value?.viewBox.baseVal.height ?? 0,
+    }
+  }
+
 
   // todo on first interaction, observe a few events to determine trackpad or mouse
 
@@ -193,7 +211,7 @@ export class PanZoomHelper {
       y: (evt.touches[0].clientY + evt.touches[1].clientY) / 2,
     }
 
-    this.zoom(previousDelta - currentDelta, center.x, center.y, this.zoomFactor)
+    this.zoom(previousDelta - currentDelta, center.x, center.y, this.zoomSpeed)
 
     this.setTouches(evt)
   }

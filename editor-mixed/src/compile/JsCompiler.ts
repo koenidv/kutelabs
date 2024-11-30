@@ -31,7 +31,7 @@ export class JsCompiler extends BaseCompiler {
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
-    return `${block.data.customExpression?.get("js") ?? ""}\n${next(block.after)}`
+    return `${block.data.customExpression?.get?.("js") ?? ""}\n${next(block.after)}`
   }
 
   compileValue<S extends ValueDataType>(
