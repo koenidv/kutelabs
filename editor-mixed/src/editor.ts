@@ -70,7 +70,18 @@ export class EditorMixed extends LitElement {
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
-        <div class="panzoom" @wheel="${(e: WheelEvent) => this.panzoomHelper.onWheel(e)}">
+        <div
+          class="panzoom"
+          @wheel="${(e: WheelEvent) => this.panzoomHelper.onWheel(e)}"
+          @mousedown="${(e: MouseEvent) => this.panzoomHelper.onMouseDown(e)}"
+          @touchstart="${(e: TouchEvent) => this.panzoomHelper.onTouchStart(e)}"
+          @mousemove="${(e: MouseEvent) => this.panzoomHelper.onMouseMove(e)}"
+          @touchmove="${(e: TouchEvent) => this.panzoomHelper.onTouchMove(e)}"
+          @mouseup="${() => this.panzoomHelper.onMouseUpOrLeave()}"
+          @mouseleave="${() => this.panzoomHelper.onMouseUpOrLeave()}"
+          @touchend="${() => this.panzoomHelper.onTouchEnd()}"
+          @touchcancel="${() => this.panzoomHelper.onTouchEnd()}"
+          >
           <svg
             ${ref(this.workspaceRef)}
             width="100%"
@@ -81,11 +92,11 @@ export class EditorMixed extends LitElement {
           </svg>
         </div>
 
-        <!-- <div
+        <div
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
           ${this.drawerRenderer!.renderElement()}
-        </div> -->
+        </div>
 
         <svg
           ${ref(this.dragLayerRef)}

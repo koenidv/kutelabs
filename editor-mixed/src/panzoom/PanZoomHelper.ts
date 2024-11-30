@@ -20,23 +20,7 @@ export class PanZoomHelper {
     this.syncRefs = syncRefs
   }
 
-  // todo on first interaction, observe a few events to determine trackpad or mouse
-  // then wheel for zoom on mouse and for pan on trackpad
-  // todo handle deltaMode (0: pixels, 1: lines, 2: pages), different browsers have different defaults
-
-  // todo click/touch pan events
-  // todo pinch zoom events
-
-  onWheel(evt: WheelEvent) {
-    if (evt.shiftKey) return // escape panzoom on shift
-    evt.preventDefault()
-    this.handleTrackpadWheel(evt)
-  }
-
-  private handleTrackpadWheel(evt: WheelEvent) {
-    if (evt.ctrlKey || evt.metaKey) this.zoom(evt.deltaY, evt.clientX, evt.clientY)
-    else this.pan(evt.deltaX, evt.deltaY)
-  }
+  //#region Workspace mutation
 
   private pan(deltaX: number, deltaY: number, panFactor = this.panFactor) {
     // todo ease animval with easing
@@ -95,5 +79,86 @@ export class PanZoomHelper {
       -cursorY * (appliedDelta / viewBox.height),
       1
     )
+  }
+
+  // todo on first interaction, observe a few events to determine trackpad or mouse
+  // then wheel for zoom on mouse and for pan on trackpad
+  // todo handle deltaMode (0: pixels, 1: lines, 2: pages), different browsers have different defaults
+
+  // todo pinch zoom events
+
+  //#region Trackpad / Mouse Wheel
+
+  onWheel(evt: WheelEvent) {
+    if (evt.shiftKey) return // escape panzoom on shift
+    evt.preventDefault()
+    this.handleTrackpadWheel(evt)
+  }
+
+  private handleTrackpadWheel(evt: WheelEvent) {
+    if (evt.ctrlKey || evt.metaKey) this.zoom(evt.deltaY, evt.clientX, evt.clientY)
+    else this.pan(evt.deltaX, evt.deltaY)
+  }
+
+  //#region Mouse Panning
+
+  private panningCTM: DOMMatrix | null = null
+
+  onMouseDown(evt: MouseEvent) {
+    if ((evt.target as SVGElement).id != "workspace-background") return
+    evt.preventDefault()
+    this.panningCTM = this.workspaceRef.value?.getScreenCTM() ?? null
+    if (!this.panningCTM) console.error("Cannot pan; Workspace not initialized")
+  }
+
+  onMouseMove(evt: MouseEvent) {
+    if (this.panningCTM == null) return
+    this.pan(-evt.movementX / this.panningCTM.a, -evt.movementY / this.panningCTM.d, 1)
+  }
+
+  onMouseUpOrLeave() {
+    this.panningCTM = null
+  }
+
+  //#region Touch Panning
+
+  private currentTouchX = 0
+  private currentTouchY = 0
+
+  onTouchStart(evt: TouchEvent) {
+    if (
+      evt.touches.length != 1 ||
+      (evt.touches[0].target as SVGElement).id != "workspace-background"
+    ) {
+      return
+    }
+    evt.preventDefault()
+    this.panningCTM = this.workspaceRef.value?.getScreenCTM() ?? null
+    if (!this.panningCTM) console.error("Cannot pan; Workspace not initialized")
+    this.currentTouchX = evt.touches[0].clientX
+    this.currentTouchY = evt.touches[0].clientY
+  }
+
+  onTouchMove(evt: TouchEvent) {
+    if (!this.panningCTM) return
+    if (evt.touches.length != 1) {
+      this.panningCTM = null
+      return
+    }
+
+    this.pan(
+      -(evt.touches[0].clientX - this.currentTouchX) / this.panningCTM.a,
+      -(evt.touches[0].clientY - this.currentTouchY) / this.panningCTM.d,
+      1
+    )
+
+    this.currentTouchX = evt.touches[0].clientX
+    this.currentTouchY = evt.touches[0].clientY
+  }
+
+  onTouchEnd() {
+    this.panningCTM = null
+    this.currentTouchX = 0
+    this.currentTouchY = 0
   }
 }
