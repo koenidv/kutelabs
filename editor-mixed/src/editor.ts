@@ -15,9 +15,12 @@ import { createRef, ref } from "lit/directives/ref.js"
 import "@kutelabs/shared"
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
+import { PanZoomHelper } from "./panzoom/PanZoomHelper"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
+  workspaceRef = createRef<SVGSVGElement>()
+
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
   declare layouter: BaseLayouter
@@ -26,8 +29,7 @@ export class EditorMixed extends LitElement {
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
-
-  workspaceRef = createRef<SVGSVGElement>()
+  panzoomHelper = new PanZoomHelper(this.workspaceRef, this.requestUpdate.bind(this))
 
   declare config: MixedEditorConfig
   declare data: MixedContentEditorConfiguration
@@ -67,14 +69,16 @@ export class EditorMixed extends LitElement {
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
         @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
-        <svg
-          ${ref(this.workspaceRef)}
-          width="100%"
-          height="100%"
-          style="position: absolute; top: 0; left: 0;">
-          ${this.extrasRenderer.renderBackground()}
-          ${this.blockRenderer.render()}
-        </svg>
+        <div class="panzoom" @wheel="${(e: WheelEvent) => this.panzoomHelper.onWheel(e)}">
+          <svg
+            ${ref(this.workspaceRef)}
+            width="100%"
+            height="100%"
+            viewBox="0 0 800 800"
+            style="position: absolute; top: 0; left: 0; pointer-events: all;">
+            ${this.extrasRenderer.renderBackground()} ${this.blockRenderer.render()}
+          </svg>
+        </div>
 
         <div
           id="drawer-container"
@@ -101,7 +105,8 @@ export class EditorMixed extends LitElement {
       this.drawerRenderer != undefined &&
       this.extrasRenderer != undefined &&
       this.dragRenderer != undefined &&
-      this.dragHelper != undefined
+      this.dragHelper != undefined &&
+      this.panzoomHelper != undefined
     )
   }
 
@@ -110,26 +115,16 @@ export class EditorMixed extends LitElement {
       this.handleDataChanged(this.data)
     }
 
-    if (
-      changedProperties.has("config") &&
-      this.config &&
-      this.config.layouter != null
-    ) {
+    if (changedProperties.has("config") && this.config && this.config.layouter != null) {
       try {
         this.layouter = new this.config.layouter(this.blockRegistry)
-        this.blockRenderer = new this.config.blockRenderer(
-          this.blockRegistry,
-          this.layouter
-        )
+        this.blockRenderer = new this.config.blockRenderer(this.blockRegistry, this.layouter)
         this.drawerRenderer = new this.config.drawerRenderer(
           this.blockRegistry,
           this.layouter,
           this.blockRenderer
         )
-        this.dragRenderer = new this.config.dragRenderer(
-          this.blockRegistry,
-          this.blockRenderer
-        )
+        this.dragRenderer = new this.config.dragRenderer(this.blockRegistry, this.blockRenderer)
         this.extrasRenderer = new this.config.extrasRenderer()
         this.dragHelper = new DragHelper(
           this.blockRegistry,
@@ -159,12 +154,9 @@ export class EditorMixed extends LitElement {
     super.firstUpdated(_changedProperties)
   }
 
-  public compile<T>(compilerClass: {
-    new (): T extends BaseCompiler ? T : null
-  }): string {
+  public compile<T>(compilerClass: { new (): T extends BaseCompiler ? T : null }): string {
     if (compilerClass == null) throw new Error("Compiler class is null")
-    if (!this.blockRegistry.root)
-      throw new Error("Root block is not initialized")
+    if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 
     const instance = new compilerClass()
     if (instance == null) throw new Error("Compiler instance is null")
