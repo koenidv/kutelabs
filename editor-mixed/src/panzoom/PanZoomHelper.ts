@@ -1,8 +1,10 @@
 import type { Ref } from "lit/directives/ref.js"
+import { ScrollInputHelper } from "./ScrollInputHelper"
 
 export class PanZoomHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly syncRefs: Ref<SVGSVGElement>[]
+  private readonly scrollInputHelper: ScrollInputHelper
 
   private panFactor = 1.3
   private zoomFactor = 1.5
@@ -15,9 +17,10 @@ export class PanZoomHelper {
     maxZoom: 2000,
   } // todo make configurable and use factors of the original size for zoom
 
-  constructor(workspaceRef: Ref<SVGSVGElement>, syncRefs: Ref<SVGSVGElement>[] = []) {
+  constructor(workspaceRef: Ref<SVGSVGElement>, syncRefs: Ref<SVGSVGElement>[] = [], scrollInputHelper: ScrollInputHelper = new ScrollInputHelper()) {
     this.workspaceRef = workspaceRef
     this.syncRefs = syncRefs
+    this.scrollInputHelper = scrollInputHelper
   }
 
   //#region Workspace mutation
