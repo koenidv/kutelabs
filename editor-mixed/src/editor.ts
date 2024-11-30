@@ -81,11 +81,11 @@ export class EditorMixed extends LitElement {
           </svg>
         </div>
 
-        <div
+        <!-- <div
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
           ${this.drawerRenderer!.renderElement()}
-        </div>
+        </div> -->
 
         <svg
           ${ref(this.dragLayerRef)}

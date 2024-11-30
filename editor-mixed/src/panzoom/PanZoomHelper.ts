@@ -7,18 +7,15 @@ export class PanZoomHelper {
   private panFactor = 1.3
   private zoomFactor = 1.5
   private bounds = {
-    minX: -400,
-    minY: -400,
-    minZoom: 400,
-    maxX: 400,
-    maxY: 400,
+    minX: -1000,
+    minY: -1000,
+    minZoom: 300,
+    maxX: 1000,
+    maxY: 1000,
     maxZoom: 2000,
   } // todo make configurable and use factors of the original size for zoom
 
-  constructor(
-    workspaceRef: Ref<SVGSVGElement>,
-    syncRefs: Ref<SVGSVGElement>[] = []
-  ) {
+  constructor(workspaceRef: Ref<SVGSVGElement>, syncRefs: Ref<SVGSVGElement>[] = []) {
     this.workspaceRef = workspaceRef
     this.syncRefs = syncRefs
   }
@@ -37,45 +34,48 @@ export class PanZoomHelper {
   }
 
   private handleTrackpadWheel(evt: WheelEvent) {
-    if (evt.ctrlKey || evt.metaKey) this.zoom(evt.deltaY)
+    if (evt.ctrlKey || evt.metaKey) this.zoom(evt.deltaY, evt.clientX, evt.clientY)
     else this.pan(evt.deltaX, evt.deltaY)
   }
 
-  private pan(deltaX: number, deltaY: number) {
+  private pan(deltaX: number, deltaY: number, panFactor = this.panFactor) {
     // todo ease animval with easing
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     if (!viewBox) {
       console.error("Could not pan; Workspace not initialized")
       return
     }
-    const width = (viewBox.x + deltaX * this.panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
-    const height = (viewBox.y + deltaY * this.panFactor).coerceIn(
-      this.bounds.minY,
-      this.bounds.maxY
-    )
+    const x = (viewBox.x + deltaX * panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
+    const y = (viewBox.y + deltaY * panFactor).coerceIn(this.bounds.minY, this.bounds.maxY)
 
-    viewBox.x = width
-    viewBox.y = height
-    console.log(this.syncRefs)
+    viewBox.x = x
+    viewBox.y = y
     this.syncRefs.forEach(ref => {
       ref.value?.viewBox?.baseVal?.let(it => {
-        it.x = width
-        it.y = height
+        it.x = x
+        it.y = y
       })
     })
   }
 
-  private zoom(delta: number) {
-    // todo zoom to cursor
+  private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomFactor) {
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
-    if (!viewBox) {
+    const clientRect = this.workspaceRef?.value?.getBoundingClientRect()
+    if (!viewBox || !clientRect) {
       console.error("Could not zoom; Workspace not initialized")
       return
     }
-    const newSize = (viewBox.width + delta * this.zoomFactor).coerceIn(
+
+    const newSize = (viewBox.width + delta * zoomFactor).coerceIn(
       this.bounds.minZoom,
       this.bounds.maxZoom
     )
+
+    if (cursorX != null && cursorY != null) {
+      cursorX = ((cursorX - clientRect.left) / clientRect.width) * viewBox.width
+      cursorY = ((cursorY - clientRect.top) / clientRect.height) * viewBox.height
+    }
+
     const appliedDelta = newSize - viewBox.width
     viewBox.width = viewBox.height = newSize
 
@@ -85,6 +85,15 @@ export class PanZoomHelper {
       })
     })
 
-    this.pan(-appliedDelta / 2, -appliedDelta / 2)
+    if (!cursorX || !cursorY) {
+      this.pan(-appliedDelta / 2, -appliedDelta / 2, 1)
+      return
+    }
+
+    this.pan(
+      -cursorX * (appliedDelta / viewBox.width),
+      -cursorY * (appliedDelta / viewBox.height),
+      1
+    )
   }
 }
