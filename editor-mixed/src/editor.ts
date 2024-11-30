@@ -20,6 +20,7 @@ import { PanZoomHelper } from "./panzoom/PanZoomHelper"
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   workspaceRef = createRef<SVGSVGElement>()
+  dragLayerRef = createRef<SVGSVGElement>()
 
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
@@ -29,7 +30,7 @@ export class EditorMixed extends LitElement {
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
-  panzoomHelper = new PanZoomHelper(this.workspaceRef, this.requestUpdate.bind(this))
+  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragLayerRef])
 
   declare config: MixedEditorConfig
   declare data: MixedContentEditorConfiguration
@@ -87,9 +88,11 @@ export class EditorMixed extends LitElement {
         </div>
 
         <svg
+          ${ref(this.dragLayerRef)}
           id="drag-layer"
           width="100%"
           height="100%"
+          viewBox="0 0 800 800"
           style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
           pointer-events="none">
           ${this.dragRenderer!.render()}

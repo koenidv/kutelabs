@@ -2,7 +2,7 @@ import type { Ref } from "lit/directives/ref.js"
 
 export class PanZoomHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
-  private readonly requestRerender: () => void
+  private readonly syncRefs: Ref<SVGSVGElement>[]
 
   private panFactor = 1.3
   private zoomFactor = 1.5
@@ -15,12 +15,13 @@ export class PanZoomHelper {
     maxZoom: 2000,
   } // todo make configurable and use factors of the original size for zoom
 
-  constructor(workspaceRef: Ref<SVGSVGElement>, rerender: () => void) {
+  constructor(
+    workspaceRef: Ref<SVGSVGElement>,
+    syncRefs: Ref<SVGSVGElement>[] = []
+  ) {
     this.workspaceRef = workspaceRef
-    this.requestRerender = rerender
+    this.syncRefs = syncRefs
   }
-
-  // fixme panzoom breaks visual sync with drag layer
 
   // todo on first interaction, observe a few events to determine trackpad or mouse
   // then wheel for zoom on mouse and for pan on trackpad
@@ -33,8 +34,6 @@ export class PanZoomHelper {
     if (evt.shiftKey) return // escape panzoom on shift
     evt.preventDefault()
     this.handleTrackpadWheel(evt)
-    this.requestRerender()
-    console.log(evt)
   }
 
   private handleTrackpadWheel(evt: WheelEvent) {
@@ -49,8 +48,21 @@ export class PanZoomHelper {
       console.error("Could not pan; Workspace not initialized")
       return
     }
-    viewBox.x = (viewBox.x + deltaX * this.panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
-    viewBox.y = (viewBox.y + deltaY * this.panFactor).coerceIn(this.bounds.minY, this.bounds.maxY)
+    const width = (viewBox.x + deltaX * this.panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
+    const height = (viewBox.y + deltaY * this.panFactor).coerceIn(
+      this.bounds.minY,
+      this.bounds.maxY
+    )
+
+    viewBox.x = width
+    viewBox.y = height
+    console.log(this.syncRefs)
+    this.syncRefs.forEach(ref => {
+      ref.value?.viewBox?.baseVal?.let(it => {
+        it.x = width
+        it.y = height
+      })
+    })
   }
 
   private zoom(delta: number) {
@@ -66,6 +78,12 @@ export class PanZoomHelper {
     )
     const appliedDelta = newSize - viewBox.width
     viewBox.width = viewBox.height = newSize
+
+    this.syncRefs.forEach(ref => {
+      ref.value?.viewBox?.baseVal?.let(it => {
+        it.width = it.height = newSize
+      })
+    })
 
     this.pan(-appliedDelta / 2, -appliedDelta / 2)
   }

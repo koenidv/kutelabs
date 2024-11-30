@@ -46,12 +46,7 @@ export class DragHelper {
     if (this.dragged == null) return
     evt.preventDefault()
 
-    this.startPos = new Coordinates(
-      draggedParent.getBoundingClientRect().left -
-        this.workspaceRef.value.getBoundingClientRect().left,
-      draggedParent.getBoundingClientRect().top -
-        this.workspaceRef.value.getBoundingClientRect().top
-    )
+    this.startPos = this.blockRegistry.getPosition(this.dragged.block)
 
     this.dragged.block.disconnectSelf()
     this.blockRegistry.setDetached(this.dragged.block)
