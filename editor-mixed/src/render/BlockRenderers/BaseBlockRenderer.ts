@@ -95,7 +95,7 @@ export abstract class BaseBlockRenderer {
     child: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="${draggable ? "dragable" : "nodrag"}" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}"}>
+    <g class="${draggable ? "dragable" : "nodrag"} block" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
       ${child()}
     </g>`
   }

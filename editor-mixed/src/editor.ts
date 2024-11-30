@@ -60,6 +60,10 @@ export class EditorMixed extends LitElement {
       width: 80vw;
       border: 1px solid black;
       user-select: none;
+      cursor: default;
+    }
+    .block {
+      cursor: grab;
     }
   `
 

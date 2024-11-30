@@ -36,7 +36,7 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
   ): TemplateResult<2> {
     return svg`
       <g>
-        <rect width="${contentWidth}" height="100%" fill="#efefef" stroke="black" stroke-width="0.5" />
+        <rect width="${Math.max(contentWidth, this.minWidth)}" height="100%" fill="#efefef" stroke="black" stroke-width="0.5" />
         ${blocks.map(it => renderBlock(it.block, it.position))}
       </g>
     `

@@ -11,6 +11,8 @@ export abstract class BaseDrawerRenderer {
   private readonly layouter: BaseLayouter
   private readonly blockRenderer: BaseBlockRenderer
 
+  minWidth = 150
+
   constructor(
     blockRegistry: BlockRegistry,
     layouter: BaseLayouter,
@@ -31,7 +33,7 @@ export abstract class BaseDrawerRenderer {
     return html`
       <svg
         id="drawer"
-        width="${layout.fullWidth}"
+        width="${Math.max(layout.fullWidth, this.minWidth)}"
         height="${layout.fullHeight}"
         style="min-height: 100%; display: block;">
         ${this.renderDrawer(

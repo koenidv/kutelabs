@@ -60,6 +60,7 @@ export class DragHelper {
 
     this.renderer.update(this.dragged, this.startPos, null)
     this.requestRerender()
+    this.workspaceRef.value.style.cursor = "grabbing"
   }
 
   private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
@@ -148,7 +149,7 @@ export class DragHelper {
     }
 
     this.reset()
-
+    this.workspaceRef.value!.style.cursor = "unset"
     this.requestRerender()
   }
 
