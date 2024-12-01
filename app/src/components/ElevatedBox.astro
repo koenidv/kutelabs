@@ -1,0 +1,25 @@
+---
+interface Props {
+  elevation?: number
+  hoverable?: boolean
+  label?: string
+  class?: string
+}
+const { elevation = 4, hoverable = false, label, class: className } = Astro.props
+---
+
+<div class="p-16">
+  <div
+    class:list={[
+      "group elevated-card w-fit",
+      `elevated-${elevation}`,
+      { "hoverable hover:cursor-pointer": hoverable },
+      className,
+    ]}
+    tabindex="0"
+    aria-label={label}>
+    <div class:list={["border-l-4 border-t-4 border-r-2 border-b-2 border-black px-12"]}>
+      <slot />
+    </div>
+  </div>
+</div>

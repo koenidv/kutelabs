@@ -50,11 +50,6 @@ export abstract class BaseDragRenderer {
     if (this.snap.to.parentBlock == null)
       throw new Error("Snap has no parent block")
 
-    // const dragOffset = Coordinates.subtract(
-    //   this.position,
-    //   this.dragged!.globalPosition
-    // )
-
     switch (this.snap.to.type) {
       case ConnectorType.After:
         return this.renderAfterSnap(

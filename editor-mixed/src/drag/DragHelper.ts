@@ -102,7 +102,8 @@ export class DragHelper {
       this.endDrag(e)
     }).bind(this) as EventListener
     evt.target!.addEventListener("touchmove", onTouchMove)
-    evt.target!.addEventListener("touchend", onTouchEnd)
+    // evt.target!.addEventListener("touchend", onTouchEnd)// fixme this breaks drop on drawer
+    this.workspaceRef.value!.addEventListener("touchend", onTouchEnd)
     evt.target!.addEventListener("touchcancel", onTouchEnd)
   }
 
@@ -154,6 +155,8 @@ export class DragHelper {
   endDrag(evt: MouseEvent | TouchEvent) {
     if (!this.dragged) return
     evt.preventDefault()
+
+    console.log(evt.target as HTMLElement)
 
     if (this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null) {
       // Dropped on drawer
