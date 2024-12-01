@@ -11,17 +11,20 @@ import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
 import type { MixedEditorConfig } from "./util/MixedEditorConfig"
 import { createRef, ref } from "lit/directives/ref.js"
-
-import "@kutelabs/shared"
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { PanZoomHelper } from "./panzoom/PanZoomHelper"
 import { isSafari } from "./util/browserCheck"
 
+import "@kutelabs/shared"
+import "./drag/DragLayer"
+import type { DragLayer } from "./drag/DragLayer"
+
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   workspaceRef = createRef<SVGSVGElement>()
-  dragLayerRef = createRef<SVGSVGElement>()
+  dragWorkspaceRef = createRef<SVGSVGElement>()
+  dragLayerRef = createRef<DragLayer>()
 
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
@@ -31,7 +34,7 @@ export class EditorMixed extends LitElement {
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
-  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragLayerRef], scale => {
+  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragWorkspaceRef], scale => {
     this.blockRenderer?.setWorkspaceScaleFactor?.(scale)
     if (isSafari) this.requestUpdate() // rerender to apply foreign object scaling to work around [safari bug 23113](https://bugs.webkit.org/show_bug.cgi?id=23113)
   })
@@ -68,9 +71,9 @@ export class EditorMixed extends LitElement {
   `
 
   protected render() {
-    console.log("rendering")
+    console.time("editor | render time")
     if (!this.isCorrectlyConfigured) return
-    return html`
+    const result = html`
       <div
         id="editor-container"
         style="position: relative"
@@ -107,18 +110,14 @@ export class EditorMixed extends LitElement {
           ${this.drawerRenderer!.renderElement()}
         </div>
 
-        <svg
+        <editor-mixed-drag
           ${ref(this.dragLayerRef)}
-          id="drag-layer"
-          width="100%"
-          height="100%"
-          viewBox="0 0 800 800"
-          style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
-          pointer-events="none">
-          ${this.dragRenderer!.render()}
-        </svg>
+          .dragRenderer=${this.dragRenderer}
+          .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
       </div>
     `
+    console.timeEnd("editor | render time")
+    return result
   }
 
   private get isCorrectlyConfigured(): boolean {
@@ -154,6 +153,7 @@ export class EditorMixed extends LitElement {
           this.connectorRegistry,
           this.dragRenderer,
           this.workspaceRef,
+          () => this.dragLayerRef.value?.requestUpdate(),
           this.requestUpdate.bind(this)
         )
       } catch (e) {

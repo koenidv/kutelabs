@@ -5,27 +5,30 @@ import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
-import { type AppTouchEvent } from "../util/browserCheck"
 
 export class DragHelper {
   private readonly blockRegistry: BlockRegistry
   private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
   private readonly workspaceRef: Ref<SVGSVGElement>
-  private readonly requestRerender: () => void
+  private readonly requestRerender: (full: boolean) => void
 
   constructor(
     blockRegistry: BlockRegistry,
     connectorRegistry: ConnectorRegistry,
     renderer: BaseDragRenderer,
     workspaceRef: Ref<SVGSVGElement>,
-    rerender: () => void
+    rerenderDrag: () => void,
+    rerenderWorkspace: () => void
   ) {
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
     this.renderer = renderer
     this.workspaceRef = workspaceRef
-    this.requestRerender = rerender
+    this.requestRerender = (full: boolean) => {
+      rerenderDrag()
+      if (full) rerenderWorkspace()
+    }
   }
   private dragged: AnyRegisteredBlock | null = null
   private startPos = Coordinates.zero
@@ -36,10 +39,11 @@ export class DragHelper {
 
   //#region Start Drag
 
-  startDrag(evt: MouseEvent | AppTouchEvent) {
+  startDrag(evt: MouseEvent | TouchEvent) {
     if (evt.defaultPrevented) return
     if (evt instanceof MouseEvent && evt.button != 0) return
-    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1) return
+    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1)
+      return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
 
     const draggedParent = this.findParent(
@@ -60,7 +64,7 @@ export class DragHelper {
     this.blockRegistry.setDetached(this.dragged.block)
 
     this.renderer.update(this.dragged, this.startPos, null)
-    this.requestRerender()
+    this.requestRerender(true)
     this.workspaceRef.value.style.cursor = "grabbing"
   }
 
@@ -127,7 +131,7 @@ export class DragHelper {
       snap
     )
 
-    this.requestRerender()
+    this.requestRerender(false)
   }
 
   //#region Finalize Drag
@@ -151,7 +155,7 @@ export class DragHelper {
 
     this.reset()
     this.workspaceRef.value!.style.cursor = "unset"
-    this.requestRerender()
+    this.requestRerender(true)
   }
 
   private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
