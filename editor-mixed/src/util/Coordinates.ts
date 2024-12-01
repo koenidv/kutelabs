@@ -26,8 +26,8 @@ export class Coordinates {
     return new Coordinates(a.x - b.x, a.y - b.y)
   }
 
-  static zero = { x: 0, y: 0 }
-  static popOffset = { x: 60, y: 60 }
+  static zero = new Coordinates(0, 0)
+  static popOffset = new Coordinates(60, 60)
 
   static addPopOffset(coordinates: Coordinates): Coordinates {
     return Coordinates.add(coordinates, Coordinates.popOffset)

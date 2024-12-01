@@ -5,6 +5,7 @@ import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
+import type { AnyBlock } from "../blocks/Block"
 
 export class DragHelper {
   private readonly blockRegistry: BlockRegistry
@@ -56,15 +57,14 @@ export class DragHelper {
     if (this.dragged == null) return
     evt.preventDefault()
 
-    this.startPos = this.blockRegistry.getPosition(this.dragged.block)
+    this.startPos = this.determineBlockStartPosition(this.dragged, evt)
 
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) this.handleTouchStart(evt)
 
     this.dragged.block.disconnectSelf()
     this.blockRegistry.setDetached(this.dragged.block)
 
-    this.renderer.update(this.dragged, this.startPos, null)
-    this.requestRerender(true)
+    this.afterDrag(this.dragged, this.dragX, this.dragY, true)
     this.workspaceRef.value.style.cursor = "grabbing"
   }
 
@@ -72,6 +72,24 @@ export class DragHelper {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
     return this.blockRegistry.getRegisteredById(blockId) ?? null
+  }
+
+  private determineBlockStartPosition(
+    block: AnyRegisteredBlock,
+    evt: MouseEvent | TouchEvent
+  ): Coordinates {
+    if (!block.block.isInDrawer) return block.globalPosition
+
+    // let drag vector point from actual workspace position drawer-space position
+    // connector selection relies on this offset because connector positions are not recalculated during drag
+    const ctm = this.workspaceRef.value!.getScreenCTM()!
+    const pointer =
+      evt instanceof MouseEvent
+        ? new Coordinates(evt.clientX, evt.clientY)
+        : new Coordinates(evt.touches[0].clientX, evt.touches[0].clientY)
+    this.dragX = (pointer.x - ctm.e) / ctm.a - block.globalPosition.x
+    this.dragY = (pointer.y - ctm.f) / ctm.d - block.globalPosition.y
+    return block.globalPosition
   }
 
   private handleTouchStart(evt: TouchEvent) {
@@ -115,10 +133,10 @@ export class DragHelper {
     this.currentTouchX = evt.touches[0].clientX
     this.currentTouchY = evt.touches[0].clientY
 
-    this.afterDrag(this.dragged, this.dragX, this.dragY)
+    this.afterDrag(this.dragged, this.dragX, this.dragY, false)
   }
 
-  private afterDrag(dragged: AnyRegisteredBlock, dragX: number, dragY: number) {
+  private afterDrag(dragged: AnyRegisteredBlock, dragX: number, dragY: number, fullUpdate = false) {
     const snap = this.connectorRegistry.selectConnectorForBlock(
       dragged.block,
       new Coordinates(dragX, dragY),
@@ -131,7 +149,7 @@ export class DragHelper {
       snap
     )
 
-    this.requestRerender(false)
+    this.requestRerender(fullUpdate)
   }
 
   //#region Finalize Drag
