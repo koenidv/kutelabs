@@ -1,5 +1,14 @@
 {
-  "$schema": "../../schema/challenge.schema.json",
+  "$schema": "../../../schema/challenge.schema.json",
+  "section": {
+    "title": "Section 1",
+    "description": "Use storys in this section to debug your stuff"
+  },
+  "story": {
+    "title": "Story 1",
+    "description": "This story implements the mixed content editor",
+    "published": "2024-01-01T00:00:00Z"
+  },
   "editor": {
     "type": "mixed",
     "initialBlocks": [

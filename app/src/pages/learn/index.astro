@@ -1,14 +1,60 @@
 ---
-import ElevatedBox from "../../components/ElevatedBox.astro";
-import OuterLayout from "../../layouts/OuterLayout.astro";
+import ElevatedBox from "../../components/ElevatedBox.astro"
+import OuterLayout from "../../layouts/OuterLayout.astro"
+import { getCollection } from "astro:content"
+import type { Challenge } from "../../schema/challenge"
+
+const collection = (await getCollection("challenges")) as {
+  id: string
+  collection: string
+  data: Challenge
+}[]
+
+let currentSection: (Challenge["section"] & { type: "section" }) | undefined
+const challenges = collection.reduce(
+  (acc, challenge) => {
+    if (challenge.data.section != currentSection) {
+      currentSection = { ...challenge.data.section, type: "section" }
+      acc.push(currentSection)
+    }
+    acc.push(challenge.data)
+    return acc
+  },
+  [] as (Challenge | Challenge["section"])[]
+)
 ---
 
 <OuterLayout title="learn">
+  <div class="w-full flex flex-col items-center">
+    <div class="max-w-4xl w-full p-8 flex flex-col">
+      <div class="pb-8">
+        <h1 class="text-5xl font-poppins text-outlined text-white">Let's start learning!</h1>
+        <p><a href="#">Sign up</a> to save your progress.</p>
+      </div>
 
-  <ElevatedBox elevation={2} hoverable class="w-full">
-    <div class="flex flex-col items-center justify-center gap-8 py-12">
-      <h1>kutelabs. a kute way to learn kotlin :)</h1>
+      {
+        challenges.map(it => {
+          if ((it as any).type == "section") return (
+            <div class="pb-4 flex flex-col items-center">
+              <h3 class="text-3xl font-poppins">{it.title}</h3>
+              <p>{it.description}</p>
+            </div>
+          )
+          else {
+            it = it as Challenge
+            return (
+              <div class="pb-8">
+                <ElevatedBox elevation={2} hoverable class="w-full">
+                  <div class="flex flex-col items-center justify-center gap-8 py-12">
+                    <h1>{it.story.title}</h1>
+                    <p>{it.story?.description}</p>
+                  </div>
+                </ElevatedBox>
+              </div>
+            )
+          }
+        })
+      }
     </div>
-  </ElevatedBox>
-
+  </div>
 </OuterLayout>

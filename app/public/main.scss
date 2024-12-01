@@ -82,8 +82,6 @@
       width: calc(var(--elevation) / 2);
     }
   }
-
-
 }
 
 @layer utilities {
@@ -105,5 +103,11 @@
 
   .elevated-4 {
     --elevation: 1rem;
+  }
+
+  @supports (-webkit-text-stroke: 1px white) {
+    .text-outlined {
+      -webkit-text-stroke: 1.5px var(--text-outline-color);
+    }
   }
 }

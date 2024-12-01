@@ -5,6 +5,46 @@
   "description": "A challenge along the kutelabs learning journey",
   "type": "object",
   "properties": {
+    "section": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the section"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the section"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "story": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the story"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the story"
+        },
+        "published": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the story was published. When unset or in the future, the story is not published"
+        }
+      },
+      "required": [
+        "title",
+        "published"
+      ],
+      "additionalProperties": false
+    },
     "editor": {
       "anyOf": [
         {
@@ -19,6 +59,8 @@
     }
   },
   "required": [
+    "section",
+    "story",
     "editor"
   ]
 }

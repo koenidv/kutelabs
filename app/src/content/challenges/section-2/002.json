@@ -1,5 +1,14 @@
 {
-  "$schema": "../../schema/challenge.schema.json",
+  "$schema": "../../../schema/challenge.schema.json",
+  "section": {
+    "title": "Section 2",
+    "description": "Sections create logical groups for stories and give context to the challenges"
+  },
+  "story": {
+    "title": "Story 2",
+    "description": "This story does nothing special though",
+    "published": "2024-01-01T00:00:00Z"
+  },
   "editor": {
     "type": "mixed",
     "initialBlocks": [
