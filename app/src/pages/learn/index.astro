@@ -13,7 +13,7 @@ const collection = (await getCollection("challenges")) as {
 let currentSection: (Challenge["section"] & { type: "section" }) | undefined
 const challenges = collection.reduce(
   (acc, challenge) => {
-    if (challenge.data.section != currentSection) {
+    if (challenge.data.section.title != currentSection?.title) {
       currentSection = { ...challenge.data.section, type: "section" }
       acc.push(currentSection)
     }
@@ -32,24 +32,30 @@ const challenges = collection.reduce(
         <p><a href="#">Sign up</a> to save your progress.</p>
       </div>
 
+      <div class="w-full h-0.5 bg-black opacity-10 mb-12 mt-4"></div>
+
       {
-        challenges.map(it => {
-          if ((it as any).type == "section") return (
-            <div class="pb-4 flex flex-col items-center">
-              <h3 class="text-3xl font-poppins">{it.title}</h3>
-              <p>{it.description}</p>
-            </div>
-          )
+        challenges.map((it, index) => {
+          if ((it as any).type == "section")
+            return (
+              <div class="pb-4 flex flex-col items-center">
+                {index > 0 && <div class="w-0.5 bg-black h-8 mb-4 opacity-50" />}
+                <h3 class="text-3xl font-poppins">{it.title}</h3>
+                <p>{it.description}</p>
+              </div>
+            )
           else {
             it = it as Challenge
             return (
-              <div class="pb-8">
-                <ElevatedBox elevation={2} hoverable class="w-full">
-                  <div class="flex flex-col items-center justify-center gap-8 py-12">
-                    <h1>{it.story.title}</h1>
-                    <p>{it.story?.description}</p>
-                  </div>
-                </ElevatedBox>
+              <div class="pb-4 flex flex-col items-center">
+                <a href="/" class="w-full">
+                  <ElevatedBox elevation={2} hoverable class="w-full">
+                    <div class="flex flex-col items-center justify-center gap-8 py-12">
+                      <h1>{it.story.title}</h1>
+                      <p>{it.story?.description}</p>
+                    </div>
+                  </ElevatedBox>
+                </a>
               </div>
             )
           }

@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "section": {
+    "title": "Section 3",
+    "description": "Yay one more section"
+  },
+  "story": {
+    "title": "Story 4",
+    "published": "2024-01-01T00:00:00Z"
+  },
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [],
+    "initialDrawerBlocks": []
+  }
+}
