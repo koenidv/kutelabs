@@ -13,4 +13,4 @@ bun run dev
 ## Deployment
 
 The web app is continuously deployed via Netlify on push to `release/app` and available at [kutelabs.koeni.dev](https://kutelabs.koeni.dev).
-A staging environment for `main` is available at [main--kutelabs.netlify.app](https://kutelabs-app.netlify.app).
+A staging environment for `main` is available at [main--kutelabs.netlify.app](https://main--kutelabs.netlify.app).
