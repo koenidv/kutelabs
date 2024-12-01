@@ -57,7 +57,7 @@ export class DragHelper {
     if (this.dragged == null) return
     evt.preventDefault()
 
-    this.startPos = this.determineBlockStartPosition(this.dragged, evt)
+    this.startPos = this.determineBlockStartPosition(this.dragged, draggedParent)
 
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) this.handleTouchStart(evt)
 
@@ -76,19 +76,16 @@ export class DragHelper {
 
   private determineBlockStartPosition(
     block: AnyRegisteredBlock,
-    evt: MouseEvent | TouchEvent
+    target: HTMLElement
   ): Coordinates {
     if (!block.block.isInDrawer) return block.globalPosition
 
     // let drag vector point from actual workspace position drawer-space position
     // connector selection relies on this offset because connector positions are not recalculated during drag
     const ctm = this.workspaceRef.value!.getScreenCTM()!
-    const pointer =
-      evt instanceof MouseEvent
-        ? new Coordinates(evt.clientX, evt.clientY)
-        : new Coordinates(evt.touches[0].clientX, evt.touches[0].clientY)
-    this.dragX = (pointer.x - ctm.e) / ctm.a - block.globalPosition.x
-    this.dragY = (pointer.y - ctm.f) / ctm.d - block.globalPosition.y
+
+    this.dragX = (target.getBoundingClientRect().x - ctm.e) / ctm.a - block.globalPosition.x
+    this.dragY = (target.getBoundingClientRect().y - ctm.f) / ctm.d - block.globalPosition.y
     return block.globalPosition
   }
 

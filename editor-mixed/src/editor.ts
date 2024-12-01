@@ -106,7 +106,7 @@ export class EditorMixed extends LitElement {
 
         <div
           id="drawer-container"
-          style="position: absolute; top: 0; left:0; bottom: 0; overflow: scroll;">
+          style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
           ${this.drawerRenderer!.renderElement()}
         </div>
 
