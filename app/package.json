@@ -12,8 +12,9 @@
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/lit": "^4.3.0",
-    "@astrojs/netlify": "^5.5.3",
+    "@astrojs/netlify": "^6.0.0",
     "@astrojs/tailwind": "^5.1.2",
+    "@clerk/astro": "^1.5.2",
     "@kutelabs/editor-mixed": "workspace:*",
     "@kutelabs/shared": "workspace:*",
     "@sentry/astro": "^8.37.1",

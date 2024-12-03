@@ -1,0 +1,25 @@
+---
+import OuterLayout from "./OuterLayout.astro";
+import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/astro/components";
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<OuterLayout title={title}>
+  <header>
+    <nav>
+      <SignedOut>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+    </nav>
+  </header>
+  <main>
+    <slot />
+  </main>
+</OuterLayout>

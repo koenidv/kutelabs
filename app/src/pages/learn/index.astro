@@ -1,6 +1,6 @@
 ---
+import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
-import OuterLayout from "../../layouts/OuterLayout.astro"
 import { getCollection } from "astro:content"
 import type { Challenge } from "../../schema/challenge"
 
@@ -24,7 +24,7 @@ const challenges = collection.reduce(
 )
 ---
 
-<OuterLayout title="learn">
+<InnerLayout title="learn">
   <div class="w-full flex flex-col items-center">
     <div class="max-w-4xl w-full p-8 flex flex-col">
       <div class="pb-8">
@@ -63,4 +63,4 @@ const challenges = collection.reduce(
       }
     </div>
   </div>
-</OuterLayout>
+</InnerLayout>
