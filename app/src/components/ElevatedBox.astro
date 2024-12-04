@@ -4,8 +4,9 @@ interface Props {
   hoverable?: boolean
   label?: string
   class?: string
+  style?: string
 }
-const { elevation = 4, hoverable = false, label, class: className } = Astro.props
+const { elevation = 4, hoverable = false, label, class: className, style } = Astro.props
 ---
 
 <div
@@ -15,6 +16,7 @@ const { elevation = 4, hoverable = false, label, class: className } = Astro.prop
     { "hoverable hover:cursor-pointer": hoverable },
     className,
   ]}
+  style={style}
   tabindex="0"
   aria-label={label}>
   <div class:list={["border-l-4 border-t-4 border-r-2 border-b-2 border-black"]}>

@@ -4,6 +4,26 @@
   "title": "Challenge",
   "description": "A challenge along the kutelabs learning journey",
   "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "The URL of the image"
+        },
+        "alt": {
+          "type": "string",
+          "description": "The alt text of the image"
+        }
+      },
+      "required": [
+        "src",
+        "alt"
+      ],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "section": {
       "type": "object",
@@ -15,6 +35,10 @@
         "description": {
           "type": "string",
           "description": "The description of the section"
+        },
+        "hideSectionHead": {
+          "type": "boolean",
+          "description": "Hide the section head"
         }
       },
       "required": [
@@ -37,6 +61,16 @@
           "type": "string",
           "format": "date-time",
           "description": "The date and time the story was published. When unset or in the future, the story is not published"
+        },
+        "color": {
+          "type": "string",
+          "description": "Hex color for the story box"
+        },
+        "imageStart": {
+          "$ref": "#/$defs/image"
+        },
+        "imageEnd": {
+          "$ref": "#/$defs/image"
         }
       },
       "required": [

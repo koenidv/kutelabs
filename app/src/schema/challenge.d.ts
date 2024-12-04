@@ -18,6 +18,10 @@ export interface Challenge {
      * The description of the section
      */
     description?: string
+    /**
+     * Hide the section head
+     */
+    hideSectionHead?: boolean
   }
   story: {
     /**
@@ -32,6 +36,12 @@ export interface Challenge {
      * The date and time the story was published. When unset or in the future, the story is not published
      */
     published: string
+    /**
+     * Hex color for the story box
+     */
+    color?: string
+    imageStart?: Image
+    imageEnd?: Image
   }
   editor: MixedContentEditorConfiguration | TextEditorConfiguration
   [k: string]: unknown

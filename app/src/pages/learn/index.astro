@@ -15,7 +15,7 @@ const challenges = collection.reduce(
   (acc, challenge) => {
     if (challenge.data.section.title != currentSection?.title) {
       currentSection = { ...challenge.data.section, type: "section" }
-      acc.push(currentSection)
+      if (!currentSection.hideSectionHead) acc.push(currentSection)
     }
     acc.push(challenge.data)
     return acc
@@ -39,9 +39,10 @@ const challenges = collection.reduce(
           if ((it as any).type == "section")
             return (
               <div class="pb-4 flex flex-col items-center">
-                {index > 0 && <div class="w-0.5 bg-black h-8 mb-4 opacity-50" />}
+                {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
                 <h3 class="text-3xl font-poppins">{it.title}</h3>
                 <p>{it.description}</p>
+                {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
             )
           else {
@@ -49,10 +50,34 @@ const challenges = collection.reduce(
             return (
               <div class="pb-4 flex flex-col items-center">
                 <a href="/" class="w-full">
-                  <ElevatedBox elevation={2} hoverable class="w-full">
-                    <div class="flex flex-col items-center justify-center gap-8 py-12">
-                      <h1>{it.story.title}</h1>
-                      <p>{it.story?.description}</p>
+                  <ElevatedBox
+                    elevation={2}
+                    hoverable
+                    class="w-full"
+                    style={`background-color: ${it.story.color}`}>
+                    <div class="h-40 flex flex-row items-center justify-between gap-4">
+                      {it.story.imageStart ? (
+                        <img
+                          src={it.story.imageStart.src}
+                          alt={it.story.imageStart.alt}
+                          class="h-full"
+                        />
+                      ) : (
+                        <div class="w-8" />
+                      )}
+                      <div class="w-full flex flex-col items-start justify-center gap-2">
+                        <h1 class="text-xl font-poppins">{it.story.title}</h1>
+                        <p set:html={it.story?.description} />
+                      </div>
+                      {it.story.imageEnd ? (
+                        <img
+                          src={it.story.imageEnd.src}
+                          alt={it.story.imageEnd.alt}
+                          class="h-full"
+                        />
+                      ) : (
+                        <div class="w-8" />
+                      )}
                     </div>
                   </ElevatedBox>
                 </a>
