@@ -12,6 +12,15 @@
   --text-outline-color: #131218;
 }
 
+html {
+  background-image: url('/images/bg.png');
+  background-color: #fcfbf7;
+  background-size: 80px;
+  background-repeat: repeat;
+  color: #000000;
+  font-weight: 600;
+}
+
 @layer components {
   .elevated-card {
     position: relative;
