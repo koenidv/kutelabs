@@ -7,7 +7,7 @@ export class PanZoomHelper {
   private readonly scrollInputHelper: ScrollInputHelper
 
   private panSpeed = 1.3
-  private zoomSpeed = 1.5
+  private zoomSpeed = 1.2
   private bounds = {
     minX: -1000,
     minY: -1000,
@@ -62,7 +62,8 @@ export class PanZoomHelper {
       return
     }
 
-    const newSize = (viewBox.width + delta * zoomFactor).coerceIn(
+    const modifier = (1 + (delta / 100 * zoomFactor)).coerceIn(0.5, 1.5)
+    const newSize = (viewBox.width * modifier).coerceIn(
       this.bounds.minZoom,
       this.bounds.maxZoom
     )

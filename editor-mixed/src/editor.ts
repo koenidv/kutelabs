@@ -9,7 +9,7 @@ import type { BaseCompiler } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
-import type { MixedEditorConfig } from "./util/MixedEditorConfig"
+import { DebugMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
 import { createRef, ref } from "lit/directives/ref.js"
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
@@ -39,9 +39,11 @@ export class EditorMixed extends LitElement {
     if (isSafari) this.requestUpdate() // rerender to apply foreign object scaling to work around [safari bug 23113](https://bugs.webkit.org/show_bug.cgi?id=23113)
   })
 
+  declare useDefaultConfig: boolean
   declare config: MixedEditorConfig
   declare data: MixedContentEditorConfiguration
   static properties = {
+    useDefaultConfig: { type: Boolean },
     config: { type: Object },
     data: { type: Object },
     layouter: { type: Object, state: true },
@@ -74,9 +76,10 @@ export class EditorMixed extends LitElement {
     console.time("editor | render time")
     if (!this.isCorrectlyConfigured) return
     const result = html`
+      <noscript>Please enable JavaScript.</noscript>
       <div
         id="editor-container"
-        style="position: relative"
+        style="position: relative;"
         @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
         @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
@@ -137,25 +140,11 @@ export class EditorMixed extends LitElement {
       this.handleDataChanged(this.data)
     }
 
-    if (changedProperties.has("config") && this.config && this.config.layouter != null) {
+    if (changedProperties.has("useDefaultConfig") && this.useDefaultConfig) {
+      this.setConfig(DebugMixedEditorConfig)
+    } else if (changedProperties.has("config") && this.config && this.config.layouter != null) {
       try {
-        this.layouter = new this.config.layouter(this.blockRegistry)
-        this.blockRenderer = new this.config.blockRenderer(this.blockRegistry, this.layouter)
-        this.drawerRenderer = new this.config.drawerRenderer(
-          this.blockRegistry,
-          this.layouter,
-          this.blockRenderer
-        )
-        this.dragRenderer = new this.config.dragRenderer(this.blockRegistry, this.blockRenderer)
-        this.extrasRenderer = new this.config.extrasRenderer()
-        this.dragHelper = new DragHelper(
-          this.blockRegistry,
-          this.connectorRegistry,
-          this.dragRenderer,
-          this.workspaceRef,
-          () => this.dragLayerRef.value?.requestUpdate(),
-          this.requestUpdate.bind(this)
-        )
+        this.setConfig(this.config)
       } catch (e) {
         console.error("Invalid editor config", this.config)
         console.error(e)
@@ -165,6 +154,27 @@ export class EditorMixed extends LitElement {
     if (changedProperties.has("data") || changedProperties.has("config")) {
       this.requestUpdate()
     }
+  }
+
+  private setConfig(config: MixedEditorConfig) {
+    console.log("setConfig", config)
+    this.layouter = new config.layouter(this.blockRegistry)
+    this.blockRenderer = new config.blockRenderer(this.blockRegistry, this.layouter)
+    this.drawerRenderer = new config.drawerRenderer(
+      this.blockRegistry,
+      this.layouter,
+      this.blockRenderer
+    )
+    this.dragRenderer = new config.dragRenderer(this.blockRegistry, this.blockRenderer)
+    this.extrasRenderer = new config.extrasRenderer()
+    this.dragHelper = new DragHelper(
+      this.blockRegistry,
+      this.connectorRegistry,
+      this.dragRenderer,
+      this.workspaceRef,
+      () => this.dragLayerRef.value?.requestUpdate(),
+      this.requestUpdate.bind(this)
+    )
   }
 
   private handleDataChanged(newData: MixedContentEditorConfiguration) {
