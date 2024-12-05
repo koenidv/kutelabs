@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/schema/section.schema.json",
+  "title": "Section",
+  "description": "A section of the kutelabs learning journey",
+  "type": "object",
+  "properties": {
+    "order": {
+      "type": "integer",
+      "description": "The order of this section in the parent course"
+    },
+    "title": {
+      "type": "string",
+      "description": "The title of the section"
+    },
+    "description": {
+      "type": "string",
+      "description": "The description of the section"
+    },
+    "hideSectionHead": {
+      "type": "boolean",
+      "description": "Hide the section head"
+    }
+  },
+  "required": [
+    "order",
+    "title"
+  ]
+}

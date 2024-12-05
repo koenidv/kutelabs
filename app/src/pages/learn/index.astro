@@ -3,25 +3,36 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import { getCollection } from "astro:content"
 import type { Challenge } from "../../schema/challenge"
+import type { Section } from "../../schema/section"
 
-const collection = (await getCollection("challenges")) as {
+type ContentItem = {
   id: string
   collection: string
-  data: Challenge
-}[]
+  data: Challenge | Section
+}
 
-let currentSection: (Challenge["section"] & { type: "section" }) | undefined
-const challenges = collection.reduce(
-  (acc, challenge) => {
-    if (challenge.data.section.title != currentSection?.title) {
-      currentSection = { ...challenge.data.section, type: "section" }
-      if (!currentSection.hideSectionHead) acc.push(currentSection)
-    }
-    acc.push(challenge.data)
-    return acc
-  },
-  [] as (Challenge | Challenge["section"])[]
-)
+const challenges = sortChallenges((await getCollection("challenges")) as ContentItem[])
+
+function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" | "challenge" })[] {
+  const sectionOrder = items
+    .filter(item => item.id.endsWith("/section"))
+    .sort((a, b) => ((a.data as Section).order ?? 0) - ((b.data as Section).order ?? 0))
+    .map(item => item.id.split("/")[0])
+
+  return items
+    .sort((a, b) => {
+      const sectionComparison =
+        sectionOrder.indexOf(a.id.split("/")[0]) - sectionOrder.indexOf(b.id.split("/")[0])
+      if (sectionComparison !== 0) return sectionComparison
+
+      if (a.id.endsWith("/section")) return -1
+      if (b.id.endsWith("/section")) return 1
+
+      return ((a.data as Challenge).story.order ?? 0) - ((b.data as Challenge).story.order ?? 0)
+    })
+    .filter(item => !item.data.hideSectionHead)
+    .map(item => ({ ...item, type: item.id.endsWith("/section") ? "section" : "challenge" }))
+}
 ---
 
 <InnerLayout title="learn">
@@ -40,39 +51,39 @@ const challenges = collection.reduce(
             return (
               <div class="pb-4 flex flex-col items-center">
                 {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
-                <h3 class="text-3xl font-poppins">{it.title}</h3>
-                <p>{it.description}</p>
+                <h3 class="text-3xl font-poppins">{it.data.title}</h3>
+                <p>{it.data.description}</p>
                 {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
             )
           else {
-            it = it as Challenge
+            const data = it.data as Challenge
             return (
               <div class="pb-4 flex flex-col items-center">
-                <a href="/" class="w-full">
+                <a href={it.id} class="w-full">
                   <ElevatedBox
                     elevation={2}
                     hoverable
                     class="w-full"
-                    style={`background-color: ${it.story.color}`}>
+                    style={`background-color: ${data.story.color}`}>
                     <div class="h-40 flex flex-row items-center justify-between gap-4">
-                      {it.story.imageStart ? (
+                      {data.story.imageStart ? (
                         <img
-                          src={it.story.imageStart.src}
-                          alt={it.story.imageStart.alt}
+                          src={data.story.imageStart.src}
+                          alt={data.story.imageStart.alt}
                           class="h-full"
                         />
                       ) : (
                         <div class="w-8" />
                       )}
                       <div class="w-full flex flex-col items-start justify-center gap-2">
-                        <h1 class="text-xl font-poppins">{it.story.title}</h1>
-                        <p set:html={it.story?.description} />
+                        <h1 class="text-xl font-poppins">{data.story.title}</h1>
+                        <p set:html={data.story?.description} />
                       </div>
-                      {it.story.imageEnd ? (
+                      {data.story.imageEnd ? (
                         <img
-                          src={it.story.imageEnd.src}
-                          alt={it.story.imageEnd.alt}
+                          src={data.story.imageEnd.src}
+                          alt={data.story.imageEnd.alt}
                           class="h-full"
                         />
                       ) : (

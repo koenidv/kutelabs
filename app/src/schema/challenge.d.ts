@@ -9,21 +9,11 @@
  * A challenge along the kutelabs learning journey
  */
 export interface Challenge {
-  section: {
-    /**
-     * The title of the section
-     */
-    title: string
-    /**
-     * The description of the section
-     */
-    description?: string
-    /**
-     * Hide the section head
-     */
-    hideSectionHead?: boolean
-  }
   story: {
+    /**
+     * The order of this story in the parent section
+     */
+    order: number
     /**
      * The title of the story
      */

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/content/challenges/challenge.schema.json",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/schema/challenge.schema.json",
   "title": "Challenge",
   "description": "A challenge along the kutelabs learning journey",
   "type": "object",
@@ -25,30 +25,13 @@
     }
   },
   "properties": {
-    "section": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "The title of the section"
-        },
-        "description": {
-          "type": "string",
-          "description": "The description of the section"
-        },
-        "hideSectionHead": {
-          "type": "boolean",
-          "description": "Hide the section head"
-        }
-      },
-      "required": [
-        "title"
-      ],
-      "additionalProperties": false
-    },
     "story": {
       "type": "object",
       "properties": {
+        "order": {
+          "type": "integer",
+          "description": "The order of this story in the parent section"
+        },
         "title": {
           "type": "string",
           "description": "The title of the story"
@@ -74,6 +57,7 @@
         }
       },
       "required": [
+        "order",
         "title",
         "published"
       ],
@@ -93,7 +77,6 @@
     }
   },
   "required": [
-    "section",
     "story",
     "editor"
   ]

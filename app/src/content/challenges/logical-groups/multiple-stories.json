@@ -1,10 +1,7 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
-  "section": {
-    "title": "Section 2",
-    "description": "Sections create logical groups for stories and give context to the challenges"
-  },
   "story": {
+    "order": 2,
     "title": "Story 3",
     "description": "This is here only to display multiple stories in a section",
     "published": "2024-01-01T00:00:00Z"

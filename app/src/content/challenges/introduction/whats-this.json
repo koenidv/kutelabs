@@ -1,18 +1,18 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
-  "section": {
-    "title": "Section 1",
-    "description": "Use storys in this section to debug your stuff"
-  },
   "story": {
-    "title": "Story 1",
-    "description": "This story implements the mixed content editor",
+    "order": 1,
+    "title": "Huh, what's this?",
+    "description": "Let's get you started! This will be fun, trust me. <i>Just click me.</i>",
     "published": "2024-01-01T00:00:00Z",
-    "color": "#FF91E9",
-    "imageStart": {
-      "src": "/images/illustration_debug_launch.png",
-      "alt": ""
+    "color": "#FFD203",
+    "imageEnd": {
+      "src": "/images/character_boozle_rainbow.png",
+      "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     }
+  },
+  "dialog": {
+    "text": "Hey, good to see you! Really cool that you want to learn programming. Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.\n For now, just enter your name in the input and click the run button. Let's see what happens!"
   },
   "editor": {
     "type": "mixed",

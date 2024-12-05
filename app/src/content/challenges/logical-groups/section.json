@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 3,
+  "title": "Logical Groups",
+  "description": "Sections create logical groups for stories and give context to the challenges"
+}
