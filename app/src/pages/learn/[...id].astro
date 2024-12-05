@@ -1,0 +1,47 @@
+---
+import { getEntry } from "astro:content"
+import type { Challenge } from "../../schema/challenge"
+import ElevatedBox from "../../components/ElevatedBox.astro"
+import { EditorMixed } from "@kutelabs/editor-mixed"
+
+
+
+const { id } = Astro.params
+if (id === undefined) {
+  return Astro.redirect("/404")
+}
+
+const item = await getEntry("challenges", id)
+if (item === undefined) {
+  return Astro.redirect("/404")
+}
+const challenge = item.data as Challenge
+---
+
+<div class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
+  <h1>{challenge.story.title}</h1>
+  <ElevatedBox elevation={2}>
+    <!-- @ts-ignore -->
+    <EditorMixed client:load data={challenge.editor} />
+  </ElevatedBox>
+</div>
+
+<script>
+  import { DebugBlockRenderer } from "@kutelabs/editor-mixed/src/render/BlockRenderers/DebugBlockRenderer"
+  import { DebugDragRenderer } from "@kutelabs/editor-mixed/src/render/DragRenderers/DebugDragRenderer"
+  import { DebugDrawerRenderer } from "@kutelabs/editor-mixed/src/render/DrawerRenderers/DebugDrawerRenderer"
+  import { ExtrasRenderer } from "@kutelabs/editor-mixed/src/render/ExtrasRenderers.ts/DefaultExtrasRenderer"
+  import { DebugLayouter } from "@kutelabs/editor-mixed/src/render/Layouters/DebugLayouter"
+  import { type MixedEditorConfig } from "@kutelabs/editor-mixed/src/util/MixedEditorConfig"
+
+  export const config: MixedEditorConfig = {
+    layouter: DebugLayouter,
+    blockRenderer: DebugBlockRenderer,
+    drawerRenderer: DebugDrawerRenderer,
+    dragRenderer: DebugDragRenderer,
+    extrasRenderer: ExtrasRenderer,
+  }
+
+    //@ts-ignore
+    document.querySelector("editor-mixed").config = config
+</script>
