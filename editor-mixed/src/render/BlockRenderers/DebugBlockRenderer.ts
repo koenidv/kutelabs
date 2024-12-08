@@ -106,7 +106,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
       : ""
     return svg`
-        <foreignObject class="donotdrag" x="10" y="10" width=${size.fullWidth - 20} height=${size.fullHeight - 20} >
+        <foreignObject class="donotdrag" x="30" y="10" width=${size.fullWidth - 40} height=${size.fullHeight - 20} >
           <prism-kotlin-editor
             .input="${data.customExpression?.get("kt") ?? ""}"
             style="width: 100%; height: 100%; ${safariTransform}" 
