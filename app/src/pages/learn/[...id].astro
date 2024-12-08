@@ -18,10 +18,20 @@ const challenge = item.data as Challenge
 ---
 
 <InnerLayout title={`${challenge.story.title}`}>
-  <div class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
-    <h1>{challenge.story.title}</h1>
-    <ElevatedBox elevation={2} class="w-[64rem] h-[48rem]">
-      <EditorMixed data={challenge.editor} />
-    </ElevatedBox>
+  <div class="flex w-full min-h-screen flex-col justify-center">
+    <a href="/learn" class="py-8 px-12">← Back to Lessons</a>
+
+    <div class="flex flex-col lg:flex-row px-12 pb-12 lg:h-[90vh] gap-8">
+    
+      <div class="border-4 border-beige-200 bg-beige-50 px-4 py-6 w-full lg:w-[40%] min-w-72 flex-grow-[1] flex flex-col gap-4">
+        <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
+        <p set:html={challenge.story.description} />
+      </div>
+
+      <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
+        <EditorMixed data={challenge.editor} />
+      </ElevatedBox>
+    </div>
+
   </div>
 </InnerLayout>
