@@ -5,13 +5,16 @@ import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
-import type { AnyBlock } from "../blocks/Block"
 
+/**
+ * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
+ */
 export class DragHelper {
   private readonly blockRegistry: BlockRegistry
   private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
   private readonly workspaceRef: Ref<SVGSVGElement>
+  private readonly drawerRef: Ref<SVGSVGElement>
   private readonly requestRerender: (full: boolean) => void
 
   constructor(
@@ -19,6 +22,7 @@ export class DragHelper {
     connectorRegistry: ConnectorRegistry,
     renderer: BaseDragRenderer,
     workspaceRef: Ref<SVGSVGElement>,
+    drawerRef: Ref<SVGSVGElement>,
     rerenderDrag: () => void,
     rerenderWorkspace: () => void
   ) {
@@ -26,6 +30,7 @@ export class DragHelper {
     this.connectorRegistry = connectorRegistry
     this.renderer = renderer
     this.workspaceRef = workspaceRef
+    this.drawerRef = drawerRef
     this.requestRerender = (full: boolean) => {
       rerenderDrag()
       if (full) rerenderWorkspace()
@@ -40,6 +45,11 @@ export class DragHelper {
 
   //#region Start Drag
 
+  /**
+   * Starts the dragging process for a block element on mouse or touch events.
+   * This will detach the dragged block from its current position and prepare the drag renderer.
+   * @param evt Mouse or touch start event
+   */
   startDrag(evt: MouseEvent | TouchEvent) {
     if (evt.defaultPrevented) return
     if (evt instanceof MouseEvent && evt.button != 0) return
@@ -68,27 +78,11 @@ export class DragHelper {
     this.workspaceRef.value.style.cursor = "grabbing"
   }
 
-  private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
-    if (draggableParent == null) return null
-    const blockId = draggableParent.id.replace("block-", "")
-    return this.blockRegistry.getRegisteredById(blockId) ?? null
-  }
-
-  private determineBlockStartPosition(
-    block: AnyRegisteredBlock,
-    target: HTMLElement
-  ): Coordinates {
-    if (!block.block.isInDrawer) return block.globalPosition
-
-    // let drag vector point from actual workspace position drawer-space position
-    // connector selection relies on this offset because connector positions are not recalculated during drag
-    const ctm = this.workspaceRef.value!.getScreenCTM()!
-
-    this.dragX = (target.getBoundingClientRect().x - ctm.e) / ctm.a - block.globalPosition.x
-    this.dragY = (target.getBoundingClientRect().y - ctm.f) / ctm.d - block.globalPosition.y
-    return block.globalPosition
-  }
-
+  /**
+   * Additional logic to start the dragging process for touch events
+   * This will bind move and end events to the current target as renders would break the drag otherwise.
+   * @param evt Touch start event
+   */
   private handleTouchStart(evt: TouchEvent) {
     this.currentTouchX = evt.touches[0].clientX
     this.currentTouchY = evt.touches[0].clientY
@@ -102,13 +96,46 @@ export class DragHelper {
       this.endDrag(e)
     }).bind(this) as EventListener
     evt.target!.addEventListener("touchmove", onTouchMove)
-    // evt.target!.addEventListener("touchend", onTouchEnd)// fixme this breaks drop on drawer
-    this.workspaceRef.value!.addEventListener("touchend", onTouchEnd)
+    evt.target!.addEventListener("touchend", onTouchEnd)
     evt.target!.addEventListener("touchcancel", onTouchEnd)
+  }
+
+  /**
+   * Retrieves the dragged block from the parent element of the dragged element.
+   * @param draggableParent target element of the drag start event
+   * @returns dragged block or null if not found
+   */
+  private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
+    if (draggableParent == null) return null
+    const blockId = draggableParent.id.replace("block-", "")
+    return this.blockRegistry.getRegisteredById(blockId) ?? null
+  }
+
+  /**
+   * Adjusts the current drag delta for blocks moved from the drawer
+   * @param block currently dragged block
+   * @param target target element in drag start event
+   * @returns global position of the block, with a side effect on dragX and dragY
+   */
+  private determineBlockStartPosition(block: AnyRegisteredBlock, target: HTMLElement): Coordinates {
+    if (!block.block.isInDrawer) return block.globalPosition
+
+    // let drag vector point from actual workspace position drawer-space position
+    // connector selection relies on this offset because connector positions are not recalculated during drag
+    const ctm = this.workspaceRef.value!.getScreenCTM()!
+
+    this.dragX = (target.getBoundingClientRect().x - ctm.e) / ctm.a - block.globalPosition.x
+    this.dragY = (target.getBoundingClientRect().y - ctm.f) / ctm.d - block.globalPosition.y
+    return block.globalPosition
   }
 
   //#region Update Drag
 
+  /**
+   * Updates the drag process with the current mouse position and
+   * performs after-drag operations like snap point selection and rerendering, see {@link afterDrag}.
+   * @param evt Mouse move event
+   */
   drag(evt: MouseEvent) {
     if (!this.dragged) return
     evt.preventDefault()
@@ -120,6 +147,12 @@ export class DragHelper {
     this.afterDrag(this.dragged, this.dragX, this.dragY)
   }
 
+  /**
+   * Updates the drag process with the current touch position and
+   * performs after-drag operations like snap point selection and rerendering, see {@link afterDrag}.
+   * This should be called on touchmove events.
+   * @param evt Touch move event
+   */
   touchDrag(evt: TouchEvent) {
     if (!this.dragged || evt.touches.length != 1) return
     evt.preventDefault()
@@ -134,6 +167,13 @@ export class DragHelper {
     this.afterDrag(this.dragged, this.dragX, this.dragY, false)
   }
 
+  /**
+   * Checks for nearby snappable connectors for the given dragged block and updates the drag renderer.
+   * @param dragged currently dragged block
+   * @param dragX drag delta since start in x
+   * @param dragY drag delta since start in y
+   * @param fullUpdate will request to rerender workspace and draglayer if true, only draglayer otherwise
+   */
   private afterDrag(dragged: AnyRegisteredBlock, dragX: number, dragY: number, fullUpdate = false) {
     const snap = this.connectorRegistry.selectConnectorForBlock(
       dragged.block,
@@ -152,17 +192,29 @@ export class DragHelper {
 
   //#region Finalize Drag
 
+  /**
+   * This is called when a mouse or touch trag event ends.
+   * It will determine if the dragged block is dropped on the drawer or close to a snappable connector,
+   * then attach the block accordingly and reset the process.
+   * @param evt Mouse or touch event to determine the drop position
+   */
   endDrag(evt: MouseEvent | TouchEvent) {
     if (!this.dragged) return
     evt.preventDefault()
 
-    console.log(evt.target as HTMLElement)
+    let droppedOnDrawer = false
 
-    if (this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null) {
-      // Dropped on drawer
+    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) {
+      /* Because of the touch event rerender fix we applied at touchstart, the event's target will be the invisible cloned element.
+       * Thus we cannot check if the target is within the drawer, but we have to compare touch position and drawer bounds. */
+      droppedOnDrawer = this.testTouchInDrawer(this.currentTouchX, this.currentTouchY)
+    } else {
+      droppedOnDrawer = this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null
+    }
+
+    if (droppedOnDrawer) {
       this.blockRegistry.attachToDrawer(this.dragged.block)
     } else {
-      // Snapped to another connector on dropped in the workspace
       const snap = this.connectorRegistry.selectConnectorForBlock(
         this.dragged.block,
         new Coordinates(this.dragX, this.dragY),
@@ -176,6 +228,11 @@ export class DragHelper {
     this.requestRerender(true)
   }
 
+  /**
+   * Attaches a dragged block to a snap point, if any, or the workspace root connector.
+   * @param dragged dragged block
+   * @param snap snap point to attach to, or null to attach to the root connector
+   */
   private insertOnSnap(dragged: AnyRegisteredBlock, snap: Connection | null) {
     const connectOnBlock = snap?.to.parentBlock ?? this.blockRegistry.root!
     const snapOnConnection =
@@ -189,6 +246,9 @@ export class DragHelper {
     )
   }
 
+  /**
+   * Resets the drag process
+   */
   private reset() {
     this.dragged = null
     this.blockRegistry.setDetached(null)
@@ -198,6 +258,14 @@ export class DragHelper {
     this.currentTouchX = this.currentTouchY = 0
   }
 
+  /**
+   * Finds the first parent of an element that matches a predicate and does not match a break condition.
+   * This is used to find the block element that is being dragged or the drawer element.
+   * @param element leaf element to start the search from
+   * @param predicate condition to match the parent element
+   * @param breakCondition the search will stop if this is defined and the condition is met
+   * @returns first matching element, null if none is found
+   */
   private findParent(
     element: HTMLElement | null,
     predicate: (it: HTMLElement) => boolean,
@@ -206,10 +274,18 @@ export class DragHelper {
     if (!element) return null
     if (breakCondition?.(element)) return null
     if (predicate(element)) return element
+    return this.findParent(element.parentElement, predicate, breakCondition)
+  }
 
-    // this will stop at the shadow root
-    if (element.parentElement)
-      return this.findParent(element.parentElement, predicate, breakCondition)
-    return null
+  /**
+   * Tests if a position is within the referenced drawer bounds
+   */
+  private testTouchInDrawer(x: number, y: number): boolean {
+    const bounds = this.drawerRef.value?.querySelector("#drawer")?.getBoundingClientRect()
+    if (!bounds) {
+      console.error("Drawer bounds not found")
+      return false
+    }
+    return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom
   }
 }

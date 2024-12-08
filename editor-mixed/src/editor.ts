@@ -23,6 +23,7 @@ import type { DragLayer } from "./drag/DragLayer"
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   workspaceRef = createRef<SVGSVGElement>()
+  drawerRef = createRef<SVGSVGElement>()
   dragWorkspaceRef = createRef<SVGSVGElement>()
   dragLayerRef = createRef<DragLayer>()
 
@@ -109,6 +110,7 @@ export class EditorMixed extends LitElement {
         </div>
 
         <div
+          ${ref(this.drawerRef)}
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
           ${this.drawerRenderer!.renderElement()}
@@ -173,6 +175,7 @@ export class EditorMixed extends LitElement {
       this.connectorRegistry,
       this.dragRenderer,
       this.workspaceRef,
+      this.drawerRef,
       () => this.dragLayerRef.value?.requestUpdate(),
       this.requestUpdate.bind(this)
     )
