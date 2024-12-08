@@ -61,8 +61,9 @@ export class EditorMixed extends LitElement {
 
   static styles = css`
     #editor-container {
-      height: 80vh;
-      width: 80vw;
+      height: 100%;
+      width: 100%;
+      background-color: white;
       border: 1px solid black;
       user-select: none;
       cursor: default;

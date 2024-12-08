@@ -1,0 +1,15 @@
+---
+import type { Challenge } from "../schema/challenge"
+import { EditorMixed } from "@kutelabs/editor-mixed"
+
+interface Props {
+  data: Challenge["editor"]
+}
+
+const { data } = Astro.props
+---
+
+<>
+<!-- @ts-ignore -->
+<EditorMixed data={data} useDefaultConfig client:only="lit" />
+</>
