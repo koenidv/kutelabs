@@ -5,40 +5,25 @@ import OuterLayout from "../layouts/OuterLayout.astro"
 import { EditorMixed } from "@kutelabs/editor-mixed"
 import { getCollection } from "astro:content"
 import ElevatedBox from "../components/ElevatedBox.astro"
+import InnerLayout from "../layouts/InnerLayout.astro"
 
 const challenges = await getCollection("challenges")
 ---
 
-<OuterLayout title="debug">
+<InnerLayout title="wip">
   <div class="flex w-full min-h-screen flex-col items-center justify-center gap-8 py-12">
     <h1>kutelabs. a kute way to learn kotlin :)</h1>
-    <ElevatedBox elevation={2}>
-      <EditorMixed client:load data={challenges[0].data.editor} />
-    </ElevatedBox>
-    <button id="btn-tojs" tabindex="0">to js</button>
-    <button id="btn-execjs" tabindex="0">exec js</button>
-    <button id="btn-tokt" tabindex="0">to kt</button>
+    <a href="/learn">
+      <ElevatedBox elevation={2} hoverable class="bg-beige-50">
+        <p class="p-4">Go to available lessons</p>
+      </ElevatedBox>
+    </a>
   </div>
-</OuterLayout>
+</InnerLayout>
 
 <script>
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
-
-  import { DebugBlockRenderer } from "@kutelabs/editor-mixed/src/render/BlockRenderers/DebugBlockRenderer"
-  import { DebugDragRenderer } from "@kutelabs/editor-mixed/src/render/DragRenderers/DebugDragRenderer"
-  import { DebugDrawerRenderer } from "@kutelabs/editor-mixed/src/render/DrawerRenderers/DebugDrawerRenderer"
-  import { ExtrasRenderer } from "@kutelabs/editor-mixed/src/render/ExtrasRenderers.ts/DefaultExtrasRenderer"
-  import { DebugLayouter } from "@kutelabs/editor-mixed/src/render/Layouters/DebugLayouter"
-  import { type MixedEditorConfig } from "@kutelabs/editor-mixed/src/util/MixedEditorConfig"
-
-  export const config: MixedEditorConfig = {
-    layouter: DebugLayouter,
-    blockRenderer: DebugBlockRenderer,
-    drawerRenderer: DebugDrawerRenderer,
-    dragRenderer: DebugDragRenderer,
-    extrasRenderer: ExtrasRenderer,
-  }
 
   //@ts-ignore
   document.querySelector("editor-mixed").config = config
