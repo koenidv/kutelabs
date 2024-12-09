@@ -1,0 +1,19 @@
+---
+import OuterLayout from "./OuterLayout.astro";
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<OuterLayout title={title}>
+  <header>
+    <nav>
+      
+    </nav>
+  </header>
+  <main>
+    <slot />
+  </main>
+</OuterLayout>

@@ -1,7 +1,7 @@
 export enum ConnectorType {
-  Internal,
-  Before,
-  After,
-  Inner,
-  Extension,
+  Internal = "internal",
+  Before = "before",
+  After = "after",
+  Inner = "inner",
+  Extension = "extension",
 }

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/schema/challenge.schema.json",
+  "title": "Challenge",
+  "description": "A challenge along the kutelabs learning journey",
+  "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "The URL of the image"
+        },
+        "alt": {
+          "type": "string",
+          "description": "The alt text of the image"
+        }
+      },
+      "required": [
+        "src",
+        "alt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "story": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "type": "integer",
+          "description": "The order of this story in the parent section"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the story"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the story"
+        },
+        "published": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the story was published. When unset or in the future, the story is not published"
+        },
+        "color": {
+          "type": "string",
+          "description": "Hex color for the story box"
+        },
+        "imageStart": {
+          "$ref": "#/$defs/image"
+        },
+        "imageEnd": {
+          "$ref": "#/$defs/image"
+        }
+      },
+      "required": [
+        "order",
+        "title",
+        "published"
+      ],
+      "additionalProperties": false
+    },
+    "editor": {
+      "anyOf": [
+        {
+          "description": "Use and configure the mixed content editor",
+          "$ref": "../../../editor-mixed/src/schema/editor.schema.json"
+        },
+        {
+          "description": "Use and configure the text editor",
+          "$ref": "./editor-text.schema.json"
+        }
+      ]
+    }
+  },
+  "required": [
+    "story",
+    "editor"
+  ]
+}

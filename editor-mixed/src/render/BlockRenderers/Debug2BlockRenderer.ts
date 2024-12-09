@@ -5,8 +5,8 @@ import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
-import { BlockType } from "../../blocks/BlockType"
-import type { BlockDataExpression } from "../../blocks/BlockData"
+import { BlockType } from "../../blocks/configuration/BlockType"
+import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 
 import "../../codeEditor/PrismKotlinEditor"
 

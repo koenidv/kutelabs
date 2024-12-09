@@ -5,7 +5,7 @@ import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
-import { BlockType } from "./BlockType"
+import { BlockType } from "./configuration/BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
   public readonly rootConnector: Connector
@@ -15,10 +15,9 @@ export class RootBlock extends Block<BlockType.Root> {
   ) {
     const rootConnector = DefaultConnectors.root()
     super(
-      null,
       BlockType.Root,
       null,
-      [rootConnector],
+      [{connector: rootConnector}],
       false,
       blockRegistry,
       connectorRegistry
@@ -71,5 +70,9 @@ export class RootBlock extends Block<BlockType.Root> {
 
   private findIndex(block: AnyBlock) {
     return this.blocks.findIndex(b => b.block === block)
+  }
+
+  public clear() {
+    this.blocks = []
   }
 }

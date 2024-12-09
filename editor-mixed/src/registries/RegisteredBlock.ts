@@ -1,5 +1,5 @@
 import type { AnyBlock, Block } from "../blocks/Block"
-import type { BlockType } from "../blocks/BlockType"
+import type { BlockType } from "../blocks/configuration/BlockType"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 

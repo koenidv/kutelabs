@@ -4,10 +4,17 @@ import { Coordinates } from "../../util/Coordinates"
 import { SizeProps } from "../SizeProps"
 import type { AnyBlock } from "../../blocks/Block"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
+import { isSafari } from "../../util/browserCheck"
 
 export abstract class BaseBlockRenderer {
   blockRegistry: BlockRegistry
   layouter: BaseLayouter
+
+  protected _workspaceScaleFactor = 1
+  public setWorkspaceScaleFactor(value: number) {
+    this._workspaceScaleFactor = value
+  }
+  
 
   constructor(blockRegistry: BlockRegistry, layouter: BaseLayouter) {
     this.blockRegistry = blockRegistry
@@ -88,7 +95,7 @@ export abstract class BaseBlockRenderer {
     child: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="${draggable ? "dragable" : "nodrag"}" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}"}>
+    <g class="${draggable ? "dragable" : "nodrag"} block" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
       ${child()}
     </g>`
   }
