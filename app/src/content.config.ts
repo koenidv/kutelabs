@@ -1,7 +1,8 @@
 import { defineCollection } from "astro:content"
+import { glob } from 'astro/loaders'
 
 const challenges = defineCollection({
-  type: "data",
+  loader: glob({ pattern: '**\/.*.md', base: "./src/content/challenges" }),
 })
 
 export const collections = {
