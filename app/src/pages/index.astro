@@ -1,13 +1,6 @@
 ---
-//@ts-nocheck this is needed because web components don't yet support linting, move to editor astro component later
-import OuterLayout from "../layouts/OuterLayout.astro"
-
-import { EditorMixed } from "@kutelabs/editor-mixed"
-import { getCollection } from "astro:content"
 import ElevatedBox from "../components/ElevatedBox.astro"
 import InnerLayout from "../layouts/InnerLayout.astro"
-
-const challenges = await getCollection("challenges")
 ---
 
 <InnerLayout title="wip">
