@@ -1,20 +1,18 @@
 ---
-import { getEntry } from "astro:content"
+import { getCollection } from "astro:content"
 import type { Challenge } from "../../schema/challenge"
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
 
-const { id } = Astro.params
-if (id === undefined) {
-  return Astro.redirect("/404")
+export async function getStaticPaths() {
+  return (await getCollection("challenges")).map(challenge => ({
+    params: { id: challenge.id },
+    props: { challenge: challenge.data },
+  }))
 }
 
-const item = await getEntry("challenges", id)
-if (item === undefined) {
-  return Astro.redirect("/404")
-}
-const challenge = item.data as Challenge
+const challenge = Astro.props.challenge as Challenge
 ---
 
 <InnerLayout title={`${challenge.story.title}`}>
@@ -22,8 +20,8 @@ const challenge = item.data as Challenge
     <a href="/learn" class="py-8 px-12">← Back to Lessons</a>
 
     <div class="flex flex-col lg:flex-row px-12 pb-12 lg:h-[90vh] gap-8">
-    
-      <div class="border-4 border-beige-200 bg-beige-50 px-4 py-6 w-full lg:w-[40%] min-w-72 flex-grow-[1] flex flex-col gap-4">
+      <div
+        class="border-4 border-beige-200 bg-beige-50 px-4 py-6 w-full lg:w-[40%] min-w-72 flex-grow-[1] flex flex-col gap-4">
         <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
         <p set:html={challenge.story.description} />
       </div>
@@ -32,6 +30,5 @@ const challenge = item.data as Challenge
         <EditorMixed data={challenge.editor} />
       </ElevatedBox>
     </div>
-
   </div>
 </InnerLayout>
