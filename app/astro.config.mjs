@@ -10,6 +10,6 @@ import spotlightjs from "@spotlightjs/astro";
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), lit(), sentry(), spotlightjs()],
-  output: "server",
-  adapter: netlify()
+  output: "static",
+  adapter: netlify(),
 })
