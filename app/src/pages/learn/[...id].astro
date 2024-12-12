@@ -6,10 +6,12 @@ import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
 
 export async function getStaticPaths() {
-  return (await getCollection("challenges")).map(challenge => ({
-    params: { id: challenge.id },
-    props: { challenge: challenge.data },
-  }))
+  return (await getCollection("challenges"))
+    .filter(it => !it.id.endsWith("section"))
+    .map(it => ({
+      params: { id: it.id },
+      props: { challenge: it.data },
+    }))
 }
 
 const challenge = Astro.props.challenge as Challenge
