@@ -1,20 +1,39 @@
 ---
-import OuterLayout from "./OuterLayout.astro";
+import OuterLayout from "./OuterLayout.astro"
 import Logo from "../svg/logo.svg"
 
 interface Props {
-  title: string;
+  title: string
+  navigateBackText?: string
+  navigateBackDefaultUrl?: string
 }
-const { title } = Astro.props;
+const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
 ---
 
 <OuterLayout title={title}>
   <header class="flex items-center">
-    <nav class="flex flex-row items-start p-8 w-full max-w-7xl">
-      <Logo class="h-8 w-fit"/>
+    <nav class="flex flex-row justify-start items-center p-8 w-full max-w-7xl gap-4 h-24">
+      <Logo class="h-8 w-fit" />
+      {
+        navigateBackText && (
+          <button class="relative animate-bg-up border-2 border-transparent hover:border-black box-border px-4 py-2 transition-colors" id="backButton" aria-label="Navigate back">
+          ← {navigateBackText}
+          </button>
+        )
+      }
     </nav>
   </header>
   <main>
     <slot />
   </main>
 </OuterLayout>
+
+<script is:inline define:vars={{ navigateBackDefaultUrl }}>
+  document.getElementById("backButton").addEventListener("click", function () {
+    if (document.referrer && new URL(document.referrer).hostname === window.location.hostname) {
+      window.history.back()
+    } else {
+      window.location.href = navigateBackDefaultUrl ?? "/learn"
+    }
+  })
+</script>

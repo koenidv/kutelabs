@@ -4,12 +4,12 @@ import netlify from "@astrojs/netlify";
 import tailwind from "@astrojs/tailwind"
 import lit from "@astrojs/lit"
 
-import sentry from "@sentry/astro";
-import spotlightjs from "@spotlightjs/astro";
+// import sentry from "@sentry/astro";
+// import spotlightjs from "@spotlightjs/astro"; removed for now because they break the dev server with SSG
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), lit(), sentry(), spotlightjs()],
+  integrations: [tailwind(), lit()],
   output: "static",
   adapter: netlify(),
   prefetch: {
