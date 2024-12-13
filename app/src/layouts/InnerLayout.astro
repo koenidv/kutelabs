@@ -1,5 +1,6 @@
 ---
 import OuterLayout from "./OuterLayout.astro";
+import Logo from "../svg/logo.svg"
 
 interface Props {
   title: string;
@@ -8,9 +9,9 @@ const { title } = Astro.props;
 ---
 
 <OuterLayout title={title}>
-  <header>
-    <nav>
-      
+  <header class="flex items-center">
+    <nav class="flex flex-row items-start p-8 w-full max-w-7xl">
+      <Logo class="h-8 w-fit"/>
     </nav>
   </header>
   <main>
