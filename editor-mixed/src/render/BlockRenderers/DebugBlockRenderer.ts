@@ -1,4 +1,4 @@
-import { svg, type TemplateResult } from "lit"
+import { html, svg, type TemplateResult } from "lit"
 import type { AnyBlock, Block } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
@@ -8,8 +8,8 @@ import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 
-import "../../codeEditor/PrismKotlinEditor"
 import { isSafari } from "../../util/browserCheck"
+import { ref } from "lit/directives/ref.js"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
@@ -106,13 +106,22 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
       : ""
     return svg`
-        <foreignObject class="donotdrag" x="30" y="10" width=${size.fullWidth - 40} height=${size.fullHeight - 20} >
-          <prism-kotlin-editor
-            .input="${data.customExpression?.get("kt") ?? ""}"
-            style="width: 100%; height: 100%; ${safariTransform}" 
-            @code-change=${(e: CustomEvent) => data.customExpression?.set(data.editable ? data.editable.lang : "kt", e.detail.code)}
-          />
-
+        <foreignObject x="30" y="10" width=${size.fullWidth - 40} height=${size.fullHeight - 20} >
+          ${this.tapOrDragLayer(
+            reference => html`
+              <prism-kotlin-editor
+                ${ref(reference)}
+                class="donotdrag"
+                .input="${data.customExpression?.get("kt") ?? ""}"
+                style="width: 100%; height: 100%; ${safariTransform}"
+                @code-change=${(e: CustomEvent) =>
+                  data.customExpression?.set(
+                    data.editable ? data.editable.lang : "kt",
+                    e.detail.code
+                  )}>
+              </prism-kotlin-editor>
+            `
+          )}
         </foreignObject>
         `
   }

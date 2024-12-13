@@ -1,10 +1,13 @@
-import { svg, type TemplateResult } from "lit"
+import { html, svg, type TemplateResult } from "lit"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import { Coordinates } from "../../util/Coordinates"
 import { SizeProps } from "../SizeProps"
 import type { AnyBlock } from "../../blocks/Block"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
-import { isSafari } from "../../util/browserCheck"
+
+import "../../codeEditor/PrismKotlinEditor"
+import "../../drag/TapOrDragLayer"
+import { createRef, type Ref } from "lit/directives/ref.js"
 
 export abstract class BaseBlockRenderer {
   blockRegistry: BlockRegistry
@@ -86,6 +89,18 @@ export abstract class BaseBlockRenderer {
           this.renderBlock(next, block)
         )
     )
+  }
+
+  protected tapOrDragLayer(
+    content: (ref: Ref<HTMLElement>) => TemplateResult<1>
+  ) {
+    const ref = createRef<HTMLElement>()
+
+    return html`
+    <tap-or-drag-layer .tappableComponent=${ref}>
+      ${content(ref)}
+    </tap-or-drag-layer>
+    `
   }
 
   protected draggableContainer(

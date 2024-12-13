@@ -62,7 +62,6 @@ export class DragHelper {
       it => it.classList.contains("dragable"),
       it => it.classList.contains("donotdrag")
     )
-    console.log(evt.target, draggedParent)
     if (draggedParent == null) return
     this.dragged = this.getDraggedData(draggedParent)
     if (this.dragged == null) return

@@ -12,9 +12,12 @@ import { IndentationBehavior } from "./IndentationBehavior"
 import { BracesBehavior } from "./BracesBehavior"
 import type { Behavior } from "./Behavior"
 import { QuotesBehavior } from "./QuotesBehavior"
+import { createRef, ref } from "lit/directives/ref.js"
 
 @customElement("prism-kotlin-editor")
 export class PrismKotlinEditor extends LitElement {
+  textareaRef = createRef<HTMLTextAreaElement>()
+
   declare input: string
   declare highlighted: string
 
@@ -29,11 +32,7 @@ export class PrismKotlinEditor extends LitElement {
     this.highlighted = ""
   }
 
-  behaviours: Behavior[] = [
-    new BracesBehavior(),
-    new IndentationBehavior(),
-    new QuotesBehavior(),
-  ]
+  behaviours: Behavior[] = [new BracesBehavior(), new IndentationBehavior(), new QuotesBehavior()]
 
   static styles = [
     unsafeCSS(prismStyles),
@@ -97,14 +96,14 @@ export class PrismKotlinEditor extends LitElement {
   render() {
     return html`
       <div class="container">
-        <pre class="highlighted language-kotlin"><code>${unsafeHTML(
-          this.highlighted
-        )}</code></pre>
+        <pre class="highlighted language-kotlin"><code>${unsafeHTML(this.highlighted)}</code></pre>
         <textarea
+          ${ref(this.textareaRef)}
           class="input"
           .value=${this.input}
           @input=${this.handleInput}
           @keydown=${this.handleKeyDown}
+          @mousdown=${(e: MouseEvent) => console.log("received", e)}
           spellcheck="false"></textarea>
       </div>
     `
@@ -113,9 +112,7 @@ export class PrismKotlinEditor extends LitElement {
   private handleInput(e: Event) {
     const target = e.target as HTMLTextAreaElement
     this.input = target.value || ""
-    this.dispatchEvent(
-      new CustomEvent("code-change", { detail: { code: this.input } })
-    )
+    this.dispatchEvent(new CustomEvent("code-change", { detail: { code: this.input } }))
     this.highlightCode()
   }
 
@@ -128,10 +125,18 @@ export class PrismKotlinEditor extends LitElement {
   }
 
   private highlightCode() {
-    this.highlighted = Prism.highlight(
-      this.input,
-      Prism.languages["kotlin"],
-      "kotlin"
-    )
+    this.highlighted = Prism.highlight(this.input, Prism.languages["kotlin"], "kotlin")
+  }
+
+  connectedCallback(): void {
+    this.addEventListener("mousedown", evt => {
+      // relay mousedown events that are dispatched from the tapdrag layer to the outer component
+      if (evt.isTrusted) return
+      console.log("relaying", evt, this.textareaRef.value)
+      // fixme not working yet
+      this.textareaRef.value?.dispatchEvent(new MouseEvent(evt.type, { ...evt, bubbles: false }))
+      evt.stopPropagation()
+    })
+    super.connectedCallback()
   }
 }
