@@ -13,6 +13,7 @@ import { BracesBehavior } from "./BracesBehavior"
 import type { Behavior } from "./Behavior"
 import { QuotesBehavior } from "./QuotesBehavior"
 import { createRef, ref } from "lit/directives/ref.js"
+import { EscapeFocusBehavior } from "./EscapeFocusBehavior"
 
 @customElement("prism-kotlin-editor")
 export class PrismKotlinEditor extends LitElement {
@@ -32,7 +33,12 @@ export class PrismKotlinEditor extends LitElement {
     this.highlighted = ""
   }
 
-  behaviours: Behavior[] = [new BracesBehavior(), new IndentationBehavior(), new QuotesBehavior()]
+  behaviors: Behavior[] = [
+    new EscapeFocusBehavior(),
+    new BracesBehavior(),
+    new IndentationBehavior(),
+    new QuotesBehavior(),
+  ]
 
   static styles = [
     unsafeCSS(prismStyles),
@@ -117,7 +123,7 @@ export class PrismKotlinEditor extends LitElement {
 
   private handleKeyDown(e: KeyboardEvent) {
     let handled = false
-    for (const behavior of this.behaviours) {
+    for (const behavior of this.behaviors) {
       if (!handled) handled = behavior.handleKeyDown(e)
     }
     if (handled) e.target?.dispatchEvent(new Event("input", { bubbles: true }))

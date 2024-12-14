@@ -1,4 +1,9 @@
 export abstract class Behavior {
+  /**
+   * Invokes the behavior on key down
+   * @param e the keydown event
+   * @returns true if the keydown was handled and following behaviors should not be invoked
+   */
   abstract handleKeyDown(e: KeyboardEvent): boolean
 
   static getSelection(ta: HTMLTextAreaElement): {

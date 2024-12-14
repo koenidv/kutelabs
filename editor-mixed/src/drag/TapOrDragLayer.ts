@@ -27,6 +27,8 @@ export class TapOrDragLayer extends LitElement {
   initialEvent: MouseEvent | null = null
   initialTime: number | null = null
   capturedEvents: MouseEvent[] = []
+  isFocusLocked: boolean = false
+  observedFocusElement: Element | null = null
 
   private delta(evt: MouseEvent) {
     if (this.initialEvent == null) return 0
@@ -51,23 +53,35 @@ export class TapOrDragLayer extends LitElement {
   }
 
   private onMouseDown(evt: MouseEvent) {
-    if (this.initialEvent != null) return
+    if (this.initialEvent != null || this.isFocusLocked) return
     this.initialEvent = evt
     this.initialTime = Date.now()
     evt.preventDefault()
   }
 
   private onMouseMove(evt: MouseEvent) {
-    if (this.initialTime == null || this.initialEvent == null) return
+    if (this.initialTime == null || this.initialEvent == null || this.isFocusLocked) return
     this.capturedEvents.push(evt)
     evt.preventDefault()
     if (this.delta(evt) > (this.dragTreshold ?? 8)) {
-        this.releaseEvents(this.draggableComponent?.value ?? this)
-      }
+      this.releaseEvents(this.draggableComponent?.value ?? this)
+    }
+  }
+
+  private onFocusChanged(focussed: boolean, evt: FocusEvent) {
+    console.log("focus changed: ", focussed, evt)
+    this.isFocusLocked = focussed
+  }
+  // the cast here is required but the FocusEvent isn't corrently typed
+  private onFocusIn = (evt: Event) => {
+    this.onFocusChanged(true, evt as FocusEvent)
+  }
+  private onFocusOut = (evt: Event) => {
+    this.onFocusChanged(false, evt as FocusEvent)
   }
 
   private onMouseUp(evt: MouseEvent) {
-    if (this.initialTime == null || this.initialEvent == null) return
+    if (this.initialTime == null || this.initialEvent == null || this.isFocusLocked) return
     this.capturedEvents.push(evt)
     evt.preventDefault()
   
@@ -82,11 +96,21 @@ export class TapOrDragLayer extends LitElement {
     this.addEventListener("mousedown", this.onMouseDown.bind(this))
     this.addEventListener("mousemove", this.onMouseMove.bind(this))
     this.addEventListener("mouseup", this.onMouseUp.bind(this))
+
+    if (this.focussable ?? true) {
+      this.tappableComponent.value?.addEventListener("focusin", this.onFocusIn)
+      this.tappableComponent.value?.addEventListener("focusout", this.onFocusOut)
+    }
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("mousedown", this.onMouseDown.bind(this))
     this.removeEventListener("mousemove", this.onMouseMove.bind(this))
     this.removeEventListener("mouseup", this.onMouseUp.bind(this))
+
+    if (this.focussable ?? true) {
+      this.tappableComponent.value?.removeEventListener("focusin", this.onFocusIn)
+      this.tappableComponent.value?.removeEventListener("focusout", this.onFocusOut)
+    }
   }
 }
