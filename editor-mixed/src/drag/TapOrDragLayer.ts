@@ -11,11 +11,13 @@ export class TapOrDragLayer extends LitElement {
   declare tappableComponent: Ref<Element>
   declare draggableComponent: Ref<Element>
   declare dragTreshold: number
+  declare focussable: boolean
 
   static properties = {
     tappableComponent: { type: Object },
     draggableComponent: { type: Object },
     dragTreshold: { type: Number, default: 8 },
+    focussable: { type: Boolean, default: true },
   }
 
   render() {
@@ -48,32 +50,43 @@ export class TapOrDragLayer extends LitElement {
     })
   }
 
-  connectedCallback(): void {
-    this.addEventListener("mousedown", evt => {
-      console.log("intercepting mousedown")
-      if (this.initialEvent != null) return
-      this.initialEvent = evt
-      this.initialTime = Date.now()
-      evt.preventDefault()
-    })
-    this.addEventListener("mousemove", evt => {
-      if (this.initialTime == null || this.initialEvent == null) return
-      this.capturedEvents.push(evt)
-      evt.preventDefault()
-      if (this.delta(evt) > (this.dragTreshold ?? 8)) {
+  private onMouseDown(evt: MouseEvent) {
+    if (this.initialEvent != null) return
+    this.initialEvent = evt
+    this.initialTime = Date.now()
+    evt.preventDefault()
+  }
+
+  private onMouseMove(evt: MouseEvent) {
+    if (this.initialTime == null || this.initialEvent == null) return
+    this.capturedEvents.push(evt)
+    evt.preventDefault()
+    if (this.delta(evt) > (this.dragTreshold ?? 8)) {
         this.releaseEvents(this.draggableComponent?.value ?? this)
       }
-    })
-    this.addEventListener("mouseup", evt => {
-      if (this.initialTime == null || this.initialEvent == null) return
-      this.capturedEvents.push(evt)
-      evt.preventDefault()
+  }
 
-      this.releaseEvents(
-        (this.delta(evt) >= (this.dragTreshold ?? 8) && Date.now() - this.initialTime > 200
-          ? this.draggableComponent?.value
-          : this.tappableComponent?.value) ?? this
-      )
-    })
+  private onMouseUp(evt: MouseEvent) {
+    if (this.initialTime == null || this.initialEvent == null) return
+    this.capturedEvents.push(evt)
+    evt.preventDefault()
+  
+    this.releaseEvents(
+      (this.delta(evt) >= (this.dragTreshold ?? 8) && Date.now() - this.initialTime > 200
+        ? this.draggableComponent?.value
+        : this.tappableComponent?.value) ?? this
+    )
+  }
+
+  connectedCallback(): void {
+    this.addEventListener("mousedown", this.onMouseDown.bind(this))
+    this.addEventListener("mousemove", this.onMouseMove.bind(this))
+    this.addEventListener("mouseup", this.onMouseUp.bind(this))
+  }
+
+  disconnectedCallback(): void {
+    this.removeEventListener("mousedown", this.onMouseDown.bind(this))
+    this.removeEventListener("mousemove", this.onMouseMove.bind(this))
+    this.removeEventListener("mouseup", this.onMouseUp.bind(this))
   }
 }

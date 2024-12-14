@@ -103,12 +103,6 @@ export class PrismKotlinEditor extends LitElement {
           .value=${this.input}
           @input=${this.handleInput}
           @keydown=${this.handleKeyDown}
-          @mousedown=${(e: MouseEvent) => {
-            if (e.isTrusted) return
-            console.log("received mousedown", e.isTrusted, e.defaultPrevented, e)
-          }}
-          @mouseup=${(e: MouseEvent) => e.preventDefault()}
-          @click=${(e: MouseEvent) => e.preventDefault()}
           spellcheck="false"></textarea>
       </div>
     `
@@ -137,17 +131,13 @@ export class PrismKotlinEditor extends LitElement {
     this.addEventListener("mousedown", evt => {
       // relay mousedown events that are dispatched from the tapdrag layer to the outer component
       if (evt.isTrusted) return
-      console.log("relaying", evt, this.textareaRef.value)
-      // fixme not working yet
-
+      // the dispatched event will be ignored by the textarea, so we have to set the selection and focus manually
       this.textareaRef.value?.dispatchEvent(new MouseEvent(evt.type, { ...evt, bubbles: false }))
-      // this.textareaRef.value?.event
       const selection = this.approximateCaretPosition(
         this.textareaRef.value!,
         evt.clientX,
         evt.clientY
       )
-      console.log(selection)
       this.textareaRef.value!.setSelectionRange(selection, selection)
       this.textareaRef.value!.focus()
       evt.stopPropagation()
