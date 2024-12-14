@@ -50,6 +50,7 @@ export class TapOrDragLayer extends LitElement {
 
   connectedCallback(): void {
     this.addEventListener("mousedown", evt => {
+      console.log("intercepting mousedown")
       if (this.initialEvent != null) return
       this.initialEvent = evt
       this.initialTime = Date.now()
