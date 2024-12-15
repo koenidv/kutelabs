@@ -14,6 +14,7 @@ import type { Behavior } from "./Behavior"
 import { QuotesBehavior } from "./QuotesBehavior"
 import { createRef, ref } from "lit/directives/ref.js"
 import { EscapeFocusBehavior } from "./EscapeFocusBehavior"
+import { normalizePrimaryPointerPosition } from "../util/InputUtils"
 
 @customElement("prism-kotlin-editor")
 export class PrismKotlinEditor extends LitElement {
@@ -115,6 +116,7 @@ export class PrismKotlinEditor extends LitElement {
   }
 
   private handleInput(e: Event) {
+    console.log("input evt", e.defaultPrevented)
     const target = e.target as HTMLTextAreaElement
     this.input = target.value || ""
     this.dispatchEvent(new CustomEvent("code-change", { detail: { code: this.input } }))
@@ -122,6 +124,7 @@ export class PrismKotlinEditor extends LitElement {
   }
 
   private handleKeyDown(e: KeyboardEvent) {
+    console.log("key down evt", e.defaultPrevented)
     let handled = false
     for (const behavior of this.behaviors) {
       if (!handled) handled = behavior.handleKeyDown(e)
@@ -133,22 +136,32 @@ export class PrismKotlinEditor extends LitElement {
     this.highlighted = Prism.highlight(this.input, Prism.languages["kotlin"], "kotlin")
   }
 
+  /**
+   * Relay mousedown / touchstart events that are dispatched from the tapdrag layer to the outer component.
+   * Dispatched events will be ignored by the textarea, so we have to set the selection and focus manually.
+   * @param evt received mousedown or touchstart event
+   */
+  private handleStartFromTapDrag(evt: MouseEvent | TouchEvent) {
+    if (evt.isTrusted) return
+    const selection = this.approximateCaretPosition(
+      this.textareaRef.value!,
+      ...normalizePrimaryPointerPosition(evt)!.toArray()
+    )
+    this.textareaRef.value!.setSelectionRange(selection, selection)
+    this.textareaRef.value!.focus()
+    evt.stopPropagation()
+  }
+
   connectedCallback(): void {
-    this.addEventListener("mousedown", evt => {
-      // relay mousedown events that are dispatched from the tapdrag layer to the outer component
-      if (evt.isTrusted) return
-      // the dispatched event will be ignored by the textarea, so we have to set the selection and focus manually
-      this.textareaRef.value?.dispatchEvent(new MouseEvent(evt.type, { ...evt, bubbles: false }))
-      const selection = this.approximateCaretPosition(
-        this.textareaRef.value!,
-        evt.clientX,
-        evt.clientY
-      )
-      this.textareaRef.value!.setSelectionRange(selection, selection)
-      this.textareaRef.value!.focus()
-      evt.stopPropagation()
-    })
+    this.addEventListener("mousedown", this.handleStartFromTapDrag.bind(this))
+    this.addEventListener("touchstart", this.handleStartFromTapDrag.bind(this))
     super.connectedCallback()
+  }
+
+  disconnectedCallback(): void {
+    this.removeEventListener("mousedown", this.handleStartFromTapDrag.bind(this))
+    this.removeEventListener("touchstart", this.handleStartFromTapDrag.bind(this))
+    super.disconnectedCallback()
   }
 
   /**

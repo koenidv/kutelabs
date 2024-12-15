@@ -32,4 +32,8 @@ export class Coordinates {
   static addPopOffset(coordinates: Coordinates): Coordinates {
     return Coordinates.add(coordinates, Coordinates.popOffset)
   }
+
+  toArray(): [number, number] {
+    return [this.x, this.y]
+  }
 }
