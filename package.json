@@ -4,8 +4,9 @@
   "workspaces": [
     "app",
     "server",
+    "editor-mixed",
     "shared",
-    "editor-mixed"
+    "client-runner"
   ],
   "packageManager": "bun@1.1.27",
   "devDependencies": {

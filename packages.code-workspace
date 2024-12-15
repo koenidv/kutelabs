@@ -2,7 +2,8 @@
   "folders": [
     { "path": "app"},
     { "path": "server"},
+    { "path": "editor-mixed"},
     { "path": "shared"},
-    { "path": "editor-mixed"}
+    { "path": "client-runner"}
   ]
 }
