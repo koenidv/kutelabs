@@ -13,36 +13,3 @@ import InnerLayout from "../layouts/InnerLayout.astro"
     </a>
   </div>
 </InnerLayout>
-
-<script>
-  import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
-  import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
-
-  //@ts-ignore
-  document.querySelector("editor-mixed").config = config
-
-  //@ts-ignore
-  document.querySelector("#btn-tojs").addEventListener(
-    "click",
-    (() => {
-      //@ts-ignore
-      console.log(document.querySelector("editor-mixed").compile(JsCompiler))
-    }).bind(this)
-  )
-  //@ts-ignore
-  document.querySelector("#btn-execjs").addEventListener(
-    "click",
-    (() => {
-      //@ts-ignore
-      console.log("exec js not yet imeplemented")
-    }).bind(this)
-  )
-  //@ts-ignore
-  document.querySelector("#btn-tokt").addEventListener(
-    "click",
-    (() => {
-      //@ts-ignore
-      console.log(document.querySelector("editor-mixed").compile(KtCompiler))
-    }).bind(this)
-  )
-</script>

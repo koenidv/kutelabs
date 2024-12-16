@@ -27,6 +27,11 @@ const challenge = Astro.props.challenge as Challenge
         class="border-4 border-beige-200 bg-beige-50 px-4 py-6 w-full lg:w-[40%] min-w-72 flex-grow-[1] flex flex-col gap-4">
         <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
         <p set:html={challenge.story.description} />
+        <hr />
+        <a href="#" id="btn-tojs">Print JS</a>
+        <a href="#" id="btn-tokt">Print KT</a>
+        <hr />
+        <a href="#" id="btn-execjs">Execute JS</a>
       </div>
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
@@ -35,3 +40,40 @@ const challenge = Astro.props.challenge as Challenge
     </div>
   </div>
 </InnerLayout>
+
+<script>
+  import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
+  import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
+  import { SandboxRunner } from "@kutelabs/client-runner"
+  import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
+
+  document.querySelector("#btn-tojs")!.addEventListener(
+    "click",
+    (() => {
+      console.log((document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler))
+    }).bind(this)
+  )
+
+  document.querySelector("#btn-execjs")!.addEventListener(
+    "click",
+    (() => {
+      const sandboxRunner = new SandboxRunner()
+      // sandboxRunner.execute((document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler))
+      sandboxRunner.execute(`
+      console.log(Math.abs(-1));
+      function main() {
+        console.log("Hello World");
+          return "a";
+        }
+      return main();
+      `)
+    }).bind(this)
+  )
+
+  document.querySelector("#btn-tokt")!.addEventListener(
+    "click",
+    (() => {
+      console.log((document.querySelector("editor-mixed") as EditorMixed).compile(KtCompiler))
+    }).bind(this)
+  )
+</script>
