@@ -9,11 +9,7 @@ export class BlockConnectors {
   private _innerConnectors: Connector[] = []
   private _extensionConnectors: Connector[] = []
 
-  addConnector(
-    parentBlock: AnyBlock,
-    registry: ConnectorRegistry,
-    connector: Connector
-  ) {
+  addConnector(parentBlock: AnyBlock, registry: ConnectorRegistry, connector: Connector) {
     connector.register(registry, parentBlock)
 
     switch (connector.type) {
@@ -41,11 +37,7 @@ export class BlockConnectors {
   }
 
   get all() {
-    return [
-      ...this._connectors.values(),
-      ...this._innerConnectors,
-      ...this._extensionConnectors,
-    ]
+    return [...this._connectors.values(), ...this._innerConnectors, ...this._extensionConnectors]
   }
 
   get internal(): Connector {
@@ -60,8 +52,11 @@ export class BlockConnectors {
   get inners() {
     return this._innerConnectors
   }
-  get extensions() {
-    return this._extensionConnectors
+  get inputExtensions() {
+    return this._extensionConnectors.filter(it => it.role != ConnectorRole.Output)
+  }
+  get outputExtension() {
+    return this._extensionConnectors.filter(it => it.role == ConnectorRole.Output).firstOrNull()
   }
 
   byRole(role: ConnectorRole): Connector[] {

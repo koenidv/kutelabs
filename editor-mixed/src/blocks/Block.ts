@@ -37,18 +37,11 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
     this.data = data
 
-    this.connectors.addConnector(
-      this,
-      connectorRegistry,
-      DefaultConnectors.internal()
-    )
+    this.connectors.addConnector(this, connectorRegistry, DefaultConnectors.internal())
     for (const { connector, connected } of connectors) {
       this.connectors.addConnector(this, connectorRegistry, connector)
       if (connected) {
-        this.connect(
-          connected,
-          new Connection(connector, connected.upstreamConnector)
-        )
+        this.connect(connected, new Connection(connector, connected.upstreamConnector))
       }
     }
 
@@ -69,19 +62,10 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
     if (!isOppositeAction && !localConnector?.isDownstram) {
-      return this.handleConnectUpstream(
-        block,
-        connection,
-        localConnector.type,
-        atPosition
-      )
+      return this.handleConnectUpstream(block, connection, localConnector.type, atPosition)
     }
 
-    this.connectedBlocks.insertForConnector(
-      block,
-      localConnector,
-      this.insertOnRoot
-    )
+    this.connectedBlocks.insertForConnector(block, localConnector, this.insertOnRoot)
     if (isOppositeAction) return
 
     // todo invalidate position
@@ -110,10 +94,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       if (block.connectors.before && this.upstream?.connectors.after) {
         this.upstream.connect(
           block,
-          new Connection(
-            this.upstream.connectors.after,
-            block.connectors.before
-          ),
+          new Connection(this.upstream.connectors.after, block.connectors.before),
           atPosition
         )
         return
@@ -123,9 +104,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
         return
       }
     } else
-      throw new Error(
-        `Connecting to upstream connector type "${localType}" is not implemented`
-      )
+      throw new Error(`Connecting to upstream connector type "${localType}" is not implemented`)
   }
 
   //#region Connected Blocks
@@ -161,7 +140,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   }
 
   get extensions(): AnyBlock[] {
-    return this.connectors.extensions
+    return this.connectors.inputExtensions
       .map(connector => this.connectedBlocks.byConnector(connector))
       .filter(block => block !== null) as AnyBlock[]
   }
@@ -181,12 +160,14 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     )
   }
 
+  get output(): AnyBlock | null {
+    return this.connectors.outputExtension?.let(c => this.connectedBlocks.byConnector(c)) ?? null
+  }
+
   get allConnectedRecursive(): AnyBlock[] {
     return [
       this,
-      ...this.downstreamWithConnectors.flatMap(
-        ({ block }) => block.allConnectedRecursive
-      ),
+      ...this.downstreamWithConnectors.flatMap(({ block }) => block.allConnectedRecursive),
     ]
   }
 
@@ -211,11 +192,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
   disconnectSelf(): AnyBlock {
     const upstreamConnector = this.upstreamConnectorInUse
-    if (!upstreamConnector)
-      throw new Error(`Block has no upstream connector (block#${this.id})`)
+    if (!upstreamConnector) throw new Error(`Block has no upstream connector (block#${this.id})`)
     const upstream = this.connectedBlocks.popForConnector(upstreamConnector)
-    if (!upstream)
-      throw new Error(`Block has no upstream block (block#${this.id})`)
+    if (!upstream) throw new Error(`Block has no upstream block (block#${this.id})`)
 
     return upstream.disconnect(this) ?? this
   }

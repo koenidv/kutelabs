@@ -30,6 +30,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   
       ${block.inners.map(inner => renderConnected(inner))}
       ${block.extensions.map(extension => renderConnected(extension))}
+      ${block.output != null && renderConnected(block.output)}
       
 	  </g>
     `

@@ -8,7 +8,7 @@ export class DefaultConnectors {
   static byBlockType(type: BlockType): Connector[] {
     switch (type) {
       case BlockType.Function:
-        return [DefaultConnectors.inner()]
+        return [DefaultConnectors.inner(), DefaultConnectors.output()]
       case BlockType.Expression:
         return [
           DefaultConnectors.before(),
@@ -61,6 +61,12 @@ export class DefaultConnectors {
         remote.parentBlock?.data != null &&
         "type" in remote.parentBlock?.data &&
         (remote.parentBlock?.data.type as unknown) === ValueDataType.Boolean,
+    ])
+  }
+
+  static output() {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Output, [
+      remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Input,
     ])
   }
 

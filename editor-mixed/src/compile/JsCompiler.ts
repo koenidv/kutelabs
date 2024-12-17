@@ -8,16 +8,9 @@ import { BaseCompiler } from "./BaseCompiler"
 export class JsCompiler extends BaseCompiler {
   compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
+    const ret = block.output ? `\n\treturn ${next(block.output)};` : ""
 
-    let ret = ""
-    const outputConnectors = block.connectors.byRole(ConnectorRole.Output)
-    if (outputConnectors.length > 0) {
-      const firstOutputBlock = block.connectedBlocks.byConnector(outputConnectors[0])
-      if (firstOutputBlock == null) ret += "return;"
-      else ret += `return ${next(firstOutputBlock)};`
-    }
-
-    return `function ${block.data.name}() {\n\t${inner}}` // todo function inputs
+    return `function ${block.data.name}() {\n\t${inner} ${ret} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 
@@ -77,8 +70,7 @@ export class JsCompiler extends BaseCompiler {
       ${next(ifBlock)}
     }`
 
-    if (elseBlock)
-      compiled += ` else {\n${next(elseBlock)}\n}`
+    if (elseBlock) compiled += ` else {\n${next(elseBlock)}\n}`
 
     return compiled + `\n${next(block.after)}`
   }

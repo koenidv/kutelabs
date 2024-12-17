@@ -69,6 +69,7 @@ export type MixedContentEditorConnector =
   | "after"
   | "inputExtension"
   | "conditionalExtension"
+  | "output"
   | "extender"
   | "inner"
   | "ifTrue"
