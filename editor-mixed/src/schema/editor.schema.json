@@ -57,6 +57,26 @@
       "description": "Hides the drawer",
       "type": "boolean",
       "const": true
+    },
+    "invisibleCode": {
+      "description": "Additional code to include (raw) in compiled code but not show in the editor",
+      "type": "object",
+      "properties": {
+        "kt": {
+          "type": "string"
+        },
+        "js": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "mainFunction": {
+      "description": "Name of the function that should be called on execution",
+      "type": "string",
+      "default": "main"
     }
   },
   "required": [

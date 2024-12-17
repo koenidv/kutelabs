@@ -40,6 +40,19 @@
           "type": "string",
           "description": "The description of the story"
         },
+        "dialog": {
+          "type": "object",
+          "description": "The dialog of the story",
+          "properties": {
+            "static": {
+              "type": "string",
+              "description": "Static text shown next to the editor"
+            }
+          },
+          "required": [
+            "static"
+          ]
+        },
         "published": {
           "type": "string",
           "format": "date-time",
@@ -59,7 +72,35 @@
       "required": [
         "order",
         "title",
+        "dialog",
         "published"
+      ],
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string",
+          "enum": [
+            "js",
+            "kt"
+          ],
+          "description": "Compile language for this challenge"
+        },
+        "appFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "setUsername"
+            ]
+          },
+          "description": "App-level features (app callbacks) to enable for this challenge"
+        }
+      },
+      "required": [
+        "language"
       ],
       "additionalProperties": false
     },
@@ -78,6 +119,7 @@
   },
   "required": [
     "story",
+    "environment",
     "editor"
   ]
 }

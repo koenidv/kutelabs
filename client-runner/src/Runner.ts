@@ -23,9 +23,6 @@ export class Runner {
       .addConsoleApi()
       .setCode(code)
       .runCode()
-      .runCode()
-      .runCode()
-      .runCode()
       .build()
 
     const workerUrl = URL.createObjectURL(

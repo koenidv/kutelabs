@@ -9,23 +9,29 @@
     "imageEnd": {
       "src": "/images/character_boozle_rainbow.png",
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
+    },
+    "dialog": {
+      "static": "Hey, good to see you!<br/> Really cool that you want to learn programming.<br/><br/> Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.<br/><br/> For now, just enter your name in the input and click the run button. Let's see what happens!"
     }
   },
-  "dialog": {
-    "text": "Hey, good to see you! Really cool that you want to learn programming. Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.\n For now, just enter your name in the input and click the run button. Let's see what happens!"
+  "environment": {
+    "language": "js",
+    "appFeatures": [
+      "setUsername"
+    ]
   },
   "editor": {
     "type": "mixed",
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 400,
+          "x": 100,
           "y": 200
         },
         "block": {
           "type": "function",
           "data": {
-            "name": "main"
+            "name": "inputName"
           },
           "connectedBlocks": [
             {
@@ -37,75 +43,43 @@
               "connectedBlocks": [
                 {
                   "on": "inputExtension",
-                  "type": "value",
+                  "type": "variable",
                   "data": {
-                    "type": "string",
-                    "value": "Hello World"
+                    "name": "name",
+                    "type": "string"
                   }
-                },
-                {
-                  "on": "after",
-                  "type": "conditional",
-                  "elsebranch": true,
-                  "connectedBlocks": [
-                    {
-                      "on": "conditionalExtension",
-                      "type": "value",
-                      "data": {
-                        "type": "boolean",
-                        "value": true
-                      }
-                    },
-                    {
-                      "on": "ifTrue",
-                      "type": "expression",
-                      "data": {
-                        "expression": "Custom",
-                        "customExpression": {
-                          "js": "1 + 2",
-                          "kt": "1 + 2"
-                        }
-                      }
-                    }
-                  ]
                 }
               ]
+            },
+            {
+              "on": "output",
+              "type": "variable",
+              "data": {
+                "name": "name",
+                "type": "string"
+              }
             }
           ]
         }
       },
       {
         "block": {
-          "type": "variable",
-          "data": {
-            "name": "imavar",
-            "type": "string"
-          }
-        },
-        "coordinates": {
-          "x": 600,
-          "y": 100
-        }
-      },
-      {
-        "block": {
           "type": "value",
           "data": {
-            "type": "array<int>",
-            "value": [
-              1,
-              2,
-              3
-            ]
+            "type": "string",
+            "value": "Your name here"
           }
         },
         "coordinates": {
-          "x": 800,
-          "y": 200
+          "x": 400,
+          "y": 280
         }
       }
     ],
     "hideDrawer": true,
-    "initialDrawerBlocks": []
+    "invisibleCode": {
+      "js": "function processUsername() {const name = inputName();setUsername(name);return name;}"
+    },
+    "mainFunction": "processUsername"
   }
 }

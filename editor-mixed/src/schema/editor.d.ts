@@ -34,6 +34,18 @@ export type MixedContentEditorConfiguration = {
    * Hides the drawer
    */
   hideDrawer?: true
+  /**
+   * Additional code to include (raw) in compiled code but not show in the editor
+   */
+  invisibleCode?: {
+    kt?: string
+    js?: string
+    [k: string]: string
+  }
+  /**
+   * Name of the function that should be called on execution
+   */
+  mainFunction?: string
 } & {
   [k: string]: unknown
 }
