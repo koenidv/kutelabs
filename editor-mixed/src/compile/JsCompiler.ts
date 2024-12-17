@@ -34,11 +34,19 @@ export class JsCompiler extends BaseCompiler {
     if ("value" in block.data) {
       switch (block.data.type) {
         case ValueDataType.Int:
+        case ValueDataType.Float:
           return Number(block.data.value).toString()
         case ValueDataType.String:
           return `"${block.data.value}"`
         case ValueDataType.Boolean:
           return block.data.value == true ? "true" : "false"
+        case ValueDataType.IntArray:
+        case ValueDataType.FloatArray:
+          return `[${(block.data.value as number[]).map(it => Number(it)).join(", ")}]`
+        case ValueDataType.StringArray:
+          return `["${(block.data.value as string[]).join('", "')}"]`
+        case ValueDataType.BooleanArray:
+          return `[${(block.data.value as boolean[]).map(it => it == true ? "true" : "false").join(", ")}]`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
