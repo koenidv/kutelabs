@@ -8,6 +8,9 @@
     "shared",
     "client-runner"
   ],
+  "scripts": {
+    "postinstall": "chmod +x ./scripts/convert-schemas.sh && ./scripts/convert-schemas.sh"
+  },
   "packageManager": "bun@1.1.27",
   "devDependencies": {
     "@eslint/js": "^9.16.0",

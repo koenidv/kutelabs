@@ -19,3 +19,5 @@ out/
 .env.*
 
 server/src/data/
+
+**/schema/*.d.ts
