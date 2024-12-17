@@ -99,11 +99,6 @@ export class KtCompiler extends BaseCompiler {
     return compiled + `\n${next(block.after)}`
   }
 
-  mainCall(): string {
-    return ""
-    // main call will be added by the transpiler
-  }
-
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }

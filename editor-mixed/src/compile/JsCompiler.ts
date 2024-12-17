@@ -83,10 +83,6 @@ export class JsCompiler extends BaseCompiler {
     return compiled + `\n${next(block.after)}`
   }
 
-  mainCall(): string {
-    return "main();"
-  }
-
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }

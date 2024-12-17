@@ -57,9 +57,9 @@ const challenge = Astro.props.challenge as Challenge
   document.querySelector("#btn-execjs")!.addEventListener(
     "click",
     (() => {
-      const code = (document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler)
+      const compiled = (document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler)
       const sandboxRunner = new SandboxRunner()
-      sandboxRunner.execute(code, { callbacks: new SandboxCallbacks() })
+      sandboxRunner.execute(compiled.code, { callbacks: new SandboxCallbacks() })
     }).bind(this)
   )
 

@@ -5,7 +5,7 @@ import { BlockRegistry } from "./registries/BlockRegistry"
 import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import { DragHelper } from "./drag/DragHelper"
 import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
-import type { BaseCompiler } from "./compile/BaseCompiler"
+import type { BaseCompiler, CompilationResult } from "./compile/BaseCompiler"
 import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
 import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
 import { ConnectorRegistry } from "./registries/ConnectorRegistry"
@@ -192,13 +192,15 @@ export class EditorMixed extends LitElement {
     super.firstUpdated(_changedProperties)
   }
 
-  public compile<T>(compilerClass: { new (): T extends BaseCompiler ? T : null }): string {
+  public compile<T>(compilerClass: {
+    new (): T extends BaseCompiler ? T : null
+  }): CompilationResult {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 
     const instance = new compilerClass()
     if (instance == null) throw new Error("Compiler instance is null")
 
-    return instance.compileFromRoot(this.blockRegistry.root, false)
+    return instance.compileFromRoot(this.blockRegistry.root, this.data?.mainFunction ?? "main")
   }
 }

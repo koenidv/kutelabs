@@ -92,7 +92,7 @@ export class ScriptFactory {
     return this
   }
 
-  public setCode(unsafeCode: string, argNames: string[] = [], mainFn = "main"): this {
+  public setCode(unsafeCode: string, argNames: string[] = [], entrypoint = "main"): this {
     return this.tryCatch(() => {
       this.addDefineStep(`
           const userFunction = new Function(
@@ -100,7 +100,7 @@ export class ScriptFactory {
           \`
             const { ${[...this.globals.keys()].join(", ")} } = this;
             ${unsafeCode}
-            return ${mainFn}(${argNames.join(",")});
+            return ${entrypoint}(${argNames.join(",")});
           \`
           );`)
     })
