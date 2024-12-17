@@ -160,13 +160,13 @@ export class EditorMixed extends LitElement {
   }
 
   private setConfig(config: MixedEditorConfig) {
-    console.log("setConfig", config)
     this.layouter = new config.layouter(this.blockRegistry)
     this.blockRenderer = new config.blockRenderer(this.blockRegistry, this.layouter)
     this.drawerRenderer = new config.drawerRenderer(
       this.blockRegistry,
       this.layouter,
-      this.blockRenderer
+      this.blockRenderer,
+      this.data?.hideDrawer != true
     )
     this.dragRenderer = new config.dragRenderer(this.blockRegistry, this.blockRenderer)
     this.extrasRenderer = new config.extrasRenderer()
@@ -185,6 +185,7 @@ export class EditorMixed extends LitElement {
     this.blockRegistry.clear()
     this.connectorRegistry.clear()
     applyData(newData, this.blockRegistry, this.connectorRegistry)
+    if (this.drawerRenderer) this.drawerRenderer.enabled = newData.hideDrawer != true
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {

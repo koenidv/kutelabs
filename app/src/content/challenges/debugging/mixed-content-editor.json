@@ -41,18 +41,18 @@
                   }
                 },
                 {
-                  "on": "inputExtension",
-                  "type": "variable",
-                  "data": {
-                    "name": "imavar",
-                    "type": "string"
-                  }
-                },
-                {
                   "on": "after",
                   "type": "conditional",
                   "elsebranch": true,
                   "connectedBlocks": [
+                    {
+                      "on": "conditionalExtension",
+                      "type": "value",
+                      "data": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
                     {
                       "on": "ifTrue",
                       "type": "expression",
@@ -73,10 +73,10 @@
       },
       {
         "block": {
-          "type": "value",
+          "type": "variable",
           "data": {
-            "type": "boolean",
-            "value": true
+            "name": "imavar",
+            "type": "string"
           }
         },
         "coordinates": {

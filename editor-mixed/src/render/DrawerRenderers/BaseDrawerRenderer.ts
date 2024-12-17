@@ -11,20 +11,27 @@ export abstract class BaseDrawerRenderer {
   private readonly layouter: BaseLayouter
   private readonly blockRenderer: BaseBlockRenderer
 
+  private _enabled = true
+  public set enabled(value: boolean) {
+    this._enabled = value
+  }
+
   minWidth = 150
 
   constructor(
     blockRegistry: BlockRegistry,
     layouter: BaseLayouter,
-    blockRenderer: BaseBlockRenderer
+    blockRenderer: BaseBlockRenderer,
+    enabled = true
   ) {
     this.blockRegistry = blockRegistry
     this.layouter = layouter
     this.blockRenderer = blockRenderer
+    this._enabled = enabled
   }
 
   public renderElement(): TemplateResult<1> | typeof nothing {
-    if (!this.blockRegistry.drawer) return nothing
+    if (!this._enabled || !this.blockRegistry.drawer) return nothing
 
     const blocks = this.blockRegistry.drawer.blocks
     const withSize = this.measureAndSet(blocks)
@@ -61,10 +68,7 @@ export abstract class BaseDrawerRenderer {
   } {
     const calculated = this.calculatePositions(blocks)
     calculated.positions.forEach(it => {
-      const registered = this.blockRegistry.setPosition(
-        it.block,
-        it.position
-      )
+      const registered = this.blockRegistry.setPosition(it.block, it.position)
       this.layouter.setConnectorPositions(registered)
     })
     return calculated
@@ -88,6 +92,7 @@ export type DrawerRendererConstructorType = {
   new (
     blockRegistry: BlockRegistry,
     layouter: BaseLayouter,
-    blockRenderer: BaseBlockRenderer
+    blockRenderer: BaseBlockRenderer,
+    enabled?: boolean
   ): BaseDrawerRenderer
 }

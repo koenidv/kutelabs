@@ -28,6 +28,7 @@ function applyDrawerBlocks(
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): void {
+  if (!data.initialDrawerBlocks) return // may be undefined if hideDrawer is true
   for (const block of data.initialDrawerBlocks) {
     blockRegistry.attachToDrawer(parseBlockRecursive(block, null, blockRegistry, connectorRegistry))
   }

@@ -6,6 +6,38 @@
  */
 
 /**
+ * Configuration for the mixed content editor within a kutelabs challenge
+ */
+export type MixedContentEditorConfiguration = {
+  /**
+   * Defines this editor as a mixed content editor
+   */
+  type: "mixed"
+  /**
+   * Initial blocks to be loaded into the editor
+   */
+  initialBlocks: {
+    block: MixedContentEditorBlock
+    /**
+     * Coordinates of the block
+     */
+    coordinates: {
+      x: number
+      y: number
+    }
+  }[]
+  /**
+   * Initial blocks to be loaded into the editor
+   */
+  initialDrawerBlocks?: AnyBlockSingle[]
+  /**
+   * Hides the drawer
+   */
+  hideDrawer?: true
+} & {
+  [k: string]: unknown
+}
+/**
  * Block
  */
 export type MixedContentEditorBlock = AnyBlockConnected
@@ -69,32 +101,6 @@ export type AnyBlockSingle = {
   elsebranch?: unknown
 } & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock)
 
-/**
- * Configuration for the mixed content editor within a kutelabs challenge
- */
-export interface MixedContentEditorConfiguration {
-  /**
-   * Defines this editor as a mixed content editor
-   */
-  type: "mixed"
-  /**
-   * Initial blocks to be loaded into the editor
-   */
-  initialBlocks: {
-    block: MixedContentEditorBlock
-    /**
-     * Coordinates of the block
-     */
-    coordinates: {
-      x: number
-      y: number
-    }
-  }[]
-  /**
-   * Initial blocks to be loaded into the editor
-   */
-  initialDrawerBlocks: AnyBlockSingle[]
-}
 /**
  * Function Block
  */
