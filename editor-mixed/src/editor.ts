@@ -198,6 +198,6 @@ export class EditorMixed extends LitElement {
     const instance = new compilerClass()
     if (instance == null) throw new Error("Compiler instance is null")
 
-    return instance.compileFromRoot(this.blockRegistry.root, true)
+    return instance.compileFromRoot(this.blockRegistry.root, false)
   }
 }

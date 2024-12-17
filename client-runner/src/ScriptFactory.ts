@@ -3,6 +3,7 @@ import type { Callbacks } from "./Callbacks"
 enum StepType {
   Disallow,
   Allow,
+  Define,
   Execute,
 }
 
@@ -15,7 +16,7 @@ export class ScriptFactory {
   constructor() {}
 
   public build(): string {
-    return this.buildGlobals().sortSteps().joinSteps()
+    return this.buildGlobals().addCompletionMessage().sortSteps().joinSteps()
   }
 
   private buildGlobals(): this {
@@ -30,6 +31,11 @@ export class ScriptFactory {
     return this
   }
 
+  private addCompletionMessage(): this {
+    this.addExecuteStep(`postMessage({ type: "completed", data: {} });`)
+    return this
+  }
+
   private sortSteps(): this {
     this.steps.sort((a, b) => a.type - b.type)
     return this
@@ -38,7 +44,7 @@ export class ScriptFactory {
   private joinSteps(): string {
     console.log(
       "built script:\n",
-      this.steps.reduce((acc, curr) => acc + curr.step + "\n", "")
+      this.steps.reduce((acc, curr) => acc + curr.step, "")
     )
     return this.steps.reduce((acc, curr) => acc + curr.step, "")
   }
@@ -60,12 +66,14 @@ export class ScriptFactory {
     return this
   }
 
-  public addCallbacks(callbacks: Callbacks): this {
-    callbacks.proxies().forEach(proxy => {
-      for (const [name, func] of Object.entries(proxy)) {
-        this.globals.set(name, func.toString())
-      }
-    }, this)
+  public addCallbacks(callbacks?: Callbacks): this {
+    if (callbacks) {
+      callbacks.proxies().forEach(proxy => {
+        for (const [name, func] of Object.entries(proxy)) {
+          this.globals.set(name, func.toString())
+        }
+      }, this)
+    }
     return this
   }
 
@@ -84,33 +92,55 @@ export class ScriptFactory {
     return this
   }
 
-  public addCode(unsafeCode: string): this {
+  public setCode(unsafeCode: string, argNames: string[] = [], mainFn = "main"): this {
     return this.tryCatch(() => {
-      this.addExecuteStep(`
+      this.addDefineStep(`
           const userFunction = new Function(
+          ${argNames.length > 0 ? argNames.join(",") + "," : ""}
           \`
             const { ${[...this.globals.keys()].join(", ")} } = this;
             ${unsafeCode}
+            return ${mainFn}(${argNames.join(",")});
           \`
           );`)
-      this.addExecuteStep(`const result = userFunction.call(globals);`)
-      this.addExecuteStep(`postMessage({ type: 'success', data: result });`)
     })
   }
 
-  private tryCatch(addSteps: () => void): this {
-    this.addExecuteStep("try {")
+  public runCode(args: any[] = []): this {
+    let argsList = args.map(arg => JSON.stringify(arg)).join(", ")
+    if (argsList.length > 0) argsList = `, ${argsList}`
+    return this.tryCatch(
+      () => {
+        this.addExecuteStep(`const result = userFunction.call(globals${argsList});`)
+        this.addExecuteStep(`postMessage({ type: "result", data: result });`)
+      },
+      StepType.Execute,
+      { args: args }
+    )
+  }
+
+  private tryCatch(
+    addSteps: () => void,
+    type: StepType = StepType.Execute,
+    data: { [key: string]: any } = {}
+  ): this {
+    this.steps.push({ type, step: "try {" })
     addSteps()
-    this.addExecuteStep(`
+    this.steps.push({
+      type,
+      step: `
         } catch (error) {
           postMessage({ 
             type: 'error', 
-            data: { 
-              message: error.message,
-              stack: error.stack 
-            }
+            data: {...${JSON.stringify(data)}, "message": error.message, "stack": error.stack }
           });
-        }`)
+        }`,
+    })
+    return this
+  }
+
+  private addDefineStep(step: string): this {
+    this.steps.push({ type: StepType.Define, step })
     return this
   }
 

@@ -15,21 +15,23 @@ export class Callbacks {
     }))
   }
 
-  public onWorkerMessage(e: MessageEvent<any>) {
+  public onWorkerMessage(e: MessageEvent<any>): boolean {
     const { type, data } = e.data
-    if (type != MSG_TYPE_CALLBACK) return
-    this.invokeCallback(data.name, data.data)
+    if (type != MSG_TYPE_CALLBACK) return false
+    return this.invokeCallback(data.name, data.data)
   }
 
-  private invokeCallback(name: string, data: any) {
+  private invokeCallback(name: string, data: any): boolean {
     try {
       if (!this.callbacks.has(name)) {
         console.error(`Sandbox callback ${name} not found`)
-        return
+        return false
       }
       this.callbacks.get(name)?.(data)
+      return true
     } catch (error) {
       console.error(`Error invoking sandbox callback ${name}`, error)
+      return false
     }
   }
 }

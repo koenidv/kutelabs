@@ -44,7 +44,7 @@ const challenge = Astro.props.challenge as Challenge
 <script>
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
-  import { SandboxRunner } from "@kutelabs/client-runner"
+  import { SandboxCallbacks, SandboxRunner } from "@kutelabs/client-runner"
   import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
 
   document.querySelector("#btn-tojs")!.addEventListener(
@@ -57,16 +57,9 @@ const challenge = Astro.props.challenge as Challenge
   document.querySelector("#btn-execjs")!.addEventListener(
     "click",
     (() => {
+      const code = (document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler)
       const sandboxRunner = new SandboxRunner()
-      // sandboxRunner.execute((document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler))
-      sandboxRunner.execute(`
-      console.log(Math.abs(-1));
-      function main() {
-        console.log("Hello World");
-          return "a";
-        }
-      return main();
-      `)
+      sandboxRunner.execute(code, { callbacks: new SandboxCallbacks() })
     }).bind(this)
   )
 
