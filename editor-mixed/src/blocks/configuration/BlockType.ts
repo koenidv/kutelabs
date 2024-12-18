@@ -4,6 +4,7 @@ export enum BlockType {
   Expression = "expression",
   Value = "value",
   Variable = "variable",
+  VarInit = "variable_init",
   Loop = "loop",
   Conditional = "conditional",
 }

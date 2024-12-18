@@ -36,6 +36,11 @@ export type BlockDataVariable<Type extends ValueDataType> = {
   type: Type
 }
 
+export type BlockDataVariableInit<Type extends ValueDataType> = {
+  name: string
+  type: Type
+}
+
 export type BlockDataValue<Type extends ValueDataType> = {
   type: Type
   input: TsTypeByValueType<Type>
