@@ -6,11 +6,19 @@ import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
+import { Emitter } from "../util/Emitter"
 import type { BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
-export class BlockRegistry implements BlockRInterface {
+type events = {
+  workspaceAdded: { block: AnyBlock }
+  workspaceRemoved: { block: AnyBlock }
+}
+
+// todo implement worksapce events, for this all block movement should go through the registry
+
+export class BlockRegistry extends Emitter<events> implements BlockRInterface {
   private _root: RootBlock | null = null
   public get root() {
     return this._root
@@ -22,6 +30,7 @@ export class BlockRegistry implements BlockRInterface {
   }
 
   constructor(connectorRegistry: ConnectorRegistry) {
+    super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
   }
@@ -73,6 +82,7 @@ export class BlockRegistry implements BlockRInterface {
   public attachToDrawer(block: AnyBlock | null) {
     if (!this._drawer) throw new Error("Drawer is not set")
     this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero)
+    if (block) this.emit("workspaceRemoved", { block })
   }
 
   private attach(

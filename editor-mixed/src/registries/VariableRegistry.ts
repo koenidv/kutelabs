@@ -7,7 +7,8 @@ export class VariableRegistry implements VariableRInterface {
   private variables = new Map<string, ValueDataType>()
 
   constructor(blockRegistry: BlockRegistry) {
-    
+    blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
+    blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
   }
 
   private onBlockAddedToWorkspace = (block: AnyBlock) => {}
