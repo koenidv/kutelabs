@@ -2,8 +2,9 @@ import type { Connector } from "../connections/Connector"
 import { Coordinates } from "../util/Coordinates"
 import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
+import type { ConnectorRInterface } from "./ConnectorRInterface"
 
-export class ConnectorRegistry {
+export class ConnectorRegistry implements ConnectorRInterface {
   private _connectors: Connector[] = []
   public get connectors(): Connector[] {
     return this._connectors

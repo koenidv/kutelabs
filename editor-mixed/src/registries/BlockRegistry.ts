@@ -6,10 +6,11 @@ import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
+import type { BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
-export class BlockRegistry {
+export class BlockRegistry implements BlockRInterface {
   private _root: RootBlock | null = null
   public get root() {
     return this._root
@@ -48,10 +49,7 @@ export class BlockRegistry {
     return registered.size
   }
 
-  public setPosition(
-    block: AnyBlock,
-    position: Coordinates
-  ): AnyRegisteredBlock {
+  public setPosition(block: AnyBlock, position: Coordinates): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
@@ -74,12 +72,7 @@ export class BlockRegistry {
 
   public attachToDrawer(block: AnyBlock | null) {
     if (!this._drawer) throw new Error("Drawer is not set")
-    this.attach(
-      block,
-      this._drawer,
-      this._drawer.drawerConnector,
-      () => Coordinates.zero
-    )
+    this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero)
   }
 
   private attach(
@@ -104,10 +97,7 @@ export class BlockRegistry {
       this.detachedBlockIds = []
       return
     }
-    this.detachedBlockIds = [
-      block.id,
-      ...block.allConnectedRecursive.map(({ id }) => id),
-    ]
+    this.detachedBlockIds = [block.id, ...block.allConnectedRecursive.map(({ id }) => id)]
   }
 
   public get leafs(): AnyBlock[] {
