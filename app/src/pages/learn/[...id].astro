@@ -59,7 +59,9 @@ const challenge = Astro.props.challenge as Challenge
     (() => {
       const compiled = (document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler)
       const sandboxRunner = new SandboxRunner()
-      sandboxRunner.execute(compiled.code, { callbacks: new SandboxCallbacks() })
+      sandboxRunner.execute(compiled.code, compiled.argNames, compiled.entrypoint, {
+        callbacks: new SandboxCallbacks(),
+      })
     }).bind(this)
   )
 

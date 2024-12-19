@@ -15,13 +15,13 @@ export type ExecutionConfig = {
 export class Runner {
   constructor() {}
 
-  async execute(code: string, entrypoint: string = "main", config: ExecutionConfig = {}) {
+  async execute(code: string, argNames: string[], entrypoint: string = "main", config: ExecutionConfig = {}) {
     const script = new ScriptFactory()
       .disallowGlobals(config.disallowedGlobals ?? DEFAULT_DISALLOWED_GLOBALS)
       .allowApis(config.allowedApis ?? DEFAULT_ALLOWED_APIS)
       .addCallbacks(config.callbacks)
       .addConsoleApi()
-      .setCode(code, undefined, entrypoint)
+      .setCode(code, argNames, entrypoint)
       .runCode()
       .build()
 
