@@ -1,12 +1,12 @@
 import type { AnyBlock } from "../blocks/Block"
 import type { ValueDataType } from "../blocks/configuration/ValueDataType"
-import type { BlockRegistry } from "./BlockRegistry"
+import type { BlockRInterface } from "./BlockRInterface"
 import type { VariableRInterface } from "./VariableRInterface"
 
 export class VariableRegistry implements VariableRInterface {
   private variables = new Map<string, ValueDataType>()
 
-  constructor(blockRegistry: BlockRegistry) {
+  constructor(blockRegistry: BlockRInterface) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
   }

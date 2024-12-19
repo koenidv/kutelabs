@@ -7,18 +7,11 @@ import { Connector } from "../connections/Connector"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
-import type { BlockRInterface } from "./BlockRInterface"
+import type { BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 
-type events = {
-  workspaceAdded: { block: AnyBlock }
-  workspaceRemoved: { block: AnyBlock }
-}
-
-// todo implement worksapce events, for this all block movement should go through the registry
-
-export class BlockRegistry extends Emitter<events> implements BlockRInterface {
+export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterface {
   private _root: RootBlock | null = null
   public get root() {
     return this._root
@@ -42,6 +35,14 @@ export class BlockRegistry extends Emitter<events> implements BlockRInterface {
   }
   public getRegisteredById(id: string) {
     return [...this._blocks.values()].find(it => it.block.id == id)
+  }
+
+  public notifyConnected(block: AnyBlock, to: AnyBlock): void {
+    console.log("[BlockRegistry] notifyConnected", block, to)
+  }
+
+  public notifyDisconnected(block: AnyBlock, from: AnyBlock): void {
+    console.log("[BlockRegistry] notifyDisconnected", block, from)
   }
 
   public setSize(block: AnyBlock, size: SizeProps): AnyRegisteredBlock {
@@ -77,12 +78,13 @@ export class BlockRegistry extends Emitter<events> implements BlockRInterface {
   ) {
     if (!this._root) throw new Error("Root is not set")
     this.attach(block, this._root, this._root.rootConnector, modifyPosition)
+    if (block) this.notifyConnected(block, this._root)
   }
 
   public attachToDrawer(block: AnyBlock | null) {
     if (!this._drawer) throw new Error("Drawer is not set")
     this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero)
-    if (block) this.emit("workspaceRemoved", { block })
+    if (block) this.notifyConnected(block, this._drawer)
   }
 
   private attach(
@@ -94,7 +96,7 @@ export class BlockRegistry extends Emitter<events> implements BlockRInterface {
     if (!block) return
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
-    to.connect(
+    to.silentConnect(
       block,
       new Connection(on, block.connectors.internal),
       modifyPosition(registered.globalPosition)

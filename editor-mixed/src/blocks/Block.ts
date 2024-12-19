@@ -4,6 +4,7 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
+import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { BlockConnectors } from "./BlockConnectors"
@@ -29,7 +30,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     data: BlockDataByType<T, S>,
     connectors: { connector: Connector; connected?: AnyBlock | undefined }[],
     draggable: boolean,
-    blockRegistry: BlockRegistry,
+    blockRegistry: BlockRInterface,
     connectorRegistry: ConnectorRegistry
   ) {
     this.type = type
@@ -41,7 +42,11 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     for (const { connector, connected } of connectors) {
       this.connectors.addConnector(this, connectorRegistry, connector)
       if (connected) {
-        this.connect(connected, new Connection(connector, connected.upstreamConnector))
+        this.connect(
+          blockRegistry,
+          connected,
+          new Connection(connector, connected.upstreamConnector)
+        )
       }
     }
 
@@ -51,7 +56,17 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
   //#region Connect/Disconnect
 
-  connect(
+  public connect(
+    registry: BlockRInterface,
+    block: AnyBlock,
+    connection: Connection,
+    atPosition?: Coordinates
+  ): void {
+    registry.notifyConnected(block, this)
+    this.silentConnect(block, connection, atPosition)
+  }
+
+  public silentConnect(
     block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
@@ -70,7 +85,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
     // todo invalidate position
 
-    block.connect(this, connection, undefined, true)
+    block.silentConnect(this, connection, undefined, true)
   }
 
   private handleNoLocalConnector(block: AnyBlock, connection: Connection) {
@@ -92,14 +107,14 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   ) {
     if (localType === ConnectorType.Before) {
       if (block.connectors.before && this.upstream?.connectors.after) {
-        this.upstream.connect(
+        this.upstream.silentConnect(
           block,
           new Connection(this.upstream.connectors.after, block.connectors.before),
           atPosition
         )
         return
       } else {
-        block.lastAfter.connect(this.disconnectSelf(), connection)
+        block.lastAfter.silentConnect(this.disconnectSelf(null), connection)
         this.insertOnRoot(block, curr => atPosition ?? curr)
         return
       }
@@ -184,18 +199,19 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     return this.connectors.before ?? this.connectors.internal
   }
 
-  disconnect(block: AnyBlock): AnyBlock | null {
-    const popped = this.connectedBlocks.popBlock(block)?.block ?? null
-    if (block.connectedBlocks.isConnected(this)) block.disconnect(this)
-    return popped
-  }
-
-  disconnectSelf(): AnyBlock {
+  disconnectSelf(registry: BlockRInterface | null): AnyBlock {
     const upstreamConnector = this.upstreamConnectorInUse
     if (!upstreamConnector) throw new Error(`Block has no upstream connector (block#${this.id})`)
     const upstream = this.connectedBlocks.popForConnector(upstreamConnector)
     if (!upstream) throw new Error(`Block has no upstream block (block#${this.id})`)
 
-    return upstream.disconnect(this) ?? this
+    registry?.notifyDisconnected(this, upstream)
+    return upstream.silentDisconnectBlock(this) ?? this
+  }
+
+  silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
+    const popped = this.connectedBlocks.popBlock(block)?.block ?? null
+    if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
+    return popped
   }
 }

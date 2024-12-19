@@ -1,7 +1,7 @@
 import { Connection } from "../connections/Connection"
 import type { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
-import type { BlockRegistry } from "../registries/BlockRegistry"
+import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates, type BlockAndCoordinates } from "../util/Coordinates"
 import { Block, type AnyBlock } from "./Block"
@@ -10,7 +10,7 @@ import { BlockType } from "./configuration/BlockType"
 export class RootBlock extends Block<BlockType.Root> {
   public readonly rootConnector: Connector
   constructor(
-    blockRegistry: BlockRegistry,
+    blockRegistry: BlockRInterface,
     connectorRegistry: ConnectorRegistry
   ) {
     const rootConnector = DefaultConnectors.root()
@@ -27,7 +27,7 @@ export class RootBlock extends Block<BlockType.Root> {
 
   blocks: BlockAndCoordinates[] = []
 
-  override connect(
+  override silentConnect(
     block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
@@ -47,20 +47,20 @@ export class RootBlock extends Block<BlockType.Root> {
       // todo invalidate block
     }
 
-    if (!isOppositeAction) block.connect(this, connection, atPosition, true)
+    if (!isOppositeAction) block.silentConnect(this, connection, atPosition, true)
   }
 
-  override disconnect(block: AnyBlock): AnyBlock | null {
+  override silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
     const index = this.findIndex(block)
     if (index !== -1) this.blocks.splice(index, 1)
 
-    if (block.connectedBlocks.isConnected(this)) block.disconnect(this)
+    if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     return block
   }
 
   register(...values: BlockAndCoordinates[]) {
     values.forEach(({ block, position }) =>
-      this.connect(
+      this.silentConnect(
         block,
         new Connection(this.rootConnector, block.connectors.internal),
         position

@@ -71,7 +71,7 @@ export class DragHelper {
 
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) this.handleTouchStart(evt)
 
-    this.dragged.block.disconnectSelf()
+    this.dragged.block.disconnectSelf(this.blockRegistry)
     this.blockRegistry.setDetached(this.dragged.block)
 
     this.afterDrag(this.dragged, this.dragX, this.dragY, true)
@@ -240,6 +240,7 @@ export class DragHelper {
       new Connection(this.blockRegistry.root!.rootConnector, dragged.block.connectors.internal)
 
     connectOnBlock.connect(
+      this.blockRegistry,
       dragged.block,
       snapOnConnection,
       Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY))

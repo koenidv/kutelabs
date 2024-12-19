@@ -62,6 +62,7 @@ function parseBlockRecursive(
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
+  // parse connected blocks on each specified connector
   const connectedBlocks: { connector: Connector; connected: AnyBlock }[] = []
   if (parseConnected) {
     for (const connectedBlock of parseConnected) {
@@ -79,12 +80,14 @@ function parseBlockRecursive(
 
   const type = parseBlockType(data.type)
 
+  // deep copy custom expression
   if (type == BlockType.Expression && (data.data as BlockDataExpression)?.editable) {
     ;(data.data as BlockDataExpression).customExpression = new Map(
       Object.entries((data.data as BlockDataExpression).customExpression as object)
     )
   }
 
+  // add a false branch connector if elsebranch is set to true
   const defaultConnectors = DefaultConnectors.byBlockType(type)
   if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
     defaultConnectors.push(DefaultConnectors.conditionalFalse())

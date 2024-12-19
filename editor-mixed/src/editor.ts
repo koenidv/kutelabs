@@ -60,7 +60,7 @@ export class EditorMixed extends LitElement {
     super()
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-    this.variableRegistry = new VariableRegistry()
+    this.variableRegistry = new VariableRegistry(this.blockRegistry)
   }
 
   static styles = css`

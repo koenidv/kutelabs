@@ -21,7 +21,7 @@ export class ConnectedBlocks {
       connector.isDownstram
         ? this.byConnector(connector)
         : connector.parentBlock
-    )?.disconnectSelf()
+    )?.disconnectSelf(null)
     if (!popped) return
 
     // todo extension blocks / chains
@@ -33,7 +33,7 @@ export class ConnectedBlocks {
       lastAfter.connectors.after &&
       popped.connectors.before
     ) {
-      return lastAfter.connect(
+      return lastAfter.silentConnect(
         popped,
         new Connection(lastAfter.connectors.after, popped.connectors.before),
         Coordinates.zero
