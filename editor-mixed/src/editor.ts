@@ -78,7 +78,7 @@ export class EditorMixed extends LitElement {
   `
 
   protected render() {
-    console.time("editor | render time")
+    // console.time("editor | render time")
     if (!this.isCorrectlyConfigured) return
     const result = html`
       <noscript>Please enable JavaScript.</noscript>
@@ -125,7 +125,7 @@ export class EditorMixed extends LitElement {
           .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
       </div>
     `
-    console.timeEnd("editor | render time")
+    // console.timeEnd("editor | render time")
     return result
   }
 

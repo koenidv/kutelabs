@@ -11,9 +11,13 @@ export class VariableRegistry implements VariableRInterface {
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
   }
 
-  private onBlockAddedToWorkspace = (block: AnyBlock) => {}
+  private onBlockAddedToWorkspace = (block: AnyBlock) => {
+    console.log("add to worksp", block)
+  }
 
-  private onBlockRemovedFromWorkspace = (block: AnyBlock) => {}
+  private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
+    console.log("remove from worksp", block)
+  }
 
   public isNameAvailable(name: string): boolean {
     return !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) && !this.variables.has(name)

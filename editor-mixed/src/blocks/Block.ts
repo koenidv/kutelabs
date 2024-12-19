@@ -62,7 +62,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     connection: Connection,
     atPosition?: Coordinates
   ): void {
-    registry.notifyConnected(block, this)
+    registry.notifyConnecting(block, this)
     this.silentConnect(block, connection, atPosition)
   }
 
@@ -205,7 +205,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     const upstream = this.connectedBlocks.popForConnector(upstreamConnector)
     if (!upstream) throw new Error(`Block has no upstream block (block#${this.id})`)
 
-    registry?.notifyDisconnected(this, upstream)
+    registry?.notifyDisconnecting(this, upstream)
     return upstream.silentDisconnectBlock(this) ?? this
   }
 

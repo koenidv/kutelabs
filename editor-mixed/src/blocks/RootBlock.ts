@@ -9,15 +9,12 @@ import { BlockType } from "./configuration/BlockType"
 
 export class RootBlock extends Block<BlockType.Root> {
   public readonly rootConnector: Connector
-  constructor(
-    blockRegistry: BlockRInterface,
-    connectorRegistry: ConnectorRegistry
-  ) {
+  constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRegistry) {
     const rootConnector = DefaultConnectors.root()
     super(
       BlockType.Root,
       null,
-      [{connector: rootConnector}],
+      [{ connector: rootConnector }],
       false,
       blockRegistry,
       connectorRegistry
@@ -25,7 +22,10 @@ export class RootBlock extends Block<BlockType.Root> {
     this.rootConnector = rootConnector
   }
 
-  blocks: BlockAndCoordinates[] = []
+  private _blocks: Map<AnyBlock, Coordinates> = new Map()
+  public get blocks(): BlockAndCoordinates[] {
+    return [...this._blocks].map(([block, position]) => ({ block, position }))
+  }
 
   override silentConnect(
     block: AnyBlock,
@@ -33,17 +33,11 @@ export class RootBlock extends Block<BlockType.Root> {
     atPosition?: Coordinates,
     isOppositeAction: boolean = false
   ): void {
-    if (
-      connection.from != this.rootConnector &&
-      connection.to != this.rootConnector
-    )
+    if (connection.from != this.rootConnector && connection.to != this.rootConnector)
       throw new Error("Root block can only connect on root connector")
 
-    if (this.findIndex(block) == -1) {
-      this.blocks.push({
-        block: block,
-        position: atPosition ?? Coordinates.zero,
-      })
+    if (!this._blocks.has(block)) {
+      this._blocks.set(block, atPosition ?? Coordinates.zero)
       // todo invalidate block
     }
 
@@ -51,9 +45,7 @@ export class RootBlock extends Block<BlockType.Root> {
   }
 
   override silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
-    const index = this.findIndex(block)
-    if (index !== -1) this.blocks.splice(index, 1)
-
+    this._blocks.delete(block)
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     return block
   }
@@ -68,11 +60,7 @@ export class RootBlock extends Block<BlockType.Root> {
     )
   }
 
-  private findIndex(block: AnyBlock) {
-    return this.blocks.findIndex(b => b.block === block)
-  }
-
   public clear() {
-    this.blocks = []
+    this._blocks.clear()
   }
 }

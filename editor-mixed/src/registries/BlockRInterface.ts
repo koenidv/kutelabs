@@ -13,8 +13,8 @@ export interface BlockRInterface extends Emitter<BlockREvents> {
   register(block: AnyBlock): void
   getRegisteredById(id: string): AnyRegisteredBlock | undefined
 
-  notifyDisconnected(block: AnyBlock, from: AnyBlock): void
-  notifyConnected(block: AnyBlock, to: AnyBlock): void
+  notifyDisconnecting(block: AnyBlock, from: AnyBlock): void
+  notifyConnecting(block: AnyBlock, to: AnyBlock): void
 
   attachToRoot(block: AnyBlock, modifyPosition: (current: Coordinates) => Coordinates): void
   attachToDrawer(block: AnyBlock): void

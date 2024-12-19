@@ -10,6 +10,7 @@ import { Emitter } from "../util/Emitter"
 import type { BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
+import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
 
 export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterface {
   private _root: RootBlock | null = null
@@ -22,10 +23,18 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     return this._drawer
   }
 
+  private workspaceState: WorkspaceStateHelper
+  notifyConnecting: (block: AnyBlock, to: AnyBlock) => void
+  notifyDisconnecting: (block: AnyBlock, from: AnyBlock) => void
+
   constructor(connectorRegistry: ConnectorRegistry) {
     super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
+
+    this.workspaceState = new WorkspaceStateHelper(this.emit.bind(this))
+    this.notifyConnecting = this.workspaceState.onConnecting.bind(this.workspaceState)
+    this.notifyDisconnecting = this.workspaceState.onDisconnecting.bind(this.workspaceState)
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
@@ -35,14 +44,6 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   }
   public getRegisteredById(id: string) {
     return [...this._blocks.values()].find(it => it.block.id == id)
-  }
-
-  public notifyConnected(block: AnyBlock, to: AnyBlock): void {
-    console.log("[BlockRegistry] notifyConnected", block, to)
-  }
-
-  public notifyDisconnected(block: AnyBlock, from: AnyBlock): void {
-    console.log("[BlockRegistry] notifyDisconnected", block, from)
   }
 
   public setSize(block: AnyBlock, size: SizeProps): AnyRegisteredBlock {
@@ -78,13 +79,11 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   ) {
     if (!this._root) throw new Error("Root is not set")
     this.attach(block, this._root, this._root.rootConnector, modifyPosition)
-    if (block) this.notifyConnected(block, this._root)
   }
 
   public attachToDrawer(block: AnyBlock | null) {
     if (!this._drawer) throw new Error("Drawer is not set")
     this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero)
-    if (block) this.notifyConnected(block, this._drawer)
   }
 
   private attach(
@@ -96,7 +95,8 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     if (!block) return
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
-    to.silentConnect(
+    to.connect(
+      this,
       block,
       new Connection(on, block.connectors.internal),
       modifyPosition(registered.globalPosition)
