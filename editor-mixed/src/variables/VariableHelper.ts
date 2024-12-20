@@ -1,16 +1,18 @@
 import type { AnyBlock, Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { ValueDataType } from "../blocks/configuration/ValueDataType"
-import type { BlockRInterface } from "./BlockRInterface"
-import type { VariableMeta, VariableRInterface } from "./VariableRInterface"
+import type { BlockRInterface } from "../registries/BlockRInterface"
+import type { VariableMeta, VariableHInterface } from "./VariableHInterface"
 
 type VariableData = VariableMeta & { usages: Block<BlockType.Variable>[] }
 
 /**
- * This registry tracks init blocks in the workspace to provide information about available variables
+ * side effect / helper class
+ * This helper tracks init blocks in the workspace to provide information about available variables
+ * It adds variable blocks to the drawer for available variables and removes variable usages when the init block is removed
  * Variables reported here are not necessarily available in a given scope, they're just declared somewhere in the workspaces
  */
-export class VariableRegistry implements VariableRInterface {
+export class VariableHelper implements VariableHInterface {
   private variables = new Map<Block<BlockType.VarInit>, VariableData>()
 
   constructor(blockRegistry: BlockRInterface) {

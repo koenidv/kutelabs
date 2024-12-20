@@ -19,7 +19,8 @@ import { isSafari } from "./util/browserCheck"
 import "@kutelabs/shared"
 import "./drag/DragLayer"
 import type { DragLayer } from "./drag/DragLayer"
-import { VariableRegistry } from "./registries/VariableRegistry"
+import { VariableHelper } from "./variables/VariableHelper"
+import type { VariableHInterface } from "./variables/VariableHInterface"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -30,7 +31,7 @@ export class EditorMixed extends LitElement {
 
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
-  variableRegistry: VariableRegistry
+  variableRegistry: VariableHInterface
   declare layouter: BaseLayouter
   declare blockRenderer: BaseBlockRenderer
   declare drawerRenderer: BaseDrawerRenderer
@@ -60,7 +61,7 @@ export class EditorMixed extends LitElement {
     super()
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-    this.variableRegistry = new VariableRegistry(this.blockRegistry)
+    this.variableRegistry = new VariableHelper(this.blockRegistry)
   }
 
   static styles = css`
