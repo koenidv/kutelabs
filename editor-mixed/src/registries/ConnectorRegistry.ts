@@ -19,6 +19,16 @@ export class ConnectorRegistry implements ConnectorRInterface {
   }
 
   /**
+   * Deregister all connectors that belong to a block, used when a block is removed
+   * @param block Block to deregister connectors for
+   */
+  public deregisterForBlock(block: AnyBlock): void {
+    this._connectors = this._connectors.filter(
+      connector => connector.parentBlock === null || connector.parentBlock.id !== block.id
+    )
+  }
+
+  /**
    * Selects the closest suitable connector for a block to snap to
    *
    * Suitable connections are:

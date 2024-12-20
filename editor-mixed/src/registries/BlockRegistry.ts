@@ -27,10 +27,13 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   notifyConnecting: (block: AnyBlock, to: AnyBlock) => void
   notifyDisconnecting: (block: AnyBlock, from: AnyBlock) => void
 
+  private readonly deregisterConnectors: (block: AnyBlock) => void
+
   constructor(connectorRegistry: ConnectorRegistry) {
     super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
+    this.deregisterConnectors = connectorRegistry.deregisterForBlock.bind(connectorRegistry)
 
     this.workspaceState = new WorkspaceStateHelper(this.emit.bind(this))
     this.notifyConnecting = this.workspaceState.onConnecting.bind(this.workspaceState)
@@ -42,6 +45,14 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block))
   }
+
+  public deregister(block: AnyBlock): void {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    this._blocks.delete(block)
+    this.deregisterConnectors(block)
+  }
+
   public getRegisteredById(id: string) {
     return [...this._blocks.values()].find(it => it.block.id == id)
   }

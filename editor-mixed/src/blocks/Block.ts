@@ -199,7 +199,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     return this.connectors.before ?? this.connectors.internal
   }
 
-  disconnectSelf(registry: BlockRInterface | null): AnyBlock {
+  disconnectSelf(registry: BlockRInterface | null): AnyBlock {
     const upstreamConnector = this.upstreamConnectorInUse
     if (!upstreamConnector) throw new Error(`Block has no upstream connector (block#${this.id})`)
     const upstream = this.connectedBlocks.popForConnector(upstreamConnector)

@@ -10,6 +10,10 @@ import { BlockType } from "./configuration/BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
   public readonly drawerConnector: Connector
+
+  private readonly registerBlock: (block: AnyBlock) => void
+  private readonly deregisterBlock: (block: AnyBlock) => void
+
   constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRegistry) {
     const drawerConnector = DefaultConnectors.drawer()
     super(
@@ -21,6 +25,9 @@ export class DrawerBlock extends Block<BlockType.Root> {
       connectorRegistry
     )
     this.drawerConnector = drawerConnector
+
+    this.registerBlock = blockRegistry.register.bind(blockRegistry)
+    this.deregisterBlock = blockRegistry.deregister.bind(blockRegistry)
   }
 
   private _blocks: Map<AnyBlock, number> = new Map()
@@ -59,7 +66,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
       throw new Error("Drawer block can only connect on drawer connector")
 
-    if (this.hasMatchingBlock(block)) return // todo deregister block
+    if (this.hasMatchingBlock(block)) return this.deregisterBlock(block)
 
     this._blocks.set(block, 1)
     block.isInDrawer = true
