@@ -2,7 +2,7 @@ import type { Ref } from "lit/directives/ref.js"
 import { Connection } from "../connections/Connection"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
-import type { AnyRegisteredBlock } from "../registries/RegisteredBlock"
+import { RegisteredBlock, type AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 
@@ -71,9 +71,6 @@ export class DragHelper {
 
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) this.handleTouchStart(evt)
 
-    this.dragged.block.disconnectSelf(this.blockRegistry)
-    this.blockRegistry.setDetached(this.dragged.block)
-
     this.afterDrag(this.dragged, this.dragX, this.dragY, true)
     this.workspaceRef.value.style.cursor = "grabbing"
   }
@@ -101,14 +98,22 @@ export class DragHelper {
   }
 
   /**
-   * Retrieves the dragged block from the parent element of the dragged element.
+   * Retrieves the dragged block from the parent element of the dragged element sets it as detached
    * @param draggableParent target element of the drag start event
    * @returns dragged block or null if not found
    */
   private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
-    return this.blockRegistry.getRegisteredById(blockId) ?? null
+    const registeredBlock = this.blockRegistry.getRegisteredById(blockId)
+    if (registeredBlock == null) return null
+
+    const poppedBlock = registeredBlock.block.disconnectSelf(this.blockRegistry)
+    this.blockRegistry.setDetached(poppedBlock)
+    if (poppedBlock != registeredBlock.block) {
+      return this.blockRegistry.getRegistered(poppedBlock)
+    }
+    return registeredBlock
   }
 
   /**

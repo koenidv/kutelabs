@@ -6,6 +6,7 @@ import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { Coordinates } from "../util/Coordinates"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
@@ -31,7 +32,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     connectors: { connector: Connector; connected?: AnyBlock | undefined }[],
     draggable: boolean,
     blockRegistry: BlockRInterface,
-    connectorRegistry: ConnectorRegistry
+    connectorRegistry: ConnectorRInterface
   ) {
     this.type = type
     this.draggable = draggable
@@ -213,5 +214,24 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     const popped = this.connectedBlocks.popBlock(block)?.block ?? null
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     return popped
+  }
+
+  //#region Internals
+
+  simpleCopy(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): Block<T> {
+    return new Block(
+      this.type,
+      this.data,
+      this.connectors.all.map(connector => ({
+        connector: new Connector(
+          connector.type,
+          connector.role,
+          connector.connectPredicates.predicates
+        ),
+      })),
+      this.isInDrawer,
+      blockRegistry,
+      connectorRegistry
+    )
   }
 }

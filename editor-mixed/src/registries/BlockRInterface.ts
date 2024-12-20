@@ -12,6 +12,8 @@ export type BlockREvents = {
 export interface BlockRInterface extends Emitter<BlockREvents> {
   register(block: AnyBlock): void
   deregister(block: AnyBlock): void
+  registerCopyOf(block: AnyBlock): AnyBlock
+  getRegistered(block: AnyBlock): AnyRegisteredBlock
   getRegisteredById(id: string): AnyRegisteredBlock | undefined
 
   notifyDisconnecting(block: AnyBlock, from: AnyBlock): void

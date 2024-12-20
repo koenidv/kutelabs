@@ -2,14 +2,14 @@ import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import type { AnyBlock } from "./Block"
-import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 
 export class BlockConnectors {
   private _connectors: Map<ConnectorType, Connector> = new Map()
   private _innerConnectors: Connector[] = []
   private _extensionConnectors: Connector[] = []
 
-  addConnector(parentBlock: AnyBlock, registry: ConnectorRegistry, connector: Connector) {
+  addConnector(parentBlock: AnyBlock, registry: ConnectorRInterface, connector: Connector) {
     connector.register(registry, parentBlock)
 
     switch (connector.type) {

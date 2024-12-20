@@ -1,5 +1,6 @@
 import type { AnyBlock } from "../blocks/Block"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
@@ -20,7 +21,7 @@ export class Connector {
     this.connectPredicates = new ConnectPredicates(this, connectPredicates)
   }
 
-  public register(registry: ConnectorRegistry, parentBlock: AnyBlock): this {
+  public register(registry: ConnectorRInterface, parentBlock: AnyBlock): this {
     if (this._parentBlock != null && parentBlock != this._parentBlock)
       throw new Error("Connector parent may not be changed")
     this._parentBlock = parentBlock

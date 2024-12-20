@@ -6,6 +6,9 @@ import { BlockRegistry } from "../../registries/BlockRegistry"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 
+export type BlockSizeCount = BlockAndSize & { count: number }
+export type BlockCoordinateCount = BlockAndCoordinates & { count: number }
+
 export abstract class BaseDrawerRenderer {
   private readonly blockRegistry: BlockRegistry
   private readonly layouter: BaseLayouter
@@ -53,16 +56,17 @@ export abstract class BaseDrawerRenderer {
     `
   }
 
-  private measureAndSet(blocks: AnyBlock[]): BlockAndSize[] {
-    return blocks.map(block => {
+  private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {
+    return blocks.map(({ block, count }) => {
       const size = this.layouter.measureBlock(block)
+      console.log(block)
       this.blockRegistry.setSize(block, size)
-      return { block, size }
+      return { block, size, count }
     })
   }
 
-  private positionAndSet(blocks: BlockAndSize[]): {
-    positions: BlockAndCoordinates[]
+  private positionAndSet(blocks: BlockSizeCount[]): {
+    positions: BlockCoordinateCount[]
     fullWidth: number
     fullHeight: number
   } {
@@ -74,14 +78,14 @@ export abstract class BaseDrawerRenderer {
     return calculated
   }
 
-  protected abstract calculatePositions(blocks: BlockAndSize[]): {
-    positions: BlockAndCoordinates[]
+  protected abstract calculatePositions(blocks: BlockSizeCount[]): {
+    positions: BlockCoordinateCount[]
     fullWidth: number
     fullHeight: number
   }
 
   protected abstract renderDrawer(
-    blocks: BlockAndCoordinates[],
+    blocks: BlockCoordinateCount[],
     contentWidth: number,
     contentHeight: number,
     renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>

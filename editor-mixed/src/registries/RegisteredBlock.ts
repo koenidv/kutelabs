@@ -1,4 +1,4 @@
-import type { AnyBlock, Block } from "../blocks/Block"
+import type { Block } from "../blocks/Block"
 import type { BlockType } from "../blocks/configuration/BlockType"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
@@ -6,7 +6,7 @@ import { Coordinates } from "../util/Coordinates"
 export type AnyRegisteredBlock = RegisteredBlock<BlockType>
 
 export class RegisteredBlock<T extends BlockType> {
-  readonly block: Block<T>
+  block: Block<T>
 
   isInvalidated = false
   globalPosition: Coordinates

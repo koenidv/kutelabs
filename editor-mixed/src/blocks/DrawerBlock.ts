@@ -1,5 +1,5 @@
 import { Connection } from "../connections/Connection"
-import type { Connector } from "../connections/Connector"
+import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
@@ -11,8 +11,7 @@ import { BlockType } from "./configuration/BlockType"
 export class DrawerBlock extends Block<BlockType.Root> {
   public readonly drawerConnector: Connector
 
-  private readonly registerBlock: (block: AnyBlock) => void
-  private readonly deregisterBlock: (block: AnyBlock) => void
+  private readonly blockRegistry: BlockRInterface
 
   constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRegistry) {
     const drawerConnector = DefaultConnectors.drawer()
@@ -26,13 +25,12 @@ export class DrawerBlock extends Block<BlockType.Root> {
     )
     this.drawerConnector = drawerConnector
 
-    this.registerBlock = blockRegistry.register.bind(blockRegistry)
-    this.deregisterBlock = blockRegistry.deregister.bind(blockRegistry)
+    this.blockRegistry = blockRegistry
   }
 
   private _blocks: Map<AnyBlock, number> = new Map()
-  public get blocks(): AnyBlock[] {
-    return [...this._blocks.keys()]
+  public get blocks(): { block: AnyBlock; count: number }[] {
+    return [...this._blocks.entries()].map(([block, count]) => ({ block, count }))
   }
 
   override connect(
@@ -66,9 +64,14 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
       throw new Error("Drawer block can only connect on drawer connector")
 
-    if (this.hasMatchingBlock(block)) return this.deregisterBlock(block)
+    const matching = this.hasMatchingBlock(block)
+    if (matching) {
+      this._blocks.set(matching, (this._blocks.get(matching) ?? 0) + 1)
+      this.blockRegistry.deregister(block)
+      return
+    }
 
-    this._blocks.set(block, 1)
+    this._blocks.set(block, this._blocks.get(block) ?? 0 + 1)
     block.isInDrawer = true
     // todo invalidate block
 
@@ -76,8 +79,23 @@ export class DrawerBlock extends Block<BlockType.Root> {
   }
 
   override silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
-    this._blocks.delete(block) // todo if count > 1, do not disconnect and return a clone
+    return this.takeBlock(block)
+  }
 
+  private takeBlock(block: AnyBlock): AnyBlock {
+    const count = this._blocks.get(block) ?? 0
+    if (count != 1) {
+      this._blocks.set(block, count - 1)
+      // the block will have disconnected itself, reconnect to keep double link
+      block.silentConnect(
+        this,
+        new Connection(this.drawerConnector, block.connectors.internal),
+        undefined,
+        true
+      )
+      return this.blockRegistry.registerCopyOf(block)
+    }
+    this._blocks.delete(block)
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     block.isInDrawer = false
     return block
@@ -87,10 +105,10 @@ export class DrawerBlock extends Block<BlockType.Root> {
     this._blocks.clear()
   }
 
-  private hasMatchingBlock(block: AnyBlock): boolean {
-    if (this._blocks.has(block)) return true
+  private hasMatchingBlock(block: AnyBlock): AnyBlock | null {
+    if (this._blocks.has(block)) return block
     for (const test of this._blocks.keys())
-      if (block.type === test.type && objectsEqual1d(block.data, test.data)) return true
-    return false
+      if (block.type === test.type && objectsEqual1d(block.data, test.data)) return test
+    return null
   }
 }
