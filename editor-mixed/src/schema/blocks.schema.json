@@ -18,6 +18,9 @@
           "$ref": "#/$defs/ValueBlock"
         },
         {
+          "$ref": "#/$defs/VariableInitBlock"
+        },
+        {
           "$ref": "#/$defs/VariableBlock"
         },
         {
@@ -366,9 +369,57 @@
         "data"
       ]
     },
+    "VariableInitBlock": {
+      "type": "object",
+      "description": "Variable Init Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an variable block",
+          "type": "string",
+          "const": "variable_init"
+        },
+        "data": {
+          "description": "Variable Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the variable",
+              "type": "string"
+            },
+            "type": {
+              "description": "Variable type (from ValueDataType)",
+              "type": "string",
+              "enum": [
+                "int",
+                "float",
+                "string",
+                "boolean",
+                "array<int>",
+                "array<float>",
+                "array<string>",
+                "array<boolean>"
+              ]
+            },
+            "isMutable": {
+              "description": "If the variable is mutable, defaults to true",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
     "VariableBlock": {
       "type": "object",
-      "description": "Variable Block",
+      "description": "Variable Block. You must include a Variable Init Block to initialize the variable",
       "properties": {
         "type": {
           "description": "Defines this block as an variable block",

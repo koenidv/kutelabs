@@ -1,5 +1,10 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
+import type {
+  BlockDataByType,
+  BlockDataExpression,
+  BlockDataValue,
+  BlockDataVariable,
+} from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { Connector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
@@ -79,13 +84,7 @@ function parseBlockRecursive(
   }
 
   const type = parseBlockType(data.type)
-
-  // deep copy custom expression
-  if (type == BlockType.Expression && (data.data as BlockDataExpression)?.editable) {
-    ;(data.data as BlockDataExpression).customExpression = new Map(
-      Object.entries((data.data as BlockDataExpression).customExpression as object)
-    )
-  }
+  const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type>)
 
   // add a false branch connector if elsebranch is set to true
   const defaultConnectors = DefaultConnectors.byBlockType(type)
@@ -95,12 +94,36 @@ function parseBlockRecursive(
 
   return new Block<typeof type>(
     type,
-    data.data as BlockDataByType<typeof type>,
+    blockData,
     mergeConnectors(connectedBlocks, defaultConnectors),
     true,
     blockRegistry,
     connectorRegistry
   )
+}
+
+function normalizeBlockData(
+  type: BlockType,
+  data: BlockDataByType<typeof type>
+): BlockDataByType<typeof type> {
+  if (!data) return data
+
+  switch (type) {
+    case BlockType.Expression:
+      if ((data as BlockDataExpression).editable) {
+        // deep copy custom expression
+        ;(data as BlockDataExpression).customExpression = new Map(
+          Object.entries((data as BlockDataExpression).customExpression as object)
+        )
+      }
+      break
+    case BlockType.VarInit:
+      // default value for mutable
+      ;(data as BlockDataVariable<any>).isMutable =
+        (data as BlockDataVariable<any>).isMutable ?? true
+      break
+  }
+  return data
 }
 
 function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
@@ -127,11 +150,11 @@ function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
 }
 
 function parseBlockType(typeName: string): BlockType {
-  const key = Object.keys(BlockType).find(
+  const key = Object.values(BlockType).find(
     it => it.toLowerCase() == typeName.toLowerCase()
-  ) as keyof typeof BlockType
+  ) as BlockType
   if (!key) throw new Error(`Block type not found for value: ${typeName}`)
-  return BlockType[key]
+  return key
 }
 
 function mergeConnectors(

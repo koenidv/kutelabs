@@ -10,6 +10,7 @@ export class DefaultConnectors {
       case BlockType.Function:
         return [DefaultConnectors.inner(), DefaultConnectors.output()]
       case BlockType.Expression:
+      case BlockType.VarInit:
         return [
           DefaultConnectors.before(),
           DefaultConnectors.after(),

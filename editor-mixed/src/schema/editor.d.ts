@@ -72,7 +72,13 @@ export type AnyBlockConnected = AnyBlock & {
   on?: unknown
   elsebranch?: unknown
 }
-export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock
+export type AnyBlock =
+  | FunctionBlock
+  | ExpressionBlock
+  | ValueBlock
+  | VariableInitBlock
+  | VariableBlock
+  | ConditionalBlock
 /**
  * Connector on this block
  */
@@ -112,7 +118,7 @@ export type AnyBlockSingle = {
   type?: unknown
   data?: unknown
   elsebranch?: unknown
-} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock)
+} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableInitBlock | VariableBlock | ConditionalBlock)
 
 /**
  * Function Block
@@ -184,7 +190,34 @@ export interface ValueBlock {
   [k: string]: unknown
 }
 /**
- * Variable Block
+ * Variable Init Block
+ */
+export interface VariableInitBlock {
+  /**
+   * Defines this block as an variable block
+   */
+  type: "variable_init"
+  /**
+   * Variable Block Data
+   */
+  data: {
+    /**
+     * Name of the variable
+     */
+    name: string
+    /**
+     * Variable type (from ValueDataType)
+     */
+    type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
+    /**
+     * If the variable is mutable, defaults to true
+     */
+    isMutable?: boolean
+  }
+  [k: string]: unknown
+}
+/**
+ * Variable Block. You must include a Variable Init Block to initialize the variable
  */
 export interface VariableBlock {
   /**
