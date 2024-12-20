@@ -4,6 +4,7 @@ import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
+import { objectsEqual1d } from "../util/ObjectUtils"
 import { Block, type AnyBlock } from "./Block"
 import { BlockType } from "./configuration/BlockType"
 
@@ -22,7 +23,10 @@ export class DrawerBlock extends Block<BlockType.Root> {
     this.drawerConnector = drawerConnector
   }
 
-  blocks: AnyBlock[] = []
+  private _blocks: Map<AnyBlock, number> = new Map()
+  public get blocks(): AnyBlock[] {
+    return [...this._blocks.keys()]
+  }
 
   override connect(
     registry: BlockRInterface,
@@ -55,9 +59,9 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
       throw new Error("Drawer block can only connect on drawer connector")
 
-    if (this.blocks.includes(block)) return
+    if (this.hasMatchingBlock(block)) return // todo deregister block
 
-    this.blocks.push(block)
+    this._blocks.set(block, 1)
     block.isInDrawer = true
     // todo invalidate block
 
@@ -65,8 +69,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
   }
 
   override silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
-    const index = this.blocks.indexOf(block)
-    if (index !== -1) this.blocks.splice(index, 1)
+    this._blocks.delete(block) // todo if count > 1, do not disconnect and return a clone
 
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     block.isInDrawer = false
@@ -74,6 +77,13 @@ export class DrawerBlock extends Block<BlockType.Root> {
   }
 
   public clear() {
-    this.blocks = []
+    this._blocks.clear()
+  }
+
+  private hasMatchingBlock(block: AnyBlock): boolean {
+    if (this._blocks.has(block)) return true
+    for (const test of this._blocks.keys())
+      if (block.type === test.type && objectsEqual1d(block.data, test.data)) return true
+    return false
   }
 }
