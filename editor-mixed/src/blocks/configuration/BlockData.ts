@@ -11,7 +11,7 @@ export type BlockDataByType<
     ? BlockDataExpression
     : T extends BlockType.Value
       ? BlockDataValue<S extends ValueDataType ? ValueDataType : never>
-      : T extends BlockType.Variable
+      : T extends BlockType.Variable | BlockType.VarInit
         ? BlockDataVariable<S extends ValueDataType ? ValueDataType : never>
         : BlockDataEmpty
 
@@ -34,11 +34,7 @@ export type BlockDataExpression = {
 export type BlockDataVariable<Type extends ValueDataType> = {
   name: string
   type: Type
-}
-
-export type BlockDataVariableInit<Type extends ValueDataType> = {
-  name: string
-  type: Type
+  isMutable: boolean
 }
 
 export type BlockDataValue<Type extends ValueDataType> = {

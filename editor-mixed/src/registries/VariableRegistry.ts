@@ -1,10 +1,17 @@
-import type { AnyBlock } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
+import { BlockType } from "../blocks/configuration/BlockType"
 import type { ValueDataType } from "../blocks/configuration/ValueDataType"
 import type { BlockRInterface } from "./BlockRInterface"
-import type { VariableRInterface } from "./VariableRInterface"
+import type { VariableMeta, VariableRInterface } from "./VariableRInterface"
 
+type VariableData = VariableMeta & { usages: Block<BlockType.Variable>[] }
+
+/**
+ * This registry tracks init blocks in the workspace to provide information about available variables
+ * Variables reported here are not necessarily available in a given scope, they're just declared somewhere in the workspaces
+ */
 export class VariableRegistry implements VariableRInterface {
-  private variables = new Map<string, ValueDataType>()
+  private variables = new Map<Block<BlockType.VarInit>, VariableData>()
 
   constructor(blockRegistry: BlockRInterface) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
@@ -12,22 +19,42 @@ export class VariableRegistry implements VariableRInterface {
   }
 
   private onBlockAddedToWorkspace = (block: AnyBlock) => {
-    console.log("add to worksp", block)
+    if (block.type !== BlockType.VarInit) return
+    if (this.variables.has(block as Block<BlockType.VarInit>)) {
+      console.warn("Added var init block to workspace but block is already tracked:", block)
+      return
+    }
+    const varblock = block as Block<BlockType.VarInit>
+
+    this.variables.set(block as Block<BlockType.VarInit>, {
+      name: varblock.data.name,
+      type: varblock.data.type,
+      isMutable: varblock.data.isMutable,
+      usages: [],
+    })
+    console.log("added variable init to workspace", block)
   }
 
   private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
-    console.log("remove from worksp", block)
+    if (block.type !== BlockType.VarInit) return
+    if (this.variables.has(block as Block<BlockType.VarInit>)) {
+      this.variables.delete(block as Block<BlockType.VarInit>)
+      console.log("deleted variable associated with", block)
+    }
   }
 
   public isNameAvailable(name: string): boolean {
-    return !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) && !this.variables.has(name)
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return false
+    for (const { name: registeredName } of this.variables.values())
+      if (registeredName === name) return false
+    return true
   }
 
-  public getVariables(): { name: string; type: ValueDataType }[] {
-    return [...this.variables.entries()].map(([name, type]) => ({ name, type }))
-  }
-
-  public getVariableType(name: string): ValueDataType | null {
-    return this.variables.get(name) ?? null
+  public getVariables(): { name: string; type: ValueDataType; isMutable: boolean }[] {
+    return [...this.variables.entries()].map(([_initBlock, data]) => ({
+      name: data.name,
+      type: data.type,
+      isMutable: data.isMutable,
+    }))
   }
 }
