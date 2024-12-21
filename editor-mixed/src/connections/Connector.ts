@@ -11,14 +11,18 @@ export class Connector {
   role: ConnectorRole
   connectPredicates: ConnectPredicates
 
+  globalPosition: Coordinates
+
   constructor(
     type: ConnectorType,
     role: ConnectorRole = ConnectorRole.Default,
-    connectPredicates: ConnectPredicate[] = []
+    connectPredicates: ConnectPredicate[] = [],
+    position: Coordinates = Coordinates.zero
   ) {
     this.type = type
     this.role = role
     this.connectPredicates = new ConnectPredicates(this, connectPredicates)
+    this.globalPosition = position
   }
 
   public register(registry: ConnectorRInterface, parentBlock: AnyBlock): this {
@@ -33,8 +37,6 @@ export class Connector {
   public get parentBlock(): AnyBlock | null {
     return this._parentBlock
   }
-
-  public globalPosition: Coordinates = Coordinates.zero
 
   get isDownstram() {
     return (

@@ -226,7 +226,8 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
         connector: new Connector(
           connector.type,
           connector.role,
-          connector.connectPredicates.predicates
+          connector.connectPredicates.predicates,
+          connector.globalPosition
         ),
       })),
       this.isInDrawer,
