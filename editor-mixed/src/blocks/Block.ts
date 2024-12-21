@@ -243,7 +243,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       connectorRegistry,
       registered?.globalPosition,
       registered?.size ?? undefined
-    )
+    ).also(it => {
+      it.isInDrawer = this.isInDrawer
+    })
   }
 
   /**

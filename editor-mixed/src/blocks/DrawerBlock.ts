@@ -72,7 +72,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (matching) {
       const currentCount = this._blocks.get(matching) ?? 0
       if (currentCount > 0) this._blocks.set(matching, currentCount + drawerItemCount)
-        block.remove(this.blockRegistry, this.connectorRegistry)
+      block.remove(this.blockRegistry, this.connectorRegistry)
       return
     }
 
@@ -98,11 +98,13 @@ export class DrawerBlock extends Block<BlockType.Root> {
         undefined,
         true
       )
-      return block.registerClone(this.blockRegistry, this.connectorRegistry)
+      const clone = block.registerClone(this.blockRegistry, this.connectorRegistry)
+      setTimeout(() => (clone.isInDrawer = false), 0)
+      return clone
     }
     this._blocks.delete(block)
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
-    block.isInDrawer = false
+    setTimeout(() => (block.isInDrawer = false), 0)
     return block
   }
 
