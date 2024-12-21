@@ -27,13 +27,10 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   notifyConnecting: (block: AnyBlock, to: AnyBlock) => void
   notifyDisconnecting: (block: AnyBlock, from: AnyBlock) => void
 
-  private readonly connectorRegistry: ConnectorRegistry
-
   constructor(connectorRegistry: ConnectorRegistry) {
     super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
-    this.connectorRegistry = connectorRegistry
 
     this.workspaceState = new WorkspaceStateHelper(this.emit.bind(this))
     this.notifyConnecting = this.workspaceState.onConnecting.bind(this.workspaceState)
@@ -41,25 +38,17 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
-  public register(block: AnyBlock) {
+
+  public register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
-    this._blocks.set(block, new RegisteredBlock(block))
+    this._blocks.set(block, new RegisteredBlock(block, position, size))
   }
 
-  public registerCopyOf(block: AnyBlock): AnyBlock {
-    const registered = this._blocks.get(block)
-    if (!registered) throw new Error("Block is not registered")
-    const copy = block.simpleCopy(this, this.connectorRegistry) // copying will also register the block
-    if (registered.size) this.setSize(copy, registered.size)
-    if (registered.globalPosition) this.setPosition(copy, registered.globalPosition)
-    return copy
-  }
-
-  public deregister(block: AnyBlock): void {
+  public deregister(block: AnyBlock, connectorRegistry: ConnectorRegistry): void {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     this._blocks.delete(block)
-    this.connectorRegistry.deregisterForBlock(block)
+    connectorRegistry.deregisterForBlock(block)
   }
 
   public getRegistered(block: AnyBlock): AnyRegisteredBlock {

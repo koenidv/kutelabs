@@ -2,6 +2,7 @@ import type { AnyBlock } from "../blocks/Block"
 import type { SizeProps } from "../render/SizeProps"
 import type { Coordinates } from "../util/Coordinates"
 import type { Emitter } from "../util/Emitter"
+import type { ConnectorRegistry } from "./ConnectorRegistry"
 import type { AnyRegisteredBlock } from "./RegisteredBlock"
 
 export type BlockREvents = {
@@ -10,9 +11,8 @@ export type BlockREvents = {
 }
 
 export interface BlockRInterface extends Emitter<BlockREvents> {
-  register(block: AnyBlock): void
-  deregister(block: AnyBlock): void
-  registerCopyOf(block: AnyBlock): AnyBlock
+  register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void
+  deregister(block: AnyBlock, connectorRegistry: ConnectorRegistry): void
   getRegistered(block: AnyBlock): AnyRegisteredBlock
   getRegisteredById(id: string): AnyRegisteredBlock | undefined
 

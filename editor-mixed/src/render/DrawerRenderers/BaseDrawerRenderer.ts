@@ -59,7 +59,6 @@ export abstract class BaseDrawerRenderer {
   private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {
     return blocks.map(({ block, count }) => {
       const size = this.layouter.measureBlock(block)
-      console.log(block)
       this.blockRegistry.setSize(block, size)
       return { block, size, count }
     })

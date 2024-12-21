@@ -12,6 +12,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
   public readonly drawerConnector: Connector
 
   private readonly blockRegistry: BlockRInterface
+  private readonly connectorRegistry: ConnectorRegistry
 
   constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRegistry) {
     const drawerConnector = DefaultConnectors.drawer()
@@ -26,6 +27,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     this.drawerConnector = drawerConnector
 
     this.blockRegistry = blockRegistry
+    this.connectorRegistry = connectorRegistry
   }
 
   private _blocks: Map<AnyBlock, number> = new Map()
@@ -68,8 +70,9 @@ export class DrawerBlock extends Block<BlockType.Root> {
 
     const matching = this.hasMatchingBlock(block)
     if (matching) {
-      this._blocks.set(matching, (this._blocks.get(matching) ?? 0) + drawerItemCount)
-      this.blockRegistry.deregister(block)
+      const currentCount = this._blocks.get(matching) ?? 0
+      if (currentCount > 0) this._blocks.set(matching, currentCount + drawerItemCount)
+      this.blockRegistry.deregister(block, this.connectorRegistry)
       return
     }
 
@@ -95,7 +98,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
         undefined,
         true
       )
-      return this.blockRegistry.registerCopyOf(block)
+      return block.registerClone(this.blockRegistry, this.connectorRegistry)
     }
     this._blocks.delete(block)
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)

@@ -12,8 +12,9 @@ export class RegisteredBlock<T extends BlockType> {
   globalPosition: Coordinates
   size: SizeProps | null = null
 
-  constructor(block: Block<T>) {
+  constructor(block: Block<T>, position: Coordinates = Coordinates.zero, size: SizeProps | null = null) {
     this.block = block
-    this.globalPosition = Coordinates.zero
+    this.globalPosition = position
+    this.size = size
   }
 }

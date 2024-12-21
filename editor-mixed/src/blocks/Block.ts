@@ -5,8 +5,8 @@ import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import type { BlockRInterface } from "../registries/BlockRInterface"
-import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
+import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract } from "./BlockContract"
@@ -32,7 +32,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     connectors: { connector: Connector; connected?: AnyBlock | undefined }[],
     draggable: boolean,
     blockRegistry: BlockRInterface,
-    connectorRegistry: ConnectorRInterface
+    connectorRegistry: ConnectorRInterface,
+    position?: Coordinates,
+    size?: SizeProps
   ) {
     this.type = type
     this.draggable = draggable
@@ -51,7 +53,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       }
     }
 
-    blockRegistry.register(this)
+    blockRegistry.register(this, position, size)
     this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
@@ -218,7 +220,13 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
   //#region Internals
 
-  simpleCopy(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): Block<T> {
+  /**
+   * Creates a clone of this block and registers it with its current position and size
+   * @returns new cloned block instance
+   */
+  registerClone(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): Block<T> {
+    const registered = blockRegistry.getRegistered(this)
+    // new blocks register themselves
     return new Block(
       this.type,
       this.data,
@@ -232,7 +240,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       })),
       this.isInDrawer,
       blockRegistry,
-      connectorRegistry
+      connectorRegistry,
+      registered?.globalPosition,
+      registered?.size ?? undefined
     )
   }
 }
