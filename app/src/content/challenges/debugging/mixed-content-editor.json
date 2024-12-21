@@ -9,6 +9,9 @@
     "imageStart": {
       "src": "/images/illustration_debug_launch.png",
       "alt": ""
+    },
+    "dialog": {
+      "static": "ヽ༼ ຈل͜ຈ༼ ▀̿̿Ĺ̯̿̿▀̿ ̿༽Ɵ͆ل͜Ɵ͆ ༽ﾉ<br/> ᕕ(⌐■_■)ᕗ ♪♬<br/>    let's go!<br/>ᕙ(`▽´)ᕗ<br/>─=≡Σ((( つ◕ل͜◕)つ"
     }
   },
   "editor": {
@@ -117,7 +120,8 @@
         "type": "function",
         "data": {
           "name": "not-main"
-        }
+        },
+        "count": 1
       },
       {
         "type": "expression",
@@ -129,7 +133,8 @@
           "editable": {
             "lang": "kt"
           }
-        }
+        },
+        "count": 3
       },
       {
         "type": "value",
@@ -143,7 +148,8 @@
         "data": {
           "name": "imavar",
           "type": "string"
-        }
+        },
+        "count": -1
       }
     ]
   }

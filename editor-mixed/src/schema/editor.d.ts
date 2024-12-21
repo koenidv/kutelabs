@@ -29,7 +29,13 @@ export type MixedContentEditorConfiguration = {
   /**
    * Initial blocks to be loaded into the editor
    */
-  initialDrawerBlocks?: AnyBlockSingle[]
+  initialDrawerBlocks?: (AnyBlockSingle & {
+    /**
+     * Number of times this block can be used, -1 for infinite
+     */
+    count?: number
+    [k: string]: unknown
+  })[]
   /**
    * Hides the drawer
    */
@@ -118,6 +124,7 @@ export type AnyBlockSingle = {
   type?: unknown
   data?: unknown
   elsebranch?: unknown
+  [k: string]: unknown
 } & (FunctionBlock | ExpressionBlock | ValueBlock | VariableInitBlock | VariableBlock | ConditionalBlock)
 
 /**

@@ -50,7 +50,21 @@
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
       "items": {
-        "$ref": "./blocks.schema.json#/$defs/AnyBlockSingle"
+        "type": "object",
+        "allOf": [
+          {"$ref": "./blocks.schema.json#/$defs/AnyBlockSingle"},
+          {
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of times this block can be used, -1 for infinite",
+                "default": -1,
+                "minimum": -1
+              }
+            }
+          }
+        ],
+      "unevaluatedProperties": false
       }
     },
     "hideDrawer": {

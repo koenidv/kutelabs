@@ -107,16 +107,17 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     this.attach(block, this._root, this._root.rootConnector, modifyPosition)
   }
 
-  public attachToDrawer(block: AnyBlock | null) {
+  public attachToDrawer(block: AnyBlock | null, count?: number) {
     if (!this._drawer) throw new Error("Drawer is not set")
-    this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero)
+    this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero, count)
   }
 
   private attach(
     block: AnyBlock | null,
     to: RootBlock | DrawerBlock,
     on: Connector,
-    modifyPosition: (c: Coordinates) => Coordinates
+    modifyPosition: (c: Coordinates) => Coordinates,
+    count?: number
   ) {
     if (!block) return
     const registered = this._blocks.get(block)
@@ -125,7 +126,8 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
       this,
       block,
       new Connection(on, block.connectors.internal),
-      modifyPosition(registered.globalPosition)
+      modifyPosition(registered.globalPosition),
+      count
     )
   }
 

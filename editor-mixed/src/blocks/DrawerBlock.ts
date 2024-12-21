@@ -37,7 +37,8 @@ export class DrawerBlock extends Block<BlockType.Root> {
     registry: BlockRInterface,
     block: AnyBlock,
     connection: Connection,
-    atPosition?: Coordinates
+    atPosition?: Coordinates,
+    drawerItemCount: number = -1
   ): void {
     registry.notifyConnecting(block, this)
 
@@ -52,26 +53,27 @@ export class DrawerBlock extends Block<BlockType.Root> {
       })
     })
 
-    this.silentConnect(block, connection, atPosition)
+    this.silentConnect(block, connection, atPosition, false, drawerItemCount)
   }
 
   override silentConnect(
     block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
-    isOppositeAction: boolean = false
+    isOppositeAction: boolean = false,
+    drawerItemCount: number = -1
   ): void {
     if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
       throw new Error("Drawer block can only connect on drawer connector")
 
     const matching = this.hasMatchingBlock(block)
     if (matching) {
-      this._blocks.set(matching, (this._blocks.get(matching) ?? 0) + 1)
+      this._blocks.set(matching, (this._blocks.get(matching) ?? 0) + drawerItemCount)
       this.blockRegistry.deregister(block)
       return
     }
 
-    this._blocks.set(block, this._blocks.get(block) ?? 0 + 1)
+    this._blocks.set(block, this._blocks.get(block) ?? 0 + drawerItemCount)
     block.isInDrawer = true
     // todo invalidate block
 

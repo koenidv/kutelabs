@@ -35,7 +35,7 @@ function applyDrawerBlocks(
 ): void {
   if (!data.initialDrawerBlocks) return // may be undefined if hideDrawer is true
   for (const block of data.initialDrawerBlocks) {
-    blockRegistry.attachToDrawer(parseBlockRecursive(block, null, blockRegistry, connectorRegistry))
+    blockRegistry.attachToDrawer(parseBlockRecursive(block, null, blockRegistry, connectorRegistry), block.count)
   }
 }
 

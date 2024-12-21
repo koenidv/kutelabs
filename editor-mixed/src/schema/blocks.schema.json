@@ -36,8 +36,7 @@
         "type": true,
         "data": true,
         "elsebranch": true
-      },
-      "additionalProperties": false
+      }
     },
     "AnyBlockConnected": {
       "type": "object",
