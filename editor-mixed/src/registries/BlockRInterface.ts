@@ -14,7 +14,7 @@ export type BlockREvents = {
 
 export interface BlockRInterface extends Emitter<BlockREvents> {
   register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void
-  deregister(block: AnyBlock, connectorRegistry: ConnectorRInterface): void
+  deregister(block: AnyBlock,): void
   getRegistered(block: AnyBlock): AnyRegisteredBlock
   getRegisteredById(id: string): AnyRegisteredBlock | undefined
 

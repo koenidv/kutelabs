@@ -245,4 +245,14 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       registered?.size ?? undefined
     )
   }
+
+  /**
+   * Removes this block from the block and connector registries, assumes that it has been disconnected from other blocks
+   */
+  remove(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): void {
+    if (this.connectedBlocks.blocks.size > 0)
+      console.error("Removing block with connected blocks", this, this.connectedBlocks.blocks)
+    blockRegistry.deregister(this)
+    connectorRegistry.deregisterForBlock(this)
+  }
 }

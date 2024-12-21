@@ -72,7 +72,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (matching) {
       const currentCount = this._blocks.get(matching) ?? 0
       if (currentCount > 0) this._blocks.set(matching, currentCount + drawerItemCount)
-      this.blockRegistry.deregister(block, this.connectorRegistry)
+        block.remove(this.blockRegistry, this.connectorRegistry)
       return
     }
 

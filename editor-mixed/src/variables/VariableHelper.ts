@@ -70,7 +70,7 @@ export class VariableHelper implements VariableHInterface {
       // remove drawer block
       const data = this.variables.get(block as Block<BlockType.VarInit>)!
       this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
-      this.blockRegistry.deregister(data.drawerBlock, this.connectorRegistry)
+      data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
 
       this.variables.delete(block as Block<BlockType.VarInit>)
       this.requestUpdate()

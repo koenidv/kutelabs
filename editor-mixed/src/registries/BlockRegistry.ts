@@ -46,16 +46,13 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   }
 
   /**
-   * This deregisters a block from the registry and its connectors from the connector registry
-   * THIS ASSUMES that the block has been disconnected from all other blocks
+   * Deregisters a block from the registry. THIS ASSUMES that the block has been disconnected from all other blocks.
    * @param block block to deregister
-   * @param connectorRegistry connector registry to deregister the block's connectors from
    */
-  public deregister(block: AnyBlock, connectorRegistry: ConnectorRInterface): void {
+  public deregister(block: AnyBlock): void {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     this._blocks.delete(block)
-    connectorRegistry.deregisterForBlock(block)
   }
 
   public getRegistered(block: AnyBlock): AnyRegisteredBlock {
