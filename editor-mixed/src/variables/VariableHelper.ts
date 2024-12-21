@@ -21,29 +21,37 @@ export class VariableHelper implements VariableHInterface {
   private readonly connectorRegistry: ConnectorRInterface
   private readonly requestUpdate: () => void
 
-
-  constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface, requestUpdate: () => void) {
+  constructor(
+    blockRegistry: BlockRInterface,
+    connectorRegistry: ConnectorRInterface,
+    requestUpdate: () => void
+  ) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
+
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
     this.requestUpdate = requestUpdate
   }
 
   private onBlockAddedToWorkspace = (block: AnyBlock) => {
-    if (block.type !== BlockType.VarInit) return
-    if (this.variables.has(block as Block<BlockType.VarInit>)) {
-      console.warn("Added var init block to workspace but block is already tracked:", block)
+    if (block.type === BlockType.VarInit)
+      return this.handleVarInitAdded(block as Block<BlockType.VarInit>)
+    if (block.type === BlockType.Variable)
+      return this.handleVarBlockAdded(block as Block<BlockType.Variable>)
+  }
+
+  private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
+    if (this.variables.has(block)) {
+      console.error("Added var init block to workspace but block is already tracked:", block)
       return
     }
-    const varblock = block as Block<BlockType.VarInit>
-    
     const drawerBlock = new Block<BlockType.Variable>(
       BlockType.Variable,
       {
-        name: varblock.data.name,
-        type: varblock.data.type,
-        isMutable: varblock.data.isMutable,
+        name: block.data.name,
+        type: block.data.type,
+        isMutable: block.data.isMutable,
       },
       DefaultConnectors.byBlockType(BlockType.Variable).map(connector => ({ connector })),
       true,
@@ -53,9 +61,9 @@ export class VariableHelper implements VariableHInterface {
     this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
     this.variables.set(block as Block<BlockType.VarInit>, {
-      name: varblock.data.name,
-      type: varblock.data.type,
-      isMutable: varblock.data.isMutable,
+      name: block.data.name,
+      type: block.data.type,
+      isMutable: block.data.isMutable,
       usages: [],
       drawerBlock,
     })
@@ -63,18 +71,51 @@ export class VariableHelper implements VariableHInterface {
     this.requestUpdate()
   }
 
-  private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
-    if (block.type !== BlockType.VarInit) return
-    if (this.variables.has(block as Block<BlockType.VarInit>)) {
+  private handleVarBlockAdded = (block: Block<BlockType.Variable>) => {
+    const data = this.dataByVarName(block.data.name)
+    if (!data) {
+      console.error("Variable init for added usage was not registered", block)
+      return
+    }
+    data.usages.push(block)
+  }
 
+  private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
+    if (block.type === BlockType.VarInit)
+      return this.handleVarInitRemoved(block as Block<BlockType.VarInit>)
+    if (block.type === BlockType.Variable)
+      return this.handleVarBlockRemoved(block as Block<BlockType.Variable>)
+  }
+
+  private handleVarInitRemoved = (block: Block<BlockType.VarInit>) => {
+    if (this.variables.has(block as Block<BlockType.VarInit>)) {
       // remove drawer block
       const data = this.variables.get(block as Block<BlockType.VarInit>)!
       this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
       data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
 
+      // remove usages
+      for (const usage of data.usages) {
+        usage.disconnectSelf(null)
+        usage.remove(this.blockRegistry, this.connectorRegistry)
+      }
+
       this.variables.delete(block as Block<BlockType.VarInit>)
       this.requestUpdate()
     }
+  }
+
+  private handleVarBlockRemoved = (block: Block<BlockType.Variable>) => {
+    const data = this.dataByVarName(block.data.name)
+    if (!data) {
+      console.error("Variable init for removed usage was not registered", block)
+      return
+    }
+    data.usages = data.usages.filter(usage => usage !== block)
+  }
+
+  private dataByVarName(name: string): VariableData | null {
+    return [...this.variables.values()].find(data => data.name === name) ?? null
   }
 
   public isNameAvailable(name: string): boolean {
