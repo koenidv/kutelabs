@@ -31,7 +31,7 @@ export class EditorMixed extends LitElement {
 
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
-  variableRegistry: VariableHInterface
+  variableHelper: VariableHInterface
   declare layouter: BaseLayouter
   declare blockRenderer: BaseBlockRenderer
   declare drawerRenderer: BaseDrawerRenderer
@@ -59,9 +59,15 @@ export class EditorMixed extends LitElement {
 
   constructor() {
     super()
+    
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
-    this.variableRegistry = new VariableHelper(this.blockRegistry)
+
+    this.variableHelper = new VariableHelper(
+      this.blockRegistry,
+      this.connectorRegistry,
+      this.requestUpdate.bind(this)
+    )
   }
 
   static styles = css`

@@ -1,10 +1,12 @@
-import type { AnyBlock, Block } from "../blocks/Block"
+import { Block, type AnyBlock } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { ValueDataType } from "../blocks/configuration/ValueDataType"
+import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import type { VariableMeta, VariableHInterface } from "./VariableHInterface"
 
-type VariableData = VariableMeta & { usages: Block<BlockType.Variable>[] }
+type VariableData = VariableMeta & { drawerBlock: AnyBlock; usages: Block<BlockType.Variable>[] }
 
 /**
  * side effect / helper class
@@ -15,9 +17,17 @@ type VariableData = VariableMeta & { usages: Block<BlockType.Variable>[] }
 export class VariableHelper implements VariableHInterface {
   private variables = new Map<Block<BlockType.VarInit>, VariableData>()
 
-  constructor(blockRegistry: BlockRInterface) {
+  private readonly blockRegistry: BlockRInterface
+  private readonly connectorRegistry: ConnectorRInterface
+  private readonly requestUpdate: () => void
+
+
+  constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface, requestUpdate: () => void) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
+    this.blockRegistry = blockRegistry
+    this.connectorRegistry = connectorRegistry
+    this.requestUpdate = requestUpdate
   }
 
   private onBlockAddedToWorkspace = (block: AnyBlock) => {
@@ -27,21 +37,43 @@ export class VariableHelper implements VariableHInterface {
       return
     }
     const varblock = block as Block<BlockType.VarInit>
+    
+    const drawerBlock = new Block<BlockType.Variable>(
+      BlockType.Variable,
+      {
+        name: varblock.data.name,
+        type: varblock.data.type,
+        isMutable: varblock.data.isMutable,
+      },
+      DefaultConnectors.byBlockType(BlockType.Variable).map(connector => ({ connector })),
+      true,
+      this.blockRegistry,
+      this.connectorRegistry
+    )
+    this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
     this.variables.set(block as Block<BlockType.VarInit>, {
       name: varblock.data.name,
       type: varblock.data.type,
       isMutable: varblock.data.isMutable,
       usages: [],
+      drawerBlock,
     })
-    console.log("added variable init to workspace", block)
+
+    this.requestUpdate()
   }
 
   private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
     if (block.type !== BlockType.VarInit) return
     if (this.variables.has(block as Block<BlockType.VarInit>)) {
+
+      // remove drawer block
+      const data = this.variables.get(block as Block<BlockType.VarInit>)!
+      this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
+      this.blockRegistry.deregister(data.drawerBlock, this.connectorRegistry)
+
       this.variables.delete(block as Block<BlockType.VarInit>)
-      console.log("deleted variable associated with", block)
+      this.requestUpdate()
     }
   }
 

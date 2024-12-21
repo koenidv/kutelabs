@@ -9,6 +9,7 @@ import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
 import type { BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
+import type { ConnectorRInterface } from "./ConnectorRInterface"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
 
@@ -44,7 +45,13 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     this._blocks.set(block, new RegisteredBlock(block, position, size))
   }
 
-  public deregister(block: AnyBlock, connectorRegistry: ConnectorRegistry): void {
+  /**
+   * This deregisters a block from the registry and its connectors from the connector registry
+   * THIS ASSUMES that the block has been disconnected from all other blocks
+   * @param block block to deregister
+   * @param connectorRegistry connector registry to deregister the block's connectors from
+   */
+  public deregister(block: AnyBlock, connectorRegistry: ConnectorRInterface): void {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     this._blocks.delete(block)

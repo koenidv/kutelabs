@@ -36,18 +36,28 @@
           "connectedBlocks": [
             {
               "on": "inner",
-              "type": "expression",
+              "type": "variable_init",
               "data": {
-                "expression": "Println"
+                "name": "name",
+                "type": "string"
               },
               "connectedBlocks": [
                 {
-                  "on": "inputExtension",
-                  "type": "variable",
+                  "on": "after",
+                  "type": "expression",
                   "data": {
-                    "name": "name",
-                    "type": "string"
-                  }
+                    "expression": "Println"
+                  },
+                  "connectedBlocks": [
+                    {
+                      "on": "inputExtension",
+                      "type": "variable",
+                      "data": {
+                        "name": "name",
+                        "type": "string"
+                      }
+                    }
+                  ]
                 }
               ]
             },

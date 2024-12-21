@@ -1,8 +1,10 @@
 import type { AnyBlock } from "../blocks/Block"
+import type { DrawerBlock } from "../blocks/DrawerBlock"
 import type { SizeProps } from "../render/SizeProps"
 import type { Coordinates } from "../util/Coordinates"
 import type { Emitter } from "../util/Emitter"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
+import type { ConnectorRInterface } from "./ConnectorRInterface"
 import type { AnyRegisteredBlock } from "./RegisteredBlock"
 
 export type BlockREvents = {
@@ -12,7 +14,7 @@ export type BlockREvents = {
 
 export interface BlockRInterface extends Emitter<BlockREvents> {
   register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void
-  deregister(block: AnyBlock, connectorRegistry: ConnectorRegistry): void
+  deregister(block: AnyBlock, connectorRegistry: ConnectorRInterface): void
   getRegistered(block: AnyBlock): AnyRegisteredBlock
   getRegisteredById(id: string): AnyRegisteredBlock | undefined
 
@@ -20,7 +22,9 @@ export interface BlockRInterface extends Emitter<BlockREvents> {
   notifyConnecting(block: AnyBlock, to: AnyBlock): void
 
   attachToRoot(block: AnyBlock, modifyPosition: (current: Coordinates) => Coordinates): void
-  attachToDrawer(block: AnyBlock): void
+  attachToDrawer(block: AnyBlock, count?: number): void
+
+  get drawer(): DrawerBlock | null
 
   setSize(block: AnyBlock, size: SizeProps): AnyRegisteredBlock
   getSize(block: AnyBlock): SizeProps

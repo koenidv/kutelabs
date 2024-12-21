@@ -150,6 +150,13 @@
           "type": "string"
         },
         "count": -1
+      },
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "testVarHelper",
+          "type": "array<string>"
+        }
       }
     ]
   }

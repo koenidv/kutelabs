@@ -40,7 +40,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
-    drawerItemCount: number = -1
+    drawerItemCount?: number
   ): void {
     registry.notifyConnecting(block, this)
 
@@ -63,7 +63,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
     connection: Connection,
     atPosition?: Coordinates,
     isOppositeAction: boolean = false,
-    drawerItemCount: number = -1
+    drawerItemCount: number = 1
   ): void {
     if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
       throw new Error("Drawer block can only connect on drawer connector")
@@ -104,6 +104,16 @@ export class DrawerBlock extends Block<BlockType.Root> {
     if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
     block.isInDrawer = false
     return block
+  }
+
+  public removeBlock(block: AnyBlock): void {
+    if (!this._blocks.has(block)) {
+      console.warn("Tried to remove block from drawer that is not in drawer", block)
+      return
+    }
+    this._blocks.delete(block)
+    if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
+    block.isInDrawer = false
   }
 
   public clear() {
