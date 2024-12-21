@@ -8,7 +8,7 @@ import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
 
-import "../../codeEditor/PrismKotlinEditor"
+import "../../inputs/PrismKotlinEditor"
 
 export class Debug2BlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(

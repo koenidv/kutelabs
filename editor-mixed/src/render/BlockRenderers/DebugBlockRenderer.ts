@@ -40,7 +40,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   private renderBlockContainer(
     block: AnyBlock,
     size: SizeProps,
-    position: Coordinates
+    _position: Coordinates
   ): TemplateResult<2>[] {
     let heightOffset = 0
 
@@ -80,7 +80,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   private renderBlockContents(
     block: AnyBlock,
     size: SizeProps,
-    position: Coordinates
+    _position: Coordinates
   ): TemplateResult<2> | undefined {
     switch (block.type) {
       case BlockType.Expression:
@@ -99,13 +99,10 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   }
 
   private renderEditableCodeContents(
-    block: Block<BlockType.Expression>,
+    _block: Block<BlockType.Expression>,
     data: BlockDataExpression,
     size: SizeProps
   ): TemplateResult<2> {
-    const safariTransform = isSafari
-      ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
-      : ""
     return svg`
         <foreignObject x="30" y="10" width=${size.fullWidth - 40} height=${size.fullHeight - 20} >
           ${this.tapOrDragLayer(

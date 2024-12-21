@@ -5,19 +5,23 @@ import { SizeProps } from "../SizeProps"
 import type { AnyBlock } from "../../blocks/Block"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 
-import "../../codeEditor/PrismKotlinEditor"
+import "../../inputs/PrismKotlinEditor"
 import "../../drag/TapOrDragLayer"
 import { createRef, type Ref } from "lit/directives/ref.js"
+import { isSafari } from "../../util/browserCheck"
 
 export abstract class BaseBlockRenderer {
   blockRegistry: BlockRegistry
   layouter: BaseLayouter
 
   protected _workspaceScaleFactor = 1
+  protected _safariTransform = ""
   public setWorkspaceScaleFactor(value: number) {
     this._workspaceScaleFactor = value
+    this._safariTransform = isSafari
+      ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
+      : ""
   }
-  
 
   constructor(blockRegistry: BlockRegistry, layouter: BaseLayouter) {
     this.blockRegistry = blockRegistry
@@ -41,8 +45,7 @@ export abstract class BaseBlockRenderer {
    * @returns List of SVG templates for all blocks
    */
   protected renderFromRoot(): TemplateResult<2>[] {
-    if (this.blockRegistry.root == null)
-      throw new Error("Cannot render; root is not set")
+    if (this.blockRegistry.root == null) throw new Error("Cannot render; root is not set")
     return this.blockRegistry.root.blocks.map(({ block, position }) => {
       return this.renderBlock(block, position)
     })
@@ -53,30 +56,21 @@ export abstract class BaseBlockRenderer {
    * @param block Block to render
    * @param previousBlock Upstream connected block
    */
-  public renderBlock(
-    block: AnyBlock,
-    previousBlock: AnyBlock
-  ): TemplateResult<2>
+  public renderBlock(block: AnyBlock, previousBlock: AnyBlock): TemplateResult<2>
   /**
    * Render a block with an offset to its upstream block.
    * Use this to render Blocks from the root
    * @param block Block to render
    * @param translatePosition Offset to upstream block, i.e. will render at this position for root upstream
    */
-  public renderBlock(
-    block: AnyBlock,
-    translatePosition: Coordinates
-  ): TemplateResult<2>
+  public renderBlock(block: AnyBlock, translatePosition: Coordinates): TemplateResult<2>
   /**
    * Renders a block with an offset to a reference block
    * @param block Block to render
    * @param ref Block or Coordinate Object to render the block relative to
    * @returns SVG template for block group
    */
-  public renderBlock(
-    block: AnyBlock,
-    ref: AnyBlock | Coordinates
-  ): TemplateResult<2> {
+  public renderBlock(block: AnyBlock, ref: AnyBlock | Coordinates): TemplateResult<2> {
     const size = this.blockRegistry.getSize(block)
     const position = this.blockRegistry.getPosition(block)
 
@@ -91,15 +85,11 @@ export abstract class BaseBlockRenderer {
     )
   }
 
-  protected tapOrDragLayer(
-    content: (ref: Ref<HTMLElement>) => TemplateResult<1>
-  ) {
+  protected tapOrDragLayer(content: (ref: Ref<HTMLElement>) => TemplateResult<1>) {
     const ref = createRef<HTMLElement>()
 
     return html`
-    <tap-or-drag-layer .tappableComponent=${ref}>
-      ${content(ref)}
-    </tap-or-drag-layer>
+      <tap-or-drag-layer .tappableComponent=${ref}> ${content(ref)} </tap-or-drag-layer>
     `
   }
 
@@ -124,10 +114,7 @@ export abstract class BaseBlockRenderer {
 
   //#endregion
 
-  private determineRenderOffset(
-    block: AnyBlock,
-    ref: AnyBlock | Coordinates
-  ): Coordinates {
+  private determineRenderOffset(block: AnyBlock, ref: AnyBlock | Coordinates): Coordinates {
     if (ref instanceof Coordinates) return ref
     else
       return Coordinates.subtract(
