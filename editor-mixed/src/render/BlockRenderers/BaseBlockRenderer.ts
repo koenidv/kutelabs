@@ -6,6 +6,7 @@ import type { AnyBlock } from "../../blocks/Block"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 
 import "../../inputs/PrismKotlinEditor"
+import "../../inputs/SimpleInputElement"
 import "../../drag/TapOrDragLayer"
 import { createRef, type Ref } from "lit/directives/ref.js"
 import { isSafari } from "../../util/browserCheck"

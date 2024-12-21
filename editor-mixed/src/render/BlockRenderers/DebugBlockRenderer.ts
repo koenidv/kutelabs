@@ -1,14 +1,13 @@
 import { html, svg, type TemplateResult } from "lit"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import { Block, type AnyBlock } from "../../blocks/Block"
 import type { Connector } from "../../connections/Connector"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { HeightProp, SizeProps } from "../SizeProps"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { BlockType } from "../../blocks/configuration/BlockType"
-import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
+import type { BlockDataExpression, BlockDataValue, BlockDataVariable } from "../../blocks/configuration/BlockData"
 
-import { isSafari } from "../../util/browserCheck"
 import { ref } from "lit/directives/ref.js"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
@@ -83,6 +82,26 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     _position: Coordinates
   ): TemplateResult<2> | undefined {
     switch (block.type) {
+      case BlockType.VarInit:
+        return svg`
+        <text x="5" y="15">create var</text>
+        ${this.renderInputContent(
+          (block.data as BlockDataVariable<any>).name?.toString(), // todo type
+          (value: string) => (block.data as BlockDataVariable<any>).name = value,
+          new Coordinates(5, 25),
+          new Coordinates(size.fullWidth - 10, 20)
+        )
+      }
+      <text x="5" y="65">as</text>
+      <text x="5" y="85">todo, type select</text>
+        `
+      case BlockType.Value:
+        return this.renderInputContent(
+          (block.data as BlockDataValue<any>).value?.toString(), // todo type
+          (value: string) => (block.data as BlockDataValue<any>).value = value,
+          new Coordinates(5, 5),
+          new Coordinates(size.fullWidth - 10, size.fullHeight - 10)
+        )
       case BlockType.Expression:
         if ((block as Block<BlockType.Expression>).data.editable)
           return this.renderEditableCodeContents(block, block.data as BlockDataExpression, size)
@@ -110,9 +129,9 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
               <prism-kotlin-editor
                 ${ref(reference)}
                 class="donotdrag"
+                style="width: 100%; height: 100%; ${this._safariTransform}"
                 .input="${data.customExpression?.get("kt") ?? ""}"
-                style="width: 100%; height: 100%; ${safariTransform}"
-                @code-change=${(e: CustomEvent) =>
+                @input-change=${(e: CustomEvent) =>
                   data.customExpression?.set(
                     data.editable ? data.editable.lang : "kt",
                     e.detail.code
@@ -122,6 +141,24 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           )}
         </foreignObject>
         `
+  }
+
+  private renderInputContent(input: string, onInput: (value: string) => void, position: Coordinates, size: Coordinates): TemplateResult<2> {
+    return svg`
+      <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y}>
+      ${this.tapOrDragLayer(
+        reference => html`
+          <value-input
+            ${ref(reference)}
+            class="donotdrag"
+            style="width: 100%; height: 100%; ${this._safariTransform}"
+            .input=${input}
+            @input-change=${(e: CustomEvent) => onInput(e.detail.input)}
+            ></value-input>
+        `
+      )}
+      </foreignObject>
+    `
   }
 
   private renderConnector(connector: Connector, blockPosition: Coordinates): TemplateResult<2> {

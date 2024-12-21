@@ -39,6 +39,6 @@ export type BlockDataVariable<Type extends ValueDataType> = {
 
 export type BlockDataValue<Type extends ValueDataType> = {
   type: Type
-  input: TsTypeByValueType<Type>
+  value: TsTypeByValueType<Type>
   editable?: boolean
 }

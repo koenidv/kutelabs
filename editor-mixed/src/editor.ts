@@ -15,12 +15,12 @@ import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { PanZoomHelper } from "./panzoom/PanZoomHelper"
 import { isSafari } from "./util/browserCheck"
-
-import "@kutelabs/shared"
-import "./drag/DragLayer"
 import type { DragLayer } from "./drag/DragLayer"
 import { VariableHelper } from "./variables/VariableHelper"
 import type { VariableHInterface } from "./variables/VariableHInterface"
+
+import "@kutelabs/shared"
+import "./drag/DragLayer"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
