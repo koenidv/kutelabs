@@ -46,7 +46,7 @@ export class JsCompiler extends BaseCompiler {
         case ValueDataType.StringArray:
           return `["${(block.data.value as string[]).join('", "')}"]`
         case ValueDataType.BooleanArray:
-          return `[${(block.data.value as boolean[]).map(it => it == true ? "true" : "false").join(", ")}]`
+          return `[${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")}]`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
@@ -57,6 +57,10 @@ export class JsCompiler extends BaseCompiler {
   compileVariable(block: Block<BlockType.Variable>, _next: typeof this.compile): string {
     return block.data.name
     // variable blocks are always leafs, thus not compiling connected blocks
+  }
+
+  compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string {
+    return `${block.data.isMutable ? "let" : "const"} ${block.data.name} = ${next(block.inputs[0])};\n${next(block.after)}`
   }
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {

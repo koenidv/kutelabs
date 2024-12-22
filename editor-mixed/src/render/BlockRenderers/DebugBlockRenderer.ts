@@ -116,7 +116,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       case BlockType.Expression:
         if ((block as Block<BlockType.Expression>).data.editable)
           return this.renderEditableCodeContents(block, block.data as BlockDataExpression, size)
-        else break
+        else return svg`<text x="5" y="20" fill="black" style="user-select: none;">${(block.data as BlockDataExpression).expression}</text>`
       default:
         return svg`
           <text x="5" y="20" fill="black" style="user-select: none;">${block.type}</text>

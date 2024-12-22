@@ -32,6 +32,8 @@ export abstract class BaseCompiler {
         return this.compileValue(block, this.compile.bind(this))
       case BlockType.Variable:
         return this.compileVariable(block, this.compile.bind(this))
+      case BlockType.VarInit:
+        return this.compileVariableInit(block, this.compile.bind(this))
       case BlockType.Loop:
         return this.compileLoop(block, this.compile.bind(this))
       case BlockType.Conditional:
@@ -52,6 +54,7 @@ export abstract class BaseCompiler {
   ): string
   abstract compileValue(block: Block<BlockType.Value>, next: typeof this.compile): string
   abstract compileVariable(block: Block<BlockType.Variable>, next: typeof this.compile): string
+  abstract compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string
   abstract compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string
   abstract compileConditional(
     block: Block<BlockType.Conditional>,

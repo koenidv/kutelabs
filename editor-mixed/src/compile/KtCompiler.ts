@@ -71,6 +71,10 @@ export class KtCompiler extends BaseCompiler {
     // variable blocks are always leafs, thus not compiling connected blocks
   }
 
+  compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string {
+    return `${block.data.isMutable ? "var" : "val"} ${block.data.name} = ${next(block.inputs[0])};\n${next(block.after)}`
+  }
+
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
     return `while (${next(block.conditional)}) {
       ${next(block.inners[0])}
