@@ -98,7 +98,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           )}
           <text x="5" y="55">as</text>
           ${this.renderSelectorContent(
-            Object.keys(ValueDataType).map(it => ({ id: it, display: it })),
+            Object.entries(ValueDataType).map(([display, id]) => ({ id, display })),
             (block.data as BlockDataVariable<any>).type,
             (id: string) => ((block.data as BlockDataVariable<any>).type = id),
             new Coordinates(5, 60),
@@ -205,6 +205,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       transform="${`translate(${position.x}, ${position.y})`}"
       role="button"
       tabindex="0" 
+      style="cursor: pointer;"
       @mousedown="${(e: Event) => showDropdown(e)}"
       @touchstart="${(e: Event) => showDropdown(e)}"
       @keydown="${(e: KeyboardEvent) => {

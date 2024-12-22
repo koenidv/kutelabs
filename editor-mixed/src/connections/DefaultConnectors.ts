@@ -10,11 +10,16 @@ export class DefaultConnectors {
       case BlockType.Function:
         return [DefaultConnectors.inner(), DefaultConnectors.output()]
       case BlockType.Expression:
-      case BlockType.VarInit: 
         return [
           DefaultConnectors.before(),
           DefaultConnectors.after(),
           DefaultConnectors.inputExtension(), // todo variable input count
+        ]
+      case BlockType.VarInit:
+        return [
+          DefaultConnectors.before(),
+          DefaultConnectors.after(),
+          DefaultConnectors.dynamicTypedInputExtension(false),
         ]
       case BlockType.Conditional:
         return [
@@ -52,6 +57,26 @@ export class DefaultConnectors {
   static inputExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
       remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Input,
+    ])
+  }
+
+  static dynamicTypedInputExtension(allowVariables = true) {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
+      (remote, local) => {
+        if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
+          return false
+        if (!allowVariables && remote.parentBlock?.type === BlockType.Variable) return false
+        if (local.parentBlock && remote.parentBlock) {
+          if (local.parentBlock.data != null && "type" in local.parentBlock.data) {
+            if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
+              return local.parentBlock.data.type === remote.parentBlock.data.type
+            }
+          } else {
+            if (remote.parentBlock.data == null || "type"! in remote.parentBlock.data) return true
+          }
+        }
+        return false
+      },
     ])
   }
 
