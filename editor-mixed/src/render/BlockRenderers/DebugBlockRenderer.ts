@@ -13,6 +13,7 @@ import { HeightProp, SizeProps } from "../SizeProps"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
+import { ValueDataType } from "../../blocks/configuration/ValueDataType"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
@@ -97,9 +98,9 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           )}
           <text x="5" y="55">as</text>
           ${this.renderSelectorContent(
-            ["String", "Int", "Boolean", "Float"],
-            (block.data as BlockDataVariable<any>).type?.toString(), // todo
-            (value: string) => ((block.data as BlockDataVariable<any>).type = value),
+            Object.keys(ValueDataType).map(it => ({ id: it, display: it })),
+            (block.data as BlockDataVariable<any>).type,
+            (id: string) => ((block.data as BlockDataVariable<any>).type = id),
             new Coordinates(5, 60),
             position.plus(0, size.fullHeight),
             new Coordinates(size.fullWidth - 10, 28)
@@ -176,19 +177,19 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   }
 
   private renderSelectorContent(
-    values: string[],
+    values: { id: string; display: string }[],
     selected: string,
-    onSelect: (value: string) => void,
+    onSelect: (id: string) => void,
     position: Coordinates,
     widgetPosition: Coordinates,
     size: Coordinates
   ): TemplateResult<2> {
-    const showDropdown = (e: MouseEvent) => {
+    const showDropdown = (e: Event) => {
       e.preventDefault()
       this.setWidget(
         {
           type: "selector",
-          options: values.map(value => ({ id: value, display: value })),
+          options: values,
           selected,
           onSelected: (it: string) => {
             onSelect(it)
@@ -200,7 +201,19 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     }
 
     return svg`
-      <text x=${position.x} y=${position.y + 10} fill="black" @mousedown="${(e: MouseEvent) => showDropdown(e)}">Select type</text>
+    <g 
+      transform="${`translate(${position.x}, ${position.y})`}"
+      role="button"
+      tabindex="0" 
+      @mousedown="${(e: Event) => showDropdown(e)}"
+      @touchstart="${(e: Event) => showDropdown(e)}"
+      @keydown="${(e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") showDropdown(e)
+      }}"
+      >
+      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" />
+      <text x="5" y="${size.y / 2 + 6}">${selected}</text>
+      </g>
     `
   }
 

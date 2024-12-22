@@ -141,6 +141,7 @@ export class PanZoomHelper {
     if (evt.button != 0 || (evt.target as SVGElement).id != "workspace-background") return
     evt.preventDefault()
     this.userInputActive = true
+    this.removeWidgets()
   }
 
   onMouseMove(evt: MouseEvent) {
@@ -164,6 +165,7 @@ export class PanZoomHelper {
 
     this.userInputActive = true
     this.setTouches(evt)
+    this.removeWidgets()
   }
 
   private setTouches(evt: TouchEvent) {

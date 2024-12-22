@@ -47,7 +47,10 @@ export abstract class BaseWidgetRenderer {
       const screenPos = this.position.toScreenCoordinates(this.workspaceRef.value!)
       const widgetSize = new Coordinates(200, 200)
       return html`
-        <div style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;">
+        <div
+          style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;"
+          @mousedown="${(e: MouseEvent) => e.preventDefault()}"
+          @touchstart="${(e: TouchEvent) => e.preventDefault()}">
           <svg
             style="position: absolute; top: 0; left: 0;"
             width=${widgetSize.x}

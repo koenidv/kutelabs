@@ -92,6 +92,9 @@ export class EditorMixed extends LitElement {
     .block {
       cursor: grab;
     }
+    button {
+      cursor: pointer;
+    }
   `
 
   protected render() {
