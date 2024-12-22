@@ -1,6 +1,7 @@
 import { html, noChange, nothing, type TemplateResult } from "lit"
 import { Coordinates } from "../../util/Coordinates"
-import type { Ref } from "lit/directives/ref.js"
+import { createRef, ref, type Ref } from "lit/directives/ref.js"
+import { FocusTrap } from "../../util/FocusTrap"
 
 export type SelectorWidget = {
   type: "selector"
@@ -15,6 +16,9 @@ export abstract class BaseWidgetRenderer {
   private readonly requestUpdate: () => void
   private readonly workspaceRef: Ref<SVGSVGElement>
 
+  private readonly widgetRef = createRef<HTMLElement>()
+  private readonly focusTrap = new FocusTrap(this.widgetRef, this.removeWidget.bind(this))
+
   private displayedWidget: Widget | null = null
   private position: Coordinates = Coordinates.zero
   private dirty = false
@@ -26,17 +30,19 @@ export abstract class BaseWidgetRenderer {
     this.requestUpdate = requestUpdate
   }
 
-  public setWidget(widget: Widget | null, clientPosition: Coordinates) {
+  public setWidget(widget: Widget , clientPosition: Coordinates) {
     this.displayedWidget = widget
     this.position = clientPosition
     this.dirty = true
     this.requestUpdate()
+    this.focusTrap.activate()
   }
 
   public removeWidget() {
     if (this.displayedWidget == null) return
     this.displayedWidget = null
     this.dirty = true
+    this.focusTrap.deactivate()
     this.requestUpdate()
   }
 
@@ -48,6 +54,7 @@ export abstract class BaseWidgetRenderer {
       const widgetSize = new Coordinates(200, 200)
       return html`
         <div
+          ${ref(this.widgetRef)}
           style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;"
           @mousedown="${(e: MouseEvent) => e.preventDefault()}"
           @touchstart="${(e: TouchEvent) => e.preventDefault()}">

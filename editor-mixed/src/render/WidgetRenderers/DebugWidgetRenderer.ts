@@ -10,8 +10,6 @@ export class DebugWidgetRenderer extends BaseWidgetRenderer {
         ${widget.options.map(
           option => html`
             <button
-              autofocus
-              tabindex="1"
               class="${option.id === widget.selected ? "selected" : ""}"
               @click="${() => {
                 this.removeWidget()
