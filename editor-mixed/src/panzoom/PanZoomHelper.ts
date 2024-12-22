@@ -20,16 +20,20 @@ export class PanZoomHelper {
   private initialWorkspaceSize: { width: number; height: number } | null = null
   private onScaleChanged: (scale: number) => void = () => {}
 
+  private removeWidgets: () => void
+
   constructor(
     workspaceRef: Ref<SVGSVGElement>,
     syncRefs: Ref<SVGSVGElement>[] = [],
     onScaleChanged: (scale: number) => void = () => {},
-    scrollInputHelper: ScrollInputHelper = new ScrollInputHelper()
+    scrollInputHelper: ScrollInputHelper = new ScrollInputHelper(),
+    removeWidgets: () => void
   ) {
     this.workspaceRef = workspaceRef
     this.syncRefs = syncRefs
     this.scrollInputHelper = scrollInputHelper
     this.onScaleChanged = onScaleChanged
+    this.removeWidgets = removeWidgets
   }
 
   //#region Workspace mutation
@@ -51,6 +55,8 @@ export class PanZoomHelper {
         it.y = y
       })
     })
+
+    this.removeWidgets()
   }
 
   private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomSpeed) {
@@ -94,6 +100,8 @@ export class PanZoomHelper {
     )
 
     console.log(newSize, this.initialWorkspaceSize!.width, newSize / this.initialWorkspaceSize!.width)
+
+    this.removeWidgets()
     this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
   }
 

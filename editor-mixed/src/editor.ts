@@ -1,21 +1,22 @@
 import { css, html, LitElement, type PropertyValues } from "lit"
 import { customElement } from "lit/decorators.js"
-import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
-import { BlockRegistry } from "./registries/BlockRegistry"
-import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
-import { DragHelper } from "./drag/DragHelper"
-import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
-import type { BaseCompiler, CompilationResult } from "./compile/BaseCompiler"
-import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
-import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
-import { ConnectorRegistry } from "./registries/ConnectorRegistry"
-import { DebugMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
 import { createRef, ref } from "lit/directives/ref.js"
+import type { BaseCompiler, CompilationResult } from "./compile/BaseCompiler"
+import { DragHelper } from "./drag/DragHelper"
+import type { DragLayer } from "./drag/DragLayer"
+import { PanZoomHelper } from "./panzoom/PanZoomHelper"
+import { BlockRegistry } from "./registries/BlockRegistry"
+import { ConnectorRegistry } from "./registries/ConnectorRegistry"
+import type { BaseBlockRenderer } from "./render/BlockRenderers/BaseBlockRenderer"
+import type { BaseDragRenderer } from "./render/DragRenderers/BaseDragRenderer"
+import type { BaseDrawerRenderer } from "./render/DrawerRenderers/BaseDrawerRenderer"
+import { ExtrasRenderer } from "./render/ExtrasRenderers.ts/DefaultExtrasRenderer"
+import type { BaseLayouter } from "./render/Layouters/BaseLayouter"
+import type { BaseWidgetRenderer } from "./render/WidgetRenderers/BaseWidgetRenderer"
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
-import { PanZoomHelper } from "./panzoom/PanZoomHelper"
 import { isSafari } from "./util/browserCheck"
-import type { DragLayer } from "./drag/DragLayer"
+import { DebugMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
 import { VariableHelper } from "./variables/VariableHelper"
 import type { VariableHInterface } from "./variables/VariableHInterface"
 
@@ -35,13 +36,20 @@ export class EditorMixed extends LitElement {
   declare layouter: BaseLayouter
   declare blockRenderer: BaseBlockRenderer
   declare drawerRenderer: BaseDrawerRenderer
+  declare widgetRenderer: BaseWidgetRenderer
   declare extrasRenderer: ExtrasRenderer
   declare dragRenderer: BaseDragRenderer
   dragHelper: DragHelper | undefined
-  panzoomHelper = new PanZoomHelper(this.workspaceRef, [this.dragWorkspaceRef], scale => {
-    this.blockRenderer?.setWorkspaceScaleFactor?.(scale)
-    if (isSafari) this.requestUpdate() // rerender to apply foreign object scaling to work around [safari bug 23113](https://bugs.webkit.org/show_bug.cgi?id=23113)
-  })
+  panzoomHelper = new PanZoomHelper(
+    this.workspaceRef,
+    [this.dragWorkspaceRef],
+    scale => {
+      this.blockRenderer?.setWorkspaceScaleFactor?.(scale)
+      if (isSafari) this.requestUpdate() // rerender to apply foreign object scaling to work around [safari bug 23113](https://bugs.webkit.org/show_bug.cgi?id=23113)
+    },
+    undefined,
+    () => this.widgetRenderer?.removeWidget?.()
+  )
 
   declare useDefaultConfig: boolean
   declare config: MixedEditorConfig
@@ -55,11 +63,12 @@ export class EditorMixed extends LitElement {
     drawerRenderer: { type: Object, state: true },
     extrasRenderer: { type: Object, state: true },
     dragRenderer: { type: Object, state: true },
+    widgetRenderer: { type: Object, state: true },
   }
 
   constructor() {
     super()
-    
+
     this.connectorRegistry = new ConnectorRegistry()
     this.blockRegistry = new BlockRegistry(this.connectorRegistry)
 
@@ -78,6 +87,7 @@ export class EditorMixed extends LitElement {
       border: 1px solid black;
       user-select: none;
       cursor: default;
+      overflow: hidden;
     }
     .block {
       cursor: grab;
@@ -118,6 +128,8 @@ export class EditorMixed extends LitElement {
             ${this.extrasRenderer.renderBackground()} ${this.blockRenderer.render()}
           </svg>
         </div>
+
+        <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>
 
         <div
           ${ref(this.drawerRef)}
@@ -171,7 +183,15 @@ export class EditorMixed extends LitElement {
 
   private setConfig(config: MixedEditorConfig) {
     this.layouter = new config.layouter(this.blockRegistry)
-    this.blockRenderer = new config.blockRenderer(this.blockRegistry, this.layouter)
+    this.widgetRenderer = new config.widgetRenderer(
+      this.workspaceRef,
+      this.requestUpdate.bind(this)
+    )
+    this.blockRenderer = new config.blockRenderer(
+      this.blockRegistry,
+      this.layouter,
+      this.widgetRenderer.setWidget.bind(this.widgetRenderer)
+    )
     this.drawerRenderer = new config.drawerRenderer(
       this.blockRegistry,
       this.layouter,

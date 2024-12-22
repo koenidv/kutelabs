@@ -1,19 +1,22 @@
 import { html, svg, type TemplateResult } from "lit"
-import type { BlockRegistry } from "../../registries/BlockRegistry"
-import { Coordinates } from "../../util/Coordinates"
-import { SizeProps } from "../SizeProps"
+import { createRef, type Ref } from "lit/directives/ref.js"
 import type { AnyBlock } from "../../blocks/Block"
+import type { BlockRegistry } from "../../registries/BlockRegistry"
+import { isSafari } from "../../util/browserCheck"
+import { Coordinates } from "../../util/Coordinates"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
+import { SizeProps } from "../SizeProps"
+import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 
+import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import "../../inputs/SimpleInputElement"
-import "../../drag/TapOrDragLayer"
-import { createRef, type Ref } from "lit/directives/ref.js"
-import { isSafari } from "../../util/browserCheck"
 
 export abstract class BaseBlockRenderer {
-  blockRegistry: BlockRegistry
-  layouter: BaseLayouter
+  private readonly blockRegistry: BlockRegistry
+  private readonly layouter: BaseLayouter
+
+  protected readonly setWidget: typeof BaseWidgetRenderer.prototype.setWidget
 
   protected _workspaceScaleFactor = 1
   protected _safariTransform = ""
@@ -24,9 +27,14 @@ export abstract class BaseBlockRenderer {
       : ""
   }
 
-  constructor(blockRegistry: BlockRegistry, layouter: BaseLayouter) {
+  constructor(
+    blockRegistry: BlockRegistry,
+    layouter: BaseLayouter,
+    setWidget: typeof BaseWidgetRenderer.prototype.setWidget
+  ) {
     this.blockRegistry = blockRegistry
     this.layouter = layouter
+    this.setWidget = setWidget
   }
 
   render(): TemplateResult<2>[] {
@@ -126,5 +134,9 @@ export abstract class BaseBlockRenderer {
 }
 
 export type BlockRendererConstructorType = {
-  new (blockRegistry: BlockRegistry, layouter: BaseLayouter): BaseBlockRenderer
+  new (
+    blockRegistry: BlockRegistry,
+    layouter: BaseLayouter,
+    setWidget: typeof BaseWidgetRenderer.prototype.setWidget
+  ): BaseBlockRenderer
 }

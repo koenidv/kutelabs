@@ -1,12 +1,16 @@
 import { html, svg, type TemplateResult } from "lit"
 import { Block, type AnyBlock } from "../../blocks/Block"
-import type { Connector } from "../../connections/Connector"
-import { Coordinates } from "../../util/Coordinates"
-import { BaseBlockRenderer } from "./BaseBlockRenderer"
-import { HeightProp, SizeProps } from "../SizeProps"
-import { ConnectorType } from "../../connections/ConnectorType"
+import type {
+  BlockDataExpression,
+  BlockDataValue,
+  BlockDataVariable,
+} from "../../blocks/configuration/BlockData"
 import { BlockType } from "../../blocks/configuration/BlockType"
-import type { BlockDataExpression, BlockDataValue, BlockDataVariable } from "../../blocks/configuration/BlockData"
+import type { Connector } from "../../connections/Connector"
+import { ConnectorType } from "../../connections/ConnectorType"
+import { Coordinates } from "../../util/Coordinates"
+import { HeightProp, SizeProps } from "../SizeProps"
+import { BaseBlockRenderer } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
 
@@ -79,26 +83,32 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   private renderBlockContents(
     block: AnyBlock,
     size: SizeProps,
-    _position: Coordinates
+    position: Coordinates
   ): TemplateResult<2> | undefined {
     switch (block.type) {
       case BlockType.VarInit:
         return svg`
-        <text x="5" y="15">create var</text>
-        ${this.renderInputContent(
-          (block.data as BlockDataVariable<any>).name?.toString(), // todo type
-          (value: string) => (block.data as BlockDataVariable<any>).name = value,
-          new Coordinates(5, 25),
-          new Coordinates(size.fullWidth - 10, 20)
-        )
-      }
-      <text x="5" y="65">as</text>
-      <text x="5" y="85">todo, type select</text>
+          <text x="5" y="15">create var</text>
+          ${this.renderInputContent(
+            (block.data as BlockDataVariable<any>).name?.toString(), // todo type
+            (value: string) => ((block.data as BlockDataVariable<any>).name = value),
+            new Coordinates(5, 20),
+            new Coordinates(size.fullWidth - 10, 20)
+          )}
+          <text x="5" y="55">as</text>
+          ${this.renderSelectorContent(
+            ["String", "Int", "Boolean", "Float"],
+            (block.data as BlockDataVariable<any>).type?.toString(), // todo
+            (value: string) => ((block.data as BlockDataVariable<any>).type = value),
+            new Coordinates(5, 60),
+            position.plus(0, size.fullHeight),
+            new Coordinates(size.fullWidth - 10, 28)
+          )}
         `
       case BlockType.Value:
         return this.renderInputContent(
           (block.data as BlockDataValue<any>).value?.toString(), // todo type
-          (value: string) => (block.data as BlockDataValue<any>).value = value,
+          (value: string) => ((block.data as BlockDataValue<any>).value = value),
           new Coordinates(5, 5),
           new Coordinates(size.fullWidth - 10, size.fullHeight - 10)
         )
@@ -143,7 +153,12 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         `
   }
 
-  private renderInputContent(input: string, onInput: (value: string) => void, position: Coordinates, size: Coordinates): TemplateResult<2> {
+  private renderInputContent(
+    input: string,
+    onInput: (value: string) => void,
+    position: Coordinates,
+    size: Coordinates
+  ): TemplateResult<2> {
     return svg`
       <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y}>
       ${this.tapOrDragLayer(
@@ -153,11 +168,39 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
             class="donotdrag"
             style="width: 100%; height: 100%; ${this._safariTransform}"
             .input=${input}
-            @input-change=${(e: CustomEvent) => onInput(e.detail.input)}
-            ></value-input>
+            @input-change=${(e: CustomEvent) => onInput(e.detail.input)}></value-input>
         `
       )}
       </foreignObject>
+    `
+  }
+
+  private renderSelectorContent(
+    values: string[],
+    selected: string,
+    onSelect: (value: string) => void,
+    position: Coordinates,
+    widgetPosition: Coordinates,
+    size: Coordinates
+  ): TemplateResult<2> {
+    const showDropdown = (e: MouseEvent) => {
+      e.preventDefault()
+      this.setWidget(
+        {
+          type: "selector",
+          options: values.map(value => ({ id: value, display: value })),
+          selected,
+          onSelected: (it: string) => {
+            onSelect(it)
+            return true
+          },
+        },
+        new Coordinates(widgetPosition.x, widgetPosition.y)
+      )
+    }
+
+    return svg`
+      <text x=${position.x} y=${position.y + 10} fill="black" @mousedown="${(e: MouseEvent) => showDropdown(e)}">Select type</text>
     `
   }
 
