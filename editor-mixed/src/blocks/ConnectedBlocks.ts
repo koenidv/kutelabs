@@ -9,18 +9,23 @@ import type { AnyBlock } from "./Block"
 export class ConnectedBlocks {
   blocks: Map<Connector, AnyBlock> = new Map()
 
-  insertForConnector(block: AnyBlock, connector: Connector, insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
+  insertForConnector(
+    block: AnyBlock,
+    connector: Connector,
+    insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
+  ) {
     if (this.blocks.has(connector)) this.handlePopBlock(connector, block, insertOnRoot)
     this.blocks.set(connector, block)
   }
 
-  private handlePopBlock(connector: Connector, newBlock: AnyBlock, insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
-    if (!connector.isDownstram)
-      console.warn("Popping block on upstream connector", connector)
+  private handlePopBlock(
+    connector: Connector,
+    newBlock: AnyBlock,
+    insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
+  ) {
+    if (!connector.isDownstram) console.warn("Popping block on upstream connector", connector)
     const popped = (
-      connector.isDownstram
-        ? this.byConnector(connector)
-        : connector.parentBlock
+      connector.isDownstram ? this.byConnector(connector) : connector.parentBlock
     )?.disconnectSelf(null)
     if (!popped) return
 
@@ -28,8 +33,7 @@ export class ConnectedBlocks {
 
     const lastAfter = newBlock.lastAfter
     if (
-      (connector.type == ConnectorType.After ||
-        connector.type === ConnectorType.Inner) &&
+      (connector.type == ConnectorType.After || connector.type === ConnectorType.Inner) &&
       lastAfter.connectors.after &&
       popped.connectors.before
     ) {
@@ -52,7 +56,13 @@ export class ConnectedBlocks {
   byConnector(connector: Connector | null): AnyBlock | null {
     if (connector === null) return null
     return this.blocks.get(connector) || null
-  } 
+  }
+
+  get downstream(): BlockAndConnector[] {
+    return [...this.blocks]
+      .filter(([connector, _block]) => connector.isDownstram)
+      .map(([connector, block]) => ({ block, connector }))
+  }
 
   popBlock(block: AnyBlock): BlockAndConnector | null {
     const connector = findKeyByValue(this.blocks, block)
@@ -66,5 +76,22 @@ export class ConnectedBlocks {
     const block = this.blocks.get(connector) ?? null
     this.blocks.delete(connector)
     return block
+  }
+
+  reevaluateConnections(insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
+    this.downstream.forEach(({ connector, block }) => {
+      if (!block.upstreamConnectorInUse) {
+        console.error("Block to reevaluate has no upstream connector in use", block)
+        return
+      }
+      if (!connector.connectPredicates.allows(block.upstreamConnectorInUse)) {
+        console.info("Reevaluated block and found that it is no longer compatible", block)
+        const popped = block.disconnectSelf(null)
+        if (!popped) throw new Error("Block failed to disconnect itself")
+        insertOnRoot(popped, curr => {
+          return Coordinates.addPopOffset(curr)
+        })
+      }
+    })
   }
 }

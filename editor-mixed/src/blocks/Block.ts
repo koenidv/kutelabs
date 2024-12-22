@@ -23,7 +23,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   readonly draggable: boolean
   renderStale: boolean = false
   isInDrawer: boolean = false
-  data: BlockDataByType<T, S>
+  private _data: BlockDataByType<T, S>
   private readonly insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
 
   constructor(
@@ -39,7 +39,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     this.type = type
     this.draggable = draggable
 
-    this.data = data
+    this._data = data
 
     this.connectors.addConnector(this, connectorRegistry, DefaultConnectors.internal())
     for (const { connector, connected } of connectors) {
@@ -125,6 +125,10 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       throw new Error(`Connecting to upstream connector type "${localType}" is not implemented`)
   }
 
+  public reevaluateBlocks() {
+    this.connectedBlocks.reevaluateConnections(this.insertOnRoot)
+  }
+
   //#region Connected Blocks
 
   connectedBlocks = new ConnectedBlocks()
@@ -133,9 +137,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     return this.connectedBlocks.byConnector(this.upstreamConnectorInUse)
   }
   get downstreamWithConnectors(): BlockAndConnector[] {
-    return [...this.connectedBlocks.blocks]
-      .filter(([connector, _block]) => connector.isDownstram)
-      .map(([connector, block]) => ({ block, connector }))
+    return this.connectedBlocks.downstream
   }
 
   get before() {
@@ -220,6 +222,18 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
   //#region Internals
 
+  public get data(): BlockDataByType<T, S> {
+    // return copy of data to prevent mutation,  
+    return structuredClone(this._data)
+  }
+  public set data(value: BlockDataByType<T, S>) {
+    this._data = value
+    this.reevaluateBlocks()
+  }
+  public updateData(update: (current: BlockDataByType<T, S>) => BlockDataByType<T, S>) {
+    this.data = update(this._data)
+  }
+
   /**
    * Creates a clone of this block and registers it with its current position and size
    * @returns new cloned block instance
@@ -229,7 +243,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     // new blocks register themselves
     return new Block(
       this.type,
-      this.data,
+      structuredClone(this._data),
       this.connectors.all.map(connector => ({
         connector: new Connector(
           connector.type,

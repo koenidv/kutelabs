@@ -88,19 +88,21 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   ): TemplateResult<2> | undefined {
     switch (block.type) {
       case BlockType.VarInit:
+        const blockData = block.data as BlockDataVariable<any>
         return svg`
           <text x="5" y="15">create var</text>
           ${this.renderInputContent(
-            (block.data as BlockDataVariable<any>).name?.toString(), // todo type
-            (value: string) => ((block.data as BlockDataVariable<any>).name = value),
+            blockData.name?.toString(), // todo type
+            (value: string) => block.updateData(cur => ({ ...cur, name: value })),
             new Coordinates(5, 20),
             new Coordinates(size.fullWidth - 10, 20)
           )}
           <text x="5" y="55">as</text>
           ${this.renderSelectorContent(
             Object.entries(ValueDataType).map(([display, id]) => ({ id, display })),
-            (block.data as BlockDataVariable<any>).type,
-            (id: string) => ((block.data as BlockDataVariable<any>).type = id),
+            blockData.type,
+            (id: string) =>
+              block.updateData(cur => ({ ...cur, type: id }) as BlockDataVariable<any>),
             new Coordinates(5, 60),
             position.plus(0, size.fullHeight),
             new Coordinates(size.fullWidth - 10, 28)
@@ -109,14 +111,15 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       case BlockType.Value:
         return this.renderInputContent(
           (block.data as BlockDataValue<any>).value?.toString(), // todo type
-          (value: string) => ((block.data as BlockDataValue<any>).value = value),
+          (value: string) => block.updateData(cur => ({ ...cur, value: value }) as any),
           new Coordinates(5, 5),
           new Coordinates(size.fullWidth - 10, size.fullHeight - 10)
         )
       case BlockType.Expression:
         if ((block as Block<BlockType.Expression>).data.editable)
-          return this.renderEditableCodeContents(block, block.data as BlockDataExpression, size)
-        else return svg`<text x="5" y="20" fill="black" style="user-select: none;">${(block.data as BlockDataExpression).expression}</text>`
+          return this.renderEditableCodeContents(block, size)
+        else
+          return svg`<text x="5" y="20" fill="black" style="user-select: none;">${(block.data as BlockDataExpression).expression}</text>`
       default:
         return svg`
           <text x="5" y="20" fill="black" style="user-select: none;">${block.type}</text>
@@ -129,8 +132,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   }
 
   private renderEditableCodeContents(
-    _block: Block<BlockType.Expression>,
-    data: BlockDataExpression,
+    block: Block<BlockType.Expression>,
     size: SizeProps
   ): TemplateResult<2> {
     return svg`
@@ -141,12 +143,15 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
                 ${ref(reference)}
                 class="donotdrag"
                 style="width: 100%; height: 100%; ${this._safariTransform}"
-                .input="${data.customExpression?.get("kt") ?? ""}"
+                .input="${block.data.customExpression?.get("kt") ?? ""}"
                 @input-change=${(e: CustomEvent) =>
-                  data.customExpression?.set(
-                    data.editable ? data.editable.lang : "kt",
-                    e.detail.code
-                  )}>
+                  block.updateData(cur => {
+                    const expr = cur.customExpression?.set(
+                      cur.editable ? cur.editable.lang : "kt",
+                      e.detail.input
+                    )
+                    return { ...cur, customExpression: expr }
+                  })}>
               </prism-kotlin-editor>
             `
           )}
