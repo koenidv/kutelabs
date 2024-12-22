@@ -16,6 +16,7 @@ export class DragHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly drawerRef: Ref<SVGSVGElement>
   private readonly requestRerender: (full: boolean) => void
+  private readonly removeWidgets: () => void
 
   constructor(
     blockRegistry: BlockRegistry,
@@ -24,7 +25,8 @@ export class DragHelper {
     workspaceRef: Ref<SVGSVGElement>,
     drawerRef: Ref<SVGSVGElement>,
     rerenderDrag: () => void,
-    rerenderWorkspace: () => void
+    rerenderWorkspace: () => void,
+    removeWidgets: () => void
   ) {
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
@@ -35,6 +37,7 @@ export class DragHelper {
       rerenderDrag()
       if (full) rerenderWorkspace()
     }
+    this.removeWidgets = removeWidgets
   }
   private dragged: AnyRegisteredBlock | null = null
   private startPos = Coordinates.zero
@@ -56,6 +59,7 @@ export class DragHelper {
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1)
       return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
+    this.removeWidgets()
 
     const draggedParent = this.findParent(
       evt.target as HTMLElement,

@@ -129,14 +129,14 @@ export class EditorMixed extends LitElement {
           </svg>
         </div>
 
-        <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>
-
         <div
           ${ref(this.drawerRef)}
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
           ${this.drawerRenderer!.renderElement()}
         </div>
+
+        <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>
 
         <editor-mixed-drag
           ${ref(this.dragLayerRef)}
@@ -207,7 +207,8 @@ export class EditorMixed extends LitElement {
       this.workspaceRef,
       this.drawerRef,
       () => this.dragLayerRef.value?.requestUpdate(),
-      this.requestUpdate.bind(this)
+      this.requestUpdate.bind(this),
+      () => this.widgetRenderer?.removeWidget?.()
     )
   }
 
