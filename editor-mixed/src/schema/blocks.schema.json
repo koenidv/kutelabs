@@ -5,6 +5,20 @@
   "description": "Block within the mixed content editor",
   "type": "object",
   "$defs": {
+    "dataType": {
+      "description": "Value type (from ValueDataType)",
+      "type": "string",
+      "enum": [
+        "int",
+        "float",
+        "string",
+        "boolean",
+        "array<int>",
+        "array<float>",
+        "array<string>",
+        "array<boolean>"
+      ]
+    },
     "AnyBlock": {
       "type": "object",
       "oneOf": [
@@ -19,6 +33,9 @@
         },
         {
           "$ref": "#/$defs/VariableInitBlock"
+        },
+        {
+          "$ref": "#/$defs/VariableSetBlock"
         },
         {
           "$ref": "#/$defs/VariableBlock"
@@ -104,6 +121,21 @@
             "name"
           ],
           "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "inner",
+                  "inputExtension",
+                  "output"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [
@@ -180,6 +212,20 @@
             "expression"
           ],
           "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "inputExtension"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [
@@ -201,18 +247,7 @@
           "type": "object",
           "properties": {
             "type": {
-              "description": "Value type (from ValueDataType)",
-              "type": "string",
-              "enum": [
-                "int",
-                "float",
-                "string",
-                "boolean",
-                "array<int>",
-                "array<float>",
-                "array<string>",
-                "array<boolean>"
-              ]
+              "$ref": "#/$defs/dataType"
             }
           },
           "allOf": [
@@ -361,6 +396,12 @@
             "type",
             "value"
           ]
+        },
+        "connectedBlocks": {
+          "description": "Value blocks can't have downstream connected blocks",
+          "type": "null",
+          "requiredProperties": [],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -386,18 +427,7 @@
               "type": "string"
             },
             "type": {
-              "description": "Variable type (from ValueDataType)",
-              "type": "string",
-              "enum": [
-                "int",
-                "float",
-                "string",
-                "boolean",
-                "array<int>",
-                "array<float>",
-                "array<string>",
-                "array<boolean>"
-              ]
+              "$ref": "#/$defs/dataType"
             },
             "isMutable": {
               "description": "If the variable is mutable, defaults to true",
@@ -409,12 +439,52 @@
             "type"
           ],
           "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "inputExtension"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [
         "type",
         "data"
       ]
+    },
+    "VariableSetBlock": {
+      "type": "object",
+      "description": "Variable Set Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an variable block",
+          "type": "string",
+          "const": "variable_set"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "inner",
+                  "inputExtension"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "VariableBlock": {
       "type": "object",
@@ -434,24 +504,19 @@
               "type": "string"
             },
             "type": {
-              "description": "Variable type (from ValueDataType)",
-              "type": "string",
-              "enum": [
-                "int",
-                "float",
-                "string",
-                "boolean",
-                "array<int>",
-                "array<float>",
-                "array<string>",
-                "array<boolean>"
-              ]
+              "$ref": "#/$defs/dataType"
             }
           },
           "required": [
             "name",
             "type"
           ],
+          "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "description": "Variable blocks can't have downstream connected blocks",
+          "type": "null",
+          "requiredProperties": [],
           "additionalProperties": false
         }
       },
@@ -472,6 +537,22 @@
         "elsebranch": {
           "description": "Include else branch?",
           "type": "boolean"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditionalExtension",
+                  "ifTrue",
+                  "ifFalse",
+                  "after"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [

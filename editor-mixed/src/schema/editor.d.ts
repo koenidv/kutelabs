@@ -213,7 +213,7 @@ export interface VariableInitBlock {
      */
     name: string
     /**
-     * Variable type (from ValueDataType)
+     * Value type (from ValueDataType)
      */
     type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
     /**
@@ -240,7 +240,7 @@ export interface VariableBlock {
      */
     name: string
     /**
-     * Variable type (from ValueDataType)
+     * Value type (from ValueDataType)
      */
     type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
   }

@@ -5,6 +5,7 @@ export enum BlockType {
   Value = "value",
   Variable = "variable",
   VarInit = "variable_init",
+  VarSet = "variable_set",
   Loop = "loop",
   Conditional = "conditional",
 }
