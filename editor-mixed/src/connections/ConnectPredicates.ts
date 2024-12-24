@@ -3,8 +3,9 @@ import { ConnectorType } from "./ConnectorType"
 
 export type ConnectPredicate = (
   remoteConnector: Connector,
-  localConnector: Connector
+  localConnector: Connector,
 ) => boolean
+
 export class ConnectPredicates {
   localConnector: Connector
   predicates: ConnectPredicate[]

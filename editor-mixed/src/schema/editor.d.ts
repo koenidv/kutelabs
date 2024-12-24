@@ -83,6 +83,7 @@ export type AnyBlock =
   | ExpressionBlock
   | ValueBlock
   | VariableInitBlock
+  | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
 /**
@@ -96,6 +97,7 @@ export type MixedContentEditorConnector =
   | "output"
   | "extender"
   | "inner"
+  | "innerVariable"
   | "ifTrue"
   | "ifFalse"
 /**
@@ -125,7 +127,15 @@ export type AnyBlockSingle = {
   data?: unknown
   elsebranch?: unknown
   [k: string]: unknown
-} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableInitBlock | VariableBlock | ConditionalBlock)
+} & (
+  | FunctionBlock
+  | ExpressionBlock
+  | ValueBlock
+  | VariableInitBlock
+  | VariableSetBlock
+  | VariableBlock
+  | ConditionalBlock
+)
 
 /**
  * Function Block
@@ -144,6 +154,10 @@ export interface FunctionBlock {
      */
     name: string
   }
+  connectedBlocks?: {
+    on?: "inner" | "inputExtension" | "output"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }
 /**
@@ -178,6 +192,10 @@ export interface ExpressionBlock {
           maxLines?: number
         }
   }
+  connectedBlocks?: {
+    on?: "after" | "inputExtension"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }
 /**
@@ -194,6 +212,10 @@ export interface ValueBlock {
   data: {
     [k: string]: unknown
   }
+  /**
+   * Value blocks can't have downstream connected blocks
+   */
+  connectedBlocks?: null
   [k: string]: unknown
 }
 /**
@@ -219,8 +241,25 @@ export interface VariableInitBlock {
     /**
      * If the variable is mutable, defaults to true
      */
-    isMutable?: boolean
+    mutable?: boolean
   }
+  connectedBlocks?: {
+    on?: "after" | "inputExtension"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Variable Set Block
+ */
+export interface VariableSetBlock {
+  /**
+   * Defines this block as an variable block
+   */
+  type?: "variable_set"
+  connectedBlocks?: {
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }
 /**
@@ -239,11 +278,11 @@ export interface VariableBlock {
      * Name of the variable
      */
     name: string
-    /**
-     * Value type (from ValueDataType)
-     */
-    type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
   }
+  /**
+   * Variable blocks can't have downstream connected blocks
+   */
+  connectedBlocks?: null
   [k: string]: unknown
 }
 /**
@@ -258,5 +297,9 @@ export interface ConditionalBlock {
    * Include else branch?
    */
   elsebranch?: boolean
+  connectedBlocks?: {
+    on?: "conditionalExtension" | "ifTrue" | "ifFalse" | "after"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }

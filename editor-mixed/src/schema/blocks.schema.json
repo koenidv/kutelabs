@@ -476,7 +476,7 @@
               "on": {
                 "enum": [
                   "after",
-                  "inner",
+                  "innerVariable",
                   "inputExtension"
                 ]
               }

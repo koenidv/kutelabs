@@ -77,6 +77,7 @@ export class DebugLayouter extends BaseLayouter {
     parentConnector: Connector
   ): Coordinates {
     if (
+      parentConnector.type == ConnectorType.Extension &&
       parentConnector.role == ConnectorRole.Input ||
       parentConnector.role == ConnectorRole.Conditional
     ) {
@@ -112,8 +113,10 @@ export class DebugLayouter extends BaseLayouter {
         if (connector.role == ConnectorRole.Input)
           return new Coordinates(0, DEFAULT_CONNECTOR_HEIGHT / 2)
         else return Coordinates.zero
+
       case ConnectorType.After:
         return new Coordinates(0, blockSize.fullHeight)
+
       case ConnectorType.Inner: {
         const index = block.connectors.inners.indexOf(connector)
         let bodiesCount = 0
@@ -129,6 +132,7 @@ export class DebugLayouter extends BaseLayouter {
 
         return new Coordinates(blockSize.fullWidth / 4, blockSize.fullHeadHeight + xOffset)
       }
+
       case ConnectorType.Extension: {
         if (connector.role == ConnectorRole.Output) {
           // we can expect blocks to have a maximum of one output connector
@@ -153,8 +157,10 @@ export class DebugLayouter extends BaseLayouter {
 
         return new Coordinates(blockSize.fullWidth, previousHeights + DEFAULT_CONNECTOR_HEIGHT / 2)
       }
+
       case ConnectorType.Internal:
         return new Coordinates(0, 0)
+
       default:
         return Coordinates.zero
     }

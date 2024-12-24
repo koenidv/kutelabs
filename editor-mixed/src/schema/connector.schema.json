@@ -15,6 +15,7 @@
         "output",
         "extender",
         "inner",
+        "innerVariable",
         "ifTrue",
         "ifFalse"
       ]

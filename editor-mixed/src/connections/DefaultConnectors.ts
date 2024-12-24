@@ -1,3 +1,4 @@
+import type { BlockDataVariable } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { ValueDataType } from "../blocks/configuration/ValueDataType"
 import { Connector } from "./Connector"
@@ -5,26 +6,29 @@ import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
 
 export class DefaultConnectors {
+  private static beforeAfter() {
+    return [this.before(), this.after()]
+  }
   static byBlockType(type: BlockType): Connector[] {
     switch (type) {
       case BlockType.Function:
         return [DefaultConnectors.inner(), DefaultConnectors.output()]
       case BlockType.Expression:
         return [
-          DefaultConnectors.before(),
-          DefaultConnectors.after(),
+          ...this.beforeAfter(),
           DefaultConnectors.inputExtension(), // todo variable input count
         ]
       case BlockType.VarInit:
+        return [...this.beforeAfter(), DefaultConnectors.variableInitInput()]
+      case BlockType.VarSet:
         return [
-          DefaultConnectors.before(),
-          DefaultConnectors.after(),
-          DefaultConnectors.dynamicTypedInputExtension(false),
+          ...this.beforeAfter(),
+          DefaultConnectors.innerVariable(),
+          DefaultConnectors.variableSetInput(),
         ]
       case BlockType.Conditional:
         return [
-          DefaultConnectors.before(),
-          DefaultConnectors.after(),
+          ...this.beforeAfter(),
           DefaultConnectors.conditionalExtension(),
           DefaultConnectors.conditionalTrue(),
         ]
@@ -60,21 +64,55 @@ export class DefaultConnectors {
     ])
   }
 
-  static dynamicTypedInputExtension(allowVariables = true) {
+  static variableInitInput() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
       (remote, local) => {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
-        if (!allowVariables && remote.parentBlock?.type === BlockType.Variable) return false
-        if (local.parentBlock && remote.parentBlock) {
-          if (local.parentBlock.data != null && "type" in local.parentBlock.data) {
-            if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
-              return local.parentBlock.data.type === remote.parentBlock.data.type
-            }
-          } else {
-            if (remote.parentBlock.data == null || "type"! in remote.parentBlock.data) return true
-          }
+        if (remote.parentBlock?.type === BlockType.Variable) return false
+        if (!local.parentBlock || !remote.parentBlock) return false
+
+        const localType = (
+          local.parentBlock.data != null && "type" in local.parentBlock.data
+            ? local.parentBlock.data.type
+            : null
+        ) as ValueDataType | null
+
+        if (localType == null)
+          return remote.parentBlock.data == null || !("type" in remote.parentBlock.data)
+
+        if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
+          return localType === remote.parentBlock.data.type
         }
+        return false
+      },
+    ])
+  }
+
+  static variableSetInput() {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
+      (remote, local) => {
+        console.log("variableSetInput", remote, local)
+
+        if (
+          remote.type !== ConnectorType.Before ||
+          remote.role !== ConnectorRole.Input ||
+          !local.parentBlock ||
+          !remote.parentBlock
+        )
+          return false
+
+        const variableData = remote.parentBlock.inners[0]?.data as BlockDataVariable
+        console.log(variableData, variableData.name)
+        if (!variableData || !variableData.name) return true
+
+        const localType = variableData.VariableHelper?.deref()?.getVariableType(variableData.name)
+        if (!localType) return false
+
+        if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
+          return localType === remote.parentBlock.data.type
+        }
+
         return false
       },
     ])
@@ -110,13 +148,22 @@ export class DefaultConnectors {
 
   static extender() {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
-      remote => remote.type === ConnectorType.Extension,
+      remote => remote.role === ConnectorRole.Input && remote.type !== ConnectorType.Before,
     ])
   }
 
   static inner() {
     return new Connector(ConnectorType.Inner, ConnectorRole.Inner, [
       remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Default,
+    ])
+  }
+
+  static innerVariable() {
+    return new Connector(ConnectorType.Inner, ConnectorRole.Input, [
+      remote =>
+        remote.type === ConnectorType.Before &&
+        remote.role === ConnectorRole.Input &&
+        remote.parentBlock?.type === BlockType.Variable,
     ])
   }
 

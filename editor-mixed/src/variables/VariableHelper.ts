@@ -98,6 +98,7 @@ export class VariableHelper implements VariableHInterface {
       return
     }
     data.usages.push(block)
+    block.data.VariableHelper = new WeakRef(this)
   }
 
   private onBlockRemovedFromWorkspace = (block: AnyBlock) => {

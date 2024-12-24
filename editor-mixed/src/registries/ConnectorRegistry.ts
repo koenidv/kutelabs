@@ -3,6 +3,7 @@ import { Coordinates } from "../util/Coordinates"
 import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
 import type { ConnectorRInterface } from "./ConnectorRInterface"
+import type { VariableHInterface } from "../variables/VariableHInterface"
 
 export class ConnectorRegistry implements ConnectorRInterface {
   private _connectors: Connector[] = []

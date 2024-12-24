@@ -41,7 +41,7 @@
                   "type": "variable_set",
                   "connectedBlocks": [
                     {
-                      "on": "inner",
+                      "on": "innerVariable",
                       "type": "variable",
                       "data": {
                         "name": "imavar"

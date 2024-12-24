@@ -16,5 +16,6 @@ export type MixedContentEditorConnector =
   | "output"
   | "extender"
   | "inner"
+  | "innerVariable"
   | "ifTrue"
   | "ifFalse"

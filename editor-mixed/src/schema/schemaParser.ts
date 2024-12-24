@@ -138,6 +138,8 @@ function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
       return DefaultConnectors.output()
     case "inner":
       return DefaultConnectors.inner()
+    case "innerVariable":
+      return DefaultConnectors.innerVariable()
     case "extender":
       return DefaultConnectors.extender()
     case "ifTrue":

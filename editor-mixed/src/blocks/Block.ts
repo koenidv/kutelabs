@@ -1,3 +1,4 @@
+import { IdGenerator } from "@kutelabs/shared"
 import { Connection } from "../connections/Connection"
 import { Connector, type BlockAndConnector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
@@ -13,7 +14,6 @@ import type { BlockContract } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
 import type { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
-import { IdGenerator } from "@kutelabs/shared"
 
 export type AnyBlock = Block<BlockType, any>
 
