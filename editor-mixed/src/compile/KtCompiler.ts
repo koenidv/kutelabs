@@ -75,6 +75,10 @@ export class KtCompiler extends BaseCompiler {
     return `${block.data.mutable ? "var" : "val"} ${block.data.name} = ${next(block.inputs[0])};\n${next(block.after)}`
   }
 
+  compileVariableSet(block: Block<BlockType.VarSet>, next: typeof this.compile): string {
+    return `${next(block.inners[0])} = ${next(block.inputs[0])};\n${next(block.after)}`
+  }
+
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
     return `while (${next(block.conditional)}) {
       ${next(block.inners[0])}

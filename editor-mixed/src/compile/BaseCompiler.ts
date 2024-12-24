@@ -17,27 +17,29 @@ export abstract class BaseCompiler {
     return { code, entrypoint, argNames: [] }
   }
 
-  compile(block: Block<BlockType> | null): string {
+  compile<T,S>(block: Block<T extends BlockType ? T : never, S> | null): string {
     if (block == null) return ""
     switch (block.type) {
       case BlockType.Function:
-        return this.compileFunction(block, this.compile.bind(this))
+        return this.compileFunction(block as Block<BlockType.Function>, this.compile.bind(this))
       case BlockType.Expression:
         if ((block.data as BlockDataExpression).expression == DefinedExpression.Custom) {
-          return this.compileCustomExpression(block, this.compile.bind(this))
+          return this.compileCustomExpression(block as Block<BlockType.Expression>, this.compile.bind(this))
         } else {
-          return this.compileDefinedExpression(block, this.compile.bind(this))
+          return this.compileDefinedExpression(block as Block<BlockType.Expression>, this.compile.bind(this))
         }
       case BlockType.Value:
-        return this.compileValue(block, this.compile.bind(this))
+        return this.compileValue(block as Block<BlockType.Value>, this.compile.bind(this))
       case BlockType.Variable:
-        return this.compileVariable(block, this.compile.bind(this))
+        return this.compileVariable(block as Block<BlockType.Variable>, this.compile.bind(this))
       case BlockType.VarInit:
-        return this.compileVariableInit(block, this.compile.bind(this))
+        return this.compileVariableInit(block as Block<BlockType.VarInit>, this.compile.bind(this))
+        case BlockType.VarSet:
+        return this.compileVariableSet(block as Block<BlockType.VarSet>, this.compile.bind(this))
       case BlockType.Loop:
-        return this.compileLoop(block, this.compile.bind(this))
+        return this.compileLoop(block as Block<BlockType.Loop>, this.compile.bind(this))
       case BlockType.Conditional:
-        return this.compileConditional(block, this.compile.bind(this))
+        return this.compileConditional(block as Block<BlockType.Conditional>, this.compile.bind(this))
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -55,6 +57,7 @@ export abstract class BaseCompiler {
   abstract compileValue(block: Block<BlockType.Value>, next: typeof this.compile): string
   abstract compileVariable(block: Block<BlockType.Variable>, next: typeof this.compile): string
   abstract compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string
+  abstract compileVariableSet(block: Block<BlockType.VarSet>, next: typeof this.compile): string
   abstract compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string
   abstract compileConditional(
     block: Block<BlockType.Conditional>,

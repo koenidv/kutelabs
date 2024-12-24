@@ -15,7 +15,7 @@ import type { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
 import { IdGenerator } from "@kutelabs/shared"
 
-export type AnyBlock = Block<BlockType>
+export type AnyBlock = Block<BlockType, any>
 
 export class Block<T extends BlockType, S = never> implements BlockContract {
   readonly id: string = IdGenerator.next
@@ -146,9 +146,9 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   get after() {
     return this.connectedBlocks.byConnector(this.connectors.after)
   }
-  get lastAfter(): Block<any> {
+  get lastAfter(): AnyBlock {
     if (!this.after) return this
-    let lastNode: Block<any> = this.after
+    let lastNode: AnyBlock = this.after
     while (lastNode.after) lastNode = lastNode.after
     return lastNode
   }
@@ -171,7 +171,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
-  get conditional(): Block<T> | null {
+  get conditional(): Block<BlockType.Conditional, undefined> | null {
     return (
       this.connectors
         .byRole(ConnectorRole.Conditional)
@@ -223,7 +223,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
   //#region Internals
 
   public get data(): BlockDataByType<T, S> {
-    // return copy of data to prevent mutation,  
+    // return copy of data to prevent mutation,
     return structuredClone(this._data)
   }
   public set data(value: BlockDataByType<T, S>) {
@@ -238,7 +238,10 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
    * Creates a clone of this block and registers it with its current position and size
    * @returns new cloned block instance
    */
-  registerClone(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): Block<T> {
+  registerClone(
+    blockRegistry: BlockRInterface,
+    connectorRegistry: ConnectorRInterface
+  ): Block<T, S> {
     const registered = blockRegistry.getRegistered(this)
     // new blocks register themselves
     return new Block(
