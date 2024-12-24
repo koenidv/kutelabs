@@ -2,7 +2,6 @@ import { Block, type AnyBlock } from "../blocks/Block"
 import type {
   BlockDataByType,
   BlockDataExpression,
-  BlockDataVariableInit,
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { Connector } from "../connections/Connector"
