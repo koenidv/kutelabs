@@ -84,16 +84,9 @@
     ],
     "initialDrawerBlocks": [
       {
-        "type": "variable",
-        "data": {
-          "name": "imavar"
-        },
-        "count": -1
-      },
-      {
         "type": "variable_init",
         "data": {
-          "name": "testVarHelper",
+          "name": "test",
           "type": "array<string>"
         }
       }

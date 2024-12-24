@@ -52,6 +52,9 @@ export class VariableHelper implements VariableHInterface {
    * b) adds a variable use block to the drawer
    * c) tracks the variable for later use
    * d) applies any pending variable uses for this variable
+   * e) applies the next available variable name if the name is already taken
+   * side effect: requests a render update
+   * // todo: refactor this massive method 
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
@@ -59,9 +62,16 @@ export class VariableHelper implements VariableHInterface {
       console.error("Added var init block to workspace but block is already tracked:", block)
       return
     }
+
+    const data = block.data
+    if (!this.isNameAvailable(data.name)) {
+      data.name = this.nextAvailableName(data.name)
+      block.data = data
+    }
+
     const drawerBlock = new Block<BlockType.Variable>(
       BlockType.Variable,
-      { name: block.data.name },
+      { name: data.name },
       DefaultConnectors.byBlockType(BlockType.Variable).map(connector => ({ connector })),
       true,
       this.blockRegistry,
@@ -70,9 +80,9 @@ export class VariableHelper implements VariableHInterface {
     this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
     this.variables.set(block as Block<BlockType.VarInit>, {
-      name: block.data.name,
-      type: block.data.type,
-      mutable: block.data.mutable,
+      name: data.name,
+      type: data.type,
+      mutable: data.mutable,
       usages: [],
       drawerBlock,
     })
@@ -209,6 +219,20 @@ export class VariableHelper implements VariableHInterface {
     for (const { name: registeredName } of this.variables.values())
       if (registeredName === name) return false
     return true
+  }
+
+  /**
+   * Get the next available name for a variable, as a base name with a number suffix
+   * @param base base name to start with
+   * @returns next available name
+   */
+  public nextAvailableName(base: string): string {
+    let name = base
+    let i = 1
+    while (!this.isNameAvailable(name)) {
+      name = `${base}${i++}`
+    }
+    return name
   }
 
   /**
