@@ -5,6 +5,7 @@ import { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { findKeyByValue } from "../util/MapUtils"
 import type { AnyBlock } from "./Block"
+import { BlockType } from "./configuration/BlockType"
 
 export class ConnectedBlocks {
   blocks: Map<Connector, AnyBlock> = new Map()
@@ -119,8 +120,10 @@ export class ConnectedBlocks {
    * Check all connections against the current block state,
    * and pop them to root if the connection's predicates no longer allow the connection
    * @param insertOnRoot function to insert a block to the workspace root
+   * @returns true if any block was popped
    */
-  reevaluateConnections(insertOnRoot: typeof BlockRegistry.prototype.attachToRoot) {
+  reevaluateConnections(insertOnRoot: typeof BlockRegistry.prototype.attachToRoot): boolean {
+    let anyPopped = false
     this.downstream.forEach(({ connector, block }) => {
       if (!block.upstreamConnectorInUse) {
         console.error("Block to reevaluate has no upstream connector in use", block)
@@ -133,7 +136,9 @@ export class ConnectedBlocks {
         insertOnRoot(popped, curr => {
           return Coordinates.addPopOffset(curr)
         })
+        anyPopped = true
       }
     })
+    return anyPopped
   }
 }

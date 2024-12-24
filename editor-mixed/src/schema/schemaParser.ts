@@ -1,8 +1,5 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type {
-  BlockDataByType,
-  BlockDataExpression,
-} from "../blocks/configuration/BlockData"
+import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { Connector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
@@ -12,6 +9,8 @@ import type { BlockRegistry } from "../registries/BlockRegistry"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import type {
+  AnyBlockConnected,
+  AnyBlockSingle,
   MixedContentEditorBlock,
   MixedContentEditorConfiguration,
   MixedContentEditorConnector,
@@ -33,7 +32,10 @@ function applyDrawerBlocks(
 ): void {
   if (!data.initialDrawerBlocks) return // may be undefined if hideDrawer is true
   for (const block of data.initialDrawerBlocks) {
-    blockRegistry.attachToDrawer(parseBlockRecursive(block, null, blockRegistry, connectorRegistry), block.count ?? -1)
+    blockRegistry.attachToDrawer(
+      parseBlockRecursive(block, null, blockRegistry, connectorRegistry),
+      block.count ?? -1
+    )
   }
 }
 
@@ -55,7 +57,7 @@ function applyWorkspaceBlocks(
 }
 
 function parseBlockRecursive(
-  data: MixedContentEditorBlock,
+  data: AnyBlockConnected | AnyBlockSingle,
   parseConnected:
     | ({
         on: MixedContentEditorConnector
@@ -70,7 +72,7 @@ function parseBlockRecursive(
   if (parseConnected) {
     for (const connectedBlock of parseConnected) {
       connectedBlocks.push({
-        connector: parseDefaultConnector(connectedBlock.on),
+        connector: parseDefaultConnector(data.type, connectedBlock.on),
         connected: parseBlockRecursive(
           connectedBlock,
           connectedBlock.connectedBlocks,
@@ -124,22 +126,26 @@ function normalizeBlockData(
   return data
 }
 
-function parseDefaultConnector(type: MixedContentEditorConnector): Connector {
-  switch (type) {
+function parseDefaultConnector(
+  blockType: AnyBlockConnected["type"],
+  connectorType: MixedContentEditorConnector
+): Connector {
+  switch (connectorType) {
     case "before":
       return DefaultConnectors.before()
     case "after":
       return DefaultConnectors.after()
-    case "inputExtension":
+    case "input":
+      if (blockType == "variable_init") return DefaultConnectors.variableInitInput()
+      if (blockType == "variable_set") return DefaultConnectors.variableSetInput()
       return DefaultConnectors.inputExtension()
-    case "conditionalExtension":
+    case "conditional":
       return DefaultConnectors.conditionalExtension()
     case "output":
       return DefaultConnectors.output()
     case "inner":
+      if (blockType == "variable_set") return DefaultConnectors.innerVariable()
       return DefaultConnectors.inner()
-    case "innerVariable":
-      return DefaultConnectors.innerVariable()
     case "extender":
       return DefaultConnectors.extender()
     case "ifTrue":

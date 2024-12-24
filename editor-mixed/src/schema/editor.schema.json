@@ -35,15 +35,14 @@
             "required": [
               "x",
               "y"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
           "block",
           "coordinates"
         ],
-        "additionalProperties": false
+        "unevaluatedProperties": false
       }
     },
     "initialDrawerBlocks": {

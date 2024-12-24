@@ -47,9 +47,11 @@ export class VariableHelper implements VariableHInterface {
   }
 
   /**
-   * When a variable initialization block is added to the workspace,
-   * this adds a variable use block to the drawer and tracks the variable for later use.
-   * This also applies any pending variable uses.
+   * When a variable initialization block is added to the workspace, this
+   * a) starts listening for type and name changes
+   * b) adds a variable use block to the drawer
+   * c) tracks the variable for later use
+   * d) applies any pending variable uses for this variable
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
@@ -67,23 +69,61 @@ export class VariableHelper implements VariableHInterface {
     )
     this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
+    this.variables.set(block as Block<BlockType.VarInit>, {
+      name: block.data.name,
+      type: block.data.type,
+      mutable: block.data.mutable,
+      usages: [],
+      drawerBlock,
+    })
+
     const matchingPendingUsages = this.pendingUsages.filter(
       usage => usage.data.name === block.data.name
     )
     if (matchingPendingUsages.length > 0)
       this.pendingUsages = this.pendingUsages.filter(usage => usage.data.name !== block.data.name)
+    matchingPendingUsages.forEach(usage => this.handleVarBlockAdded(usage), this)
 
-    this.variables.set(block as Block<BlockType.VarInit>, {
-      name: block.data.name,
-      type: block.data.type,
-      mutable: block.data.mutable,
-      usages: matchingPendingUsages,
-      drawerBlock,
-    })
+    block.on("dataChanged", this.handleBlockDataChanged.bind(this))
 
     this.requestUpdate()
   }
 
+  /**
+   * Propagate changes in variable init blocks to variable use blocks
+   * @param changedBlock Variable init block that was changed
+   */
+  private handleBlockDataChanged = (changedBlock: Block<BlockType.VarInit>) => {
+    const currentData = this.variables.get(changedBlock)
+    if (!currentData) {
+      console.error("Variable init data changed but variable is not registered", changedBlock)
+      return
+    }
+
+    let requestUpdate = false
+
+    if (currentData.name !== changedBlock.data.name) {
+      if (this.isNameAvailable(changedBlock.data.name)) {
+        currentData.name = changedBlock.data.name
+        currentData.usages.forEach(usage => {
+          usage.updateData(data => ({ ...data, name: changedBlock.data.name }))
+        })
+        requestUpdate = true
+      }
+    }
+
+    if (currentData.type !== changedBlock.data.type) {
+      currentData.type = changedBlock.data.type
+      currentData.usages.forEach(usage => {
+        if (usage.reevaluateBlocks()) requestUpdate = true
+        if (usage.upstream?.type == BlockType.VarSet) {
+          if (usage.upstream.reevaluateBlocks()) requestUpdate = true
+        }
+      })
+    }
+
+    if (requestUpdate) this.requestUpdate()
+  }
   /**
    * When a variable block is added to the workspace, this tracks the usage of the variable
    * This is required to remove the usage when the variable is removed
@@ -93,12 +133,15 @@ export class VariableHelper implements VariableHInterface {
   private handleVarBlockAdded = (block: Block<BlockType.Variable>) => {
     const data = this.dataByVarName(block.data.name)
     if (!data) {
-      console.info(`Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`, block.id)
+      console.info(
+        `Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`,
+        block.id
+      )
       this.pendingUsages.push(block)
       return
     }
     data.usages.push(block)
-    block.data.VariableHelper = new WeakRef(this)
+    block.updateData(data => ({ ...data, variableHelper: new WeakRef(this) }))
   }
 
   private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
@@ -126,6 +169,8 @@ export class VariableHelper implements VariableHInterface {
         usage.disconnectSelf(null)
         usage.remove(this.blockRegistry, this.connectorRegistry)
       }
+
+      block.off("dataChanged", this.handleBlockDataChanged.bind(this))
 
       this.variables.delete(block as Block<BlockType.VarInit>)
       this.requestUpdate()

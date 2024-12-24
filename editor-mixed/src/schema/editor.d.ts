@@ -24,7 +24,9 @@ export type MixedContentEditorConfiguration = {
     coordinates: {
       x: number
       y: number
+      [k: string]: unknown
     }
+    [k: string]: unknown
   }[]
   /**
    * Initial blocks to be loaded into the editor
@@ -71,12 +73,6 @@ export type AnyBlockConnected = AnyBlock & {
     [k: string]: unknown
   } & AnyBlockConnected1)[]
   [k: string]: unknown
-} & {
-  type?: unknown
-  data?: unknown
-  connectedBlocks?: unknown
-  on?: unknown
-  elsebranch?: unknown
 }
 export type AnyBlock =
   | FunctionBlock
@@ -92,12 +88,11 @@ export type AnyBlock =
 export type MixedContentEditorConnector =
   | "before"
   | "after"
-  | "inputExtension"
-  | "conditionalExtension"
+  | "input"
+  | "conditional"
   | "output"
   | "extender"
   | "inner"
-  | "innerVariable"
   | "ifTrue"
   | "ifFalse"
 /**
@@ -112,22 +107,11 @@ export type AnyBlockConnected1 = AnyBlock & {
     [k: string]: unknown
   } & AnyBlockConnected1)[]
   [k: string]: unknown
-} & {
-  type?: unknown
-  data?: unknown
-  connectedBlocks?: unknown
-  on?: unknown
-  elsebranch?: unknown
 }
 /**
  * A block without connected Blocks. Use "type" to determine the type of block
  */
-export type AnyBlockSingle = {
-  type?: unknown
-  data?: unknown
-  elsebranch?: unknown
-  [k: string]: unknown
-} & (
+export type AnyBlockSingle =
   | FunctionBlock
   | ExpressionBlock
   | ValueBlock
@@ -135,7 +119,6 @@ export type AnyBlockSingle = {
   | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
-)
 
 /**
  * Function Block
@@ -153,9 +136,10 @@ export interface FunctionBlock {
      * Name of the function
      */
     name: string
+    [k: string]: unknown
   }
   connectedBlocks?: {
-    on?: "inner" | "inputExtension" | "output"
+    on: "inner" | "input" | "output"
     [k: string]: unknown
   }[]
   [k: string]: unknown
@@ -193,7 +177,7 @@ export interface ExpressionBlock {
         }
   }
   connectedBlocks?: {
-    on?: "after" | "inputExtension"
+    on: "after" | "input"
     [k: string]: unknown
   }[]
   [k: string]: unknown
@@ -244,7 +228,7 @@ export interface VariableInitBlock {
     mutable?: boolean
   }
   connectedBlocks?: {
-    on?: "after" | "inputExtension"
+    on: "after" | "input"
     [k: string]: unknown
   }[]
   [k: string]: unknown
@@ -256,7 +240,7 @@ export interface VariableSetBlock {
   /**
    * Defines this block as an variable block
    */
-  type?: "variable_set"
+  type: "variable_set"
   connectedBlocks?: {
     [k: string]: unknown
   }[]
@@ -298,7 +282,7 @@ export interface ConditionalBlock {
    */
   elsebranch?: boolean
   connectedBlocks?: {
-    on?: "conditionalExtension" | "ifTrue" | "ifFalse" | "after"
+    on: "conditional" | "ifTrue" | "ifFalse" | "after"
     [k: string]: unknown
   }[]
   [k: string]: unknown

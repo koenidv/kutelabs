@@ -1,4 +1,5 @@
 import type { VariableHelper } from "../../variables/VariableHelper"
+import type { VariableHInterface } from "../../variables/VariableHInterface"
 import { BlockType } from "./BlockType"
 import type { DefinedExpression } from "./DefinedExpression"
 import { ValueDataType, type TsTypeByValueType } from "./ValueDataType"
@@ -39,7 +40,7 @@ export type BlockDataVariableInit<Type extends ValueDataType> = {
 
 export type BlockDataVariable = {
   name: string,
-  VariableHelper?: WeakRef<VariableHelper>
+  variableHelper?: WeakRef<VariableHInterface>
 }
 
 export type BlockDataValue<Type extends ValueDataType> = {

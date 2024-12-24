@@ -48,12 +48,7 @@
     "AnyBlockSingle": {
       "type": "object",
       "description": "A block without connected Blocks. Use \"type\" to determine the type of block",
-      "$ref": "#/$defs/AnyBlock",
-      "properties": {
-        "type": true,
-        "data": true,
-        "elsebranch": true
-      }
+      "$ref": "#/$defs/AnyBlock"
     },
     "AnyBlockConnected": {
       "type": "object",
@@ -77,7 +72,8 @@
                       }
                     },
                     "required": [
-                      "on"
+                      "on",
+                      "type"
                     ]
                   },
                   {
@@ -89,15 +85,7 @@
             }
           }
         }
-      ],
-      "properties": {
-        "type": true,
-        "data": true,
-        "connectedBlocks": true,
-        "on": true,
-        "elsebranch": true
-      },
-      "additionalProperties": false
+      ]
     },
     "FunctionBlock": {
       "type": "object",
@@ -119,8 +107,7 @@
           },
           "required": [
             "name"
-          ],
-          "additionalProperties": false
+          ]
         },
         "connectedBlocks": {
           "type": "array",
@@ -130,11 +117,15 @@
               "on": {
                 "enum": [
                   "inner",
-                  "inputExtension",
+                  "input",
                   "output"
                 ]
               }
-            }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
           }
         }
       },
@@ -221,10 +212,14 @@
               "on": {
                 "enum": [
                   "after",
-                  "inputExtension"
+                  "input"
                 ]
               }
-            }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
           }
         }
       },
@@ -447,10 +442,14 @@
               "on": {
                 "enum": [
                   "after",
-                  "inputExtension"
+                  "input"
                 ]
               }
-            }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
           }
         }
       },
@@ -476,8 +475,8 @@
               "on": {
                 "enum": [
                   "after",
-                  "innerVariable",
-                  "inputExtension"
+                  "inner",
+                  "input"
                 ]
               }
             },
@@ -500,10 +499,17 @@
                   }
                 }
               }
+            ],
+            "required": [
+              "on",
+              "type"
             ]
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "VariableBlock": {
       "type": "object",
@@ -559,13 +565,17 @@
             "properties": {
               "on": {
                 "enum": [
-                  "conditionalExtension",
+                  "conditional",
                   "ifTrue",
                   "ifFalse",
                   "after"
                 ]
               }
-            }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
           }
         }
       },

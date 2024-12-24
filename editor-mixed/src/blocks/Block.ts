@@ -9,15 +9,20 @@ import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
+import { Emitter } from "../util/Emitter"
+import { clone1d } from "../util/ObjectUtils"
 import { BlockConnectors } from "./BlockConnectors"
-import type { BlockContract } from "./BlockContract"
+import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
-import type { BlockType } from "./configuration/BlockType"
+import { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
 
 export type AnyBlock = Block<BlockType, any>
 
-export class Block<T extends BlockType, S = never> implements BlockContract {
+export class Block<T extends BlockType, S = never>
+  extends Emitter<BlockEvents<T, S>>
+  implements BlockContract
+{
   readonly id: string = IdGenerator.next
   readonly type: BlockType
   readonly draggable: boolean
@@ -36,6 +41,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     position?: Coordinates,
     size?: SizeProps
   ) {
+    super()
     this.type = type
     this.draggable = draggable
 
@@ -89,6 +95,7 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
     // todo invalidate position
 
     block.silentConnect(this, connection, undefined, true)
+    if (block.type === BlockType.Variable) this.reevaluateBlocks()
   }
 
   private handleNoLocalConnector(block: AnyBlock, connection: Connection) {
@@ -125,8 +132,8 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       throw new Error(`Connecting to upstream connector type "${localType}" is not implemented`)
   }
 
-  public reevaluateBlocks() {
-    this.connectedBlocks.reevaluateConnections(this.insertOnRoot)
+  public reevaluateBlocks(): boolean {
+    return this.connectedBlocks.reevaluateConnections(this.insertOnRoot)
   }
 
   //#region Connected Blocks
@@ -224,11 +231,12 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
 
   public get data(): BlockDataByType<T, S> {
     // return copy of data to prevent mutation,
-    return structuredClone(this._data)
+    return clone1d(this._data) // not using structuredClone because it will throw on weakRefs
   }
   public set data(value: BlockDataByType<T, S>) {
     this._data = value
     this.reevaluateBlocks()
+    this.emit("dataChanged", this)
   }
   public updateData(update: (current: BlockDataByType<T, S>) => BlockDataByType<T, S>) {
     this.data = update(this._data)
@@ -273,5 +281,8 @@ export class Block<T extends BlockType, S = never> implements BlockContract {
       console.error("Removing block with connected blocks", this, this.connectedBlocks.blocks)
     blockRegistry.deregister(this)
     connectorRegistry.deregisterForBlock(this)
+    this.data = null as any
+    this.connectedBlocks = null as any
+    this.connectors = null as any
   }
 }

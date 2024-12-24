@@ -11,11 +11,10 @@
 export type MixedContentEditorConnector =
   | "before"
   | "after"
-  | "inputExtension"
-  | "conditionalExtension"
+  | "input"
+  | "conditional"
   | "output"
   | "extender"
   | "inner"
-  | "innerVariable"
   | "ifTrue"
   | "ifFalse"

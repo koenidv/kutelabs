@@ -60,6 +60,7 @@ export class DefaultConnectors {
 
   static inputExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
+      remote => {console.log("inputExtension", remote); return false},
       remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Input,
     ])
   }
@@ -92,8 +93,6 @@ export class DefaultConnectors {
   static variableSetInput() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
       (remote, local) => {
-        console.log("variableSetInput", remote, local)
-
         if (
           remote.type !== ConnectorType.Before ||
           remote.role !== ConnectorRole.Input ||
@@ -102,11 +101,10 @@ export class DefaultConnectors {
         )
           return false
 
-        const variableData = remote.parentBlock.inners[0]?.data as BlockDataVariable
-        console.log(variableData, variableData.name)
+        const variableData = local.parentBlock.inners[0]?.data as BlockDataVariable
         if (!variableData || !variableData.name) return true
 
-        const localType = variableData.VariableHelper?.deref()?.getVariableType(variableData.name)
+        const localType = variableData.variableHelper?.deref()?.getVariableType(variableData.name)
         if (!localType) return false
 
         if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {

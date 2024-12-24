@@ -1,0 +1,102 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 2,
+    "title": "simple vars",
+    "description": "let's test some variable",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#63ADF2",
+    "dialog": {
+      "static": ""
+    }
+  },
+  "environment": {
+    "language": "js"
+  },
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 400,
+          "y": 200
+        },
+        "block": {
+          "type": "variable_init",
+          "data": {
+            "name": "imavar",
+            "type": "string"
+          },
+          "connectedBlocks": [
+            {
+              "on": "after",
+              "type": "variable_set",
+              "connectedBlocks": [
+                {
+                  "on": "inner",
+                  "type": "variable",
+                  "data": {
+                    "name": "imavar"
+                  }
+                },
+                {
+                  "on": "input",
+                  "type": "value",
+                  "data": {
+                    "type": "string",
+                    "value": "ooh a variable!"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "block": {
+          "type": "variable",
+          "data": {
+            "name": "imavar"
+          }
+        },
+        "coordinates": {
+          "x": 600,
+          "y": 100
+        }
+      },
+      {
+        "block": {
+          "type": "value",
+          "data": {
+            "type": "array<int>",
+            "value": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "coordinates": {
+          "x": 800,
+          "y": 200
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "variable",
+        "data": {
+          "name": "imavar"
+        },
+        "count": -1
+      },
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "testVarHelper",
+          "type": "array<string>"
+        }
+      }
+    ]
+  }
+}
