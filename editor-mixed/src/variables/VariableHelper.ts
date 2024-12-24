@@ -1,12 +1,12 @@
 import { Block, type AnyBlock } from "../blocks/Block"
+import type { BlockDataVariableInit } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
-import type { ValueDataType } from "../blocks/configuration/ValueDataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
-import type { VariableMeta, VariableHInterface } from "./VariableHInterface"
+import type { VariableHInterface } from "./VariableHInterface"
 
-type VariableData = VariableMeta & { drawerBlock: AnyBlock; usages: Block<BlockType.Variable>[] }
+type VariableData = BlockDataVariableInit<any> & { drawerBlock: AnyBlock; usages: Block<BlockType.Variable>[] }
 
 /**
  * side effect / helper class
@@ -48,11 +48,7 @@ export class VariableHelper implements VariableHInterface {
     }
     const drawerBlock = new Block<BlockType.Variable>(
       BlockType.Variable,
-      {
-        name: block.data.name,
-        type: block.data.type,
-        isMutable: block.data.isMutable,
-      },
+      { name: block.data.name },
       DefaultConnectors.byBlockType(BlockType.Variable).map(connector => ({ connector })),
       true,
       this.blockRegistry,
@@ -63,7 +59,7 @@ export class VariableHelper implements VariableHInterface {
     this.variables.set(block as Block<BlockType.VarInit>, {
       name: block.data.name,
       type: block.data.type,
-      isMutable: block.data.isMutable,
+      mutable: block.data.mutable,
       usages: [],
       drawerBlock,
     })
@@ -125,11 +121,11 @@ export class VariableHelper implements VariableHInterface {
     return true
   }
 
-  public getVariables(): { name: string; type: ValueDataType; isMutable: boolean }[] {
+  public getVariables(): BlockDataVariableInit<any>[] {
     return [...this.variables.entries()].map(([_initBlock, data]) => ({
       name: data.name,
       type: data.type,
-      isMutable: data.isMutable,
+      mutable: data.mutable,
     }))
   }
 }

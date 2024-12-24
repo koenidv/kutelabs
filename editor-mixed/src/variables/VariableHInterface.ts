@@ -1,8 +1,6 @@
-import type { ValueDataType } from "../blocks/configuration/ValueDataType"
-
-export type VariableMeta = { name: string; type: ValueDataType; isMutable: boolean }
+import type { BlockDataVariableInit } from "../blocks/configuration/BlockData";
 
 export interface VariableHInterface {
   isNameAvailable(name: string): boolean
-  getVariables(): VariableMeta[]
+  getVariables(): BlockDataVariableInit<any>[]
 }

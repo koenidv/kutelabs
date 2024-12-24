@@ -400,7 +400,6 @@
         "connectedBlocks": {
           "description": "Value blocks can't have downstream connected blocks",
           "type": "null",
-          "requiredProperties": [],
           "additionalProperties": false
         }
       },
@@ -429,7 +428,7 @@
             "type": {
               "$ref": "#/$defs/dataType"
             },
-            "isMutable": {
+            "mutable": {
               "description": "If the variable is mutable, defaults to true",
               "type": "boolean"
             }
@@ -481,7 +480,27 @@
                   "inputExtension"
                 ]
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "on": {
+                      "const": "inner"
+                    }
+                  }
+                },
+                "then": {
+                  "description": "Variable to apply this value to",
+                  "properties": {
+                    "type": {
+                      "description": "Inner connected block must be a variable block",
+                      "const": "variable"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }
@@ -502,21 +521,16 @@
             "name": {
               "description": "Name of the variable",
               "type": "string"
-            },
-            "type": {
-              "$ref": "#/$defs/dataType"
             }
           },
           "required": [
-            "name",
-            "type"
+            "name"
           ],
           "additionalProperties": false
         },
         "connectedBlocks": {
           "description": "Variable blocks can't have downstream connected blocks",
           "type": "null",
-          "requiredProperties": [],
           "additionalProperties": false
         }
       },

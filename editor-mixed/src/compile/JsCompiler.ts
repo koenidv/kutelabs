@@ -60,7 +60,7 @@ export class JsCompiler extends BaseCompiler {
   }
 
   compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string {
-    return `${block.data.isMutable ? "let" : "const"} ${block.data.name} = ${next(block.inputs[0])};\n${next(block.after)}`
+    return `${block.data.mutable ? "let" : "const"} ${block.data.name} = ${next(block.inputs[0])};\n${next(block.after)}`
   }
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {

@@ -2,18 +2,17 @@ import { BlockType } from "./BlockType"
 import type { DefinedExpression } from "./DefinedExpression"
 import { ValueDataType, type TsTypeByValueType } from "./ValueDataType"
 
-export type BlockDataByType<
-  T extends BlockType,
-  S = never,
-> = T extends BlockType.Function
+export type BlockDataByType<T extends BlockType, S = never> = T extends BlockType.Function
   ? BlockDataFunction
   : T extends BlockType.Expression
     ? BlockDataExpression
     : T extends BlockType.Value
-      ? BlockDataValue<S extends ValueDataType ? ValueDataType : never>
-      : T extends BlockType.Variable | BlockType.VarInit
-        ? BlockDataVariable<S extends ValueDataType ? ValueDataType : never>
-        : BlockDataEmpty
+      ? BlockDataValue<S extends ValueDataType ? S : never>
+      : T extends BlockType.VarInit
+        ? BlockDataVariableInit<S extends ValueDataType ? S : never>
+        : T extends BlockType.Variable
+          ? BlockDataVariable
+          : BlockDataEmpty
 
 export type BlockDataEmpty = null
 
@@ -31,10 +30,14 @@ export type BlockDataExpression = {
   editable?: false | { lang: string; linesHeight?: number; maxLines?: number }
 }
 
-export type BlockDataVariable<Type extends ValueDataType> = {
+export type BlockDataVariableInit<Type extends ValueDataType> = {
   name: string
   type: Type
-  isMutable: boolean
+  mutable: boolean
+}
+
+export type BlockDataVariable = {
+  name: string
 }
 
 export type BlockDataValue<Type extends ValueDataType> = {

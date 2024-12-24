@@ -3,7 +3,7 @@ import { Block, type AnyBlock } from "../../blocks/Block"
 import type {
   BlockDataExpression,
   BlockDataValue,
-  BlockDataVariable,
+  BlockDataVariableInit,
 } from "../../blocks/configuration/BlockData"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import type { Connector } from "../../connections/Connector"
@@ -88,7 +88,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
   ): TemplateResult<2> | undefined {
     switch (block.type) {
       case BlockType.VarInit:
-        const blockData = block.data as BlockDataVariable<any>
+        const blockData = block.data as BlockDataVariableInit<any>
         return svg`
           <text x="5" y="15">create var</text>
           ${this.renderInputContent(
@@ -102,7 +102,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
             Object.entries(ValueDataType).map(([display, id]) => ({ id, display })),
             blockData.type,
             (id: string) =>
-              block.updateData(cur => ({ ...cur, type: id }) as BlockDataVariable<any>),
+              block.updateData(cur => ({ ...cur, type: id }) as BlockDataVariableInit<any>),
             new Coordinates(5, 60),
             position.plus(0, size.fullHeight),
             new Coordinates(size.fullWidth - 10, 28)
