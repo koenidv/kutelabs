@@ -20,6 +20,7 @@ type VariableData = BlockDataVariableInit<any> & {
  */
 export class VariableHelper implements VariableHInterface {
   private variables = new Map<Block<BlockType.VarInit>, VariableData>()
+  private pendingUsages: Block<BlockType.Variable>[] = [] // stores variables that are used before the init block is added to the workspace; this should only happen during block loading
 
   private readonly blockRegistry: BlockRInterface
   private readonly connectorRegistry: ConnectorRInterface
@@ -47,7 +48,8 @@ export class VariableHelper implements VariableHInterface {
 
   /**
    * When a variable initialization block is added to the workspace,
-   * this adds a variable use block to the drawer and tracks the variable for later use
+   * this adds a variable use block to the drawer and tracks the variable for later use.
+   * This also applies any pending variable uses.
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
@@ -65,11 +67,17 @@ export class VariableHelper implements VariableHInterface {
     )
     this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
+    const matchingPendingUsages = this.pendingUsages.filter(
+      usage => usage.data.name === block.data.name
+    )
+    if (matchingPendingUsages.length > 0)
+      this.pendingUsages = this.pendingUsages.filter(usage => usage.data.name !== block.data.name)
+
     this.variables.set(block as Block<BlockType.VarInit>, {
       name: block.data.name,
       type: block.data.type,
       mutable: block.data.mutable,
-      usages: [],
+      usages: matchingPendingUsages,
       drawerBlock,
     })
 
@@ -85,7 +93,8 @@ export class VariableHelper implements VariableHInterface {
   private handleVarBlockAdded = (block: Block<BlockType.Variable>) => {
     const data = this.dataByVarName(block.data.name)
     if (!data) {
-      console.error("Variable init for added usage was not registered", block)
+      console.info(`Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`, block.id)
+      this.pendingUsages.push(block)
       return
     }
     data.usages.push(block)
