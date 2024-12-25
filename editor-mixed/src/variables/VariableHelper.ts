@@ -1,7 +1,7 @@
 import { Block, type AnyBlock } from "../blocks/Block"
 import type { BlockDataVariableInit } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
-import type { ValueDataType } from "../blocks/configuration/ValueDataType"
+import type { DataType } from "../blocks/configuration/DataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
@@ -252,7 +252,7 @@ export class VariableHelper implements VariableHInterface {
    * @param name variable name
    * @returns variable type or undefined if the variable is not registered
    */
-  public getVariableType(name: string): ValueDataType | undefined {
+  public getVariableType(name: string): DataType | undefined {
     return this.dataByVarName(name)?.type
   }
 

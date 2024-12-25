@@ -17,16 +17,22 @@ export abstract class BaseCompiler {
     return { code, entrypoint, argNames: [] }
   }
 
-  compile<T,S>(block: Block<T extends BlockType ? T : never, S> | null): string {
+  compile<T, S>(block: Block<T extends BlockType ? T : never, S> | null): string {
     if (block == null) return ""
     switch (block.type) {
       case BlockType.Function:
         return this.compileFunction(block as Block<BlockType.Function>, this.compile.bind(this))
       case BlockType.Expression:
         if ((block.data as BlockDataExpression).expression == DefinedExpression.Custom) {
-          return this.compileCustomExpression(block as Block<BlockType.Expression>, this.compile.bind(this))
+          return this.compileCustomExpression(
+            block as Block<BlockType.Expression>,
+            this.compile.bind(this)
+          )
         } else {
-          return this.compileDefinedExpression(block as Block<BlockType.Expression>, this.compile.bind(this))
+          return this.compileDefinedExpression(
+            block as Block<BlockType.Expression>,
+            this.compile.bind(this)
+          )
         }
       case BlockType.Value:
         return this.compileValue(block as Block<BlockType.Value>, this.compile.bind(this))
@@ -34,17 +40,21 @@ export abstract class BaseCompiler {
         return this.compileVariable(block as Block<BlockType.Variable>, this.compile.bind(this))
       case BlockType.VarInit:
         return this.compileVariableInit(block as Block<BlockType.VarInit>, this.compile.bind(this))
-        case BlockType.VarSet:
+      case BlockType.VarSet:
         return this.compileVariableSet(block as Block<BlockType.VarSet>, this.compile.bind(this))
       case BlockType.Loop:
         return this.compileLoop(block as Block<BlockType.Loop>, this.compile.bind(this))
       case BlockType.Conditional:
-        return this.compileConditional(block as Block<BlockType.Conditional>, this.compile.bind(this))
+        return this.compileConditional(
+          block as Block<BlockType.Conditional>,
+          this.compile.bind(this)
+        )
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
   }
 
+  abstract declareEnvironmentFunctions(callbacks: SandboxCallbacks): string
   abstract compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string
   abstract compileDefinedExpression(
     block: Block<BlockType.Expression>,

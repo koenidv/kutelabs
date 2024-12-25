@@ -1,6 +1,6 @@
 import type { BlockDataVariable } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
-import { ValueDataType } from "../blocks/configuration/ValueDataType"
+import { DataType } from "../blocks/configuration/DataType"
 import { Connector } from "./Connector"
 import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
@@ -77,7 +77,7 @@ export class DefaultConnectors {
           local.parentBlock.data != null && "type" in local.parentBlock.data
             ? local.parentBlock.data.type
             : null
-        ) as ValueDataType | null
+        ) as DataType | null
 
         if (localType == null)
           return remote.parentBlock.data == null || !("type" in remote.parentBlock.data)
@@ -122,7 +122,7 @@ export class DefaultConnectors {
         remote.type === ConnectorType.Before &&
         remote.parentBlock?.data != null &&
         "type" in remote.parentBlock?.data &&
-        (remote.parentBlock?.data.type as unknown) === ValueDataType.Boolean,
+        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
     ])
   }
 

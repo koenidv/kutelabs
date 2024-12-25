@@ -13,7 +13,7 @@ import { HeightProp, SizeProps } from "../SizeProps"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
-import { ValueDataType } from "../../blocks/configuration/ValueDataType"
+import { DataType } from "../../blocks/configuration/DataType"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
@@ -99,7 +99,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           )}
           <text x="5" y="55">as</text>
           ${this.renderSelectorContent(
-            Object.entries(ValueDataType).map(([display, id]) => ({ id, display })),
+            Object.entries(DataType).map(([display, id]) => ({ id, display })),
             blockData.type,
             (id: string) =>
               block.updateData(cur => ({ ...cur, type: id }) as BlockDataVariableInit<any>),

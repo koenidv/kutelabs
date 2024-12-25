@@ -1,7 +1,7 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
-import { ValueDataType } from "../blocks/configuration/ValueDataType"
+import { DataType } from "../blocks/configuration/DataType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
@@ -27,25 +27,25 @@ export class JsCompiler extends BaseCompiler {
     return `${block.data.customExpression?.get?.("js") ?? ""}\n${next(block.after)}`
   }
 
-  compileValue<S extends ValueDataType>(
+  compileValue<S extends DataType>(
     block: Block<BlockType.Value, S>,
     _next: typeof this.compile
   ): string {
     if ("value" in block.data) {
       switch (block.data.type) {
-        case ValueDataType.Int:
-        case ValueDataType.Float:
+        case DataType.Int:
+        case DataType.Float:
           return Number(block.data.value).toString()
-        case ValueDataType.String:
+        case DataType.String:
           return `"${block.data.value}"`
-        case ValueDataType.Boolean:
+        case DataType.Boolean:
           return block.data.value == true ? "true" : "false"
-        case ValueDataType.IntArray:
-        case ValueDataType.FloatArray:
+        case DataType.IntArray:
+        case DataType.FloatArray:
           return `[${(block.data.value as number[]).map(it => Number(it)).join(", ")}]`
-        case ValueDataType.StringArray:
+        case DataType.StringArray:
           return `["${(block.data.value as string[]).join('", "')}"]`
-        case ValueDataType.BooleanArray:
+        case DataType.BooleanArray:
           return `[${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")}]`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)

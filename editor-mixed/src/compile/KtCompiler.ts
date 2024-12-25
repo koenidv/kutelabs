@@ -6,10 +6,7 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
 export class KtCompiler extends BaseCompiler {
-  compileFunction(
-    block: Block<BlockType.Function>,
-    next: typeof this.compile
-  ): string {
+  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
     const ret = block.output ? `\n\treturn ${next(block.output)};` : ""
 
@@ -17,10 +14,7 @@ export class KtCompiler extends BaseCompiler {
     // functions should not have after blocks; thus not compiling them here
   }
 
-  compileDefinedExpression(
-    block: Block<BlockType.Expression>,
-    next: typeof this.compile
-  ): string {
+  compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
     switch (block.data.expression) {
       case DefinedExpression.Println:
         return `println(${this.chainToStringTemplate(block, next)});\n${next(block.after)}`
@@ -29,33 +23,30 @@ export class KtCompiler extends BaseCompiler {
     }
   }
 
-  compileCustomExpression(
-    block: Block<BlockType.Expression>,
-    next: typeof this.compile
-  ): string {
+  compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
     return `${block.data.customExpression?.get?.("kt") ?? ""}\n${next(block.after)}`
   }
 
-  compileValue<S extends ValueDataType>(
+  compileValue<S extends DataType>(
     block: Block<BlockType.Value, S>,
     _next: typeof this.compile
   ): string {
     if ("value" in block.data) {
       switch (block.data.type) {
-        case ValueDataType.Int:
-        case ValueDataType.Float:
+        case DataType.Int:
+        case DataType.Float:
           return Number(block.data.value).toString()
-        case ValueDataType.String:
+        case DataType.String:
           return `"${block.data.value}"`
-        case ValueDataType.Boolean:
+        case DataType.Boolean:
           return block.data.value == true ? "true" : "false"
-        case ValueDataType.IntArray:
-        case ValueDataType.FloatArray:
+        case DataType.IntArray:
+        case DataType.FloatArray:
           return `[${(block.data.value as number[]).map(it => Number(it)).join(", ")}]`
-        case ValueDataType.StringArray:
+        case DataType.StringArray:
           return `["${(block.data.value as string[]).join('", "')}"]`
-        case ValueDataType.BooleanArray:
-          return `[${(block.data.value as boolean[]).map(it => it == true ? "true" : "false").join(", ")}]`
+        case DataType.BooleanArray:
+          return `[${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")}]`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
@@ -63,10 +54,7 @@ export class KtCompiler extends BaseCompiler {
     // value blocks are always leafs, thus not compiling connected blocks
   }
 
-  compileVariable(
-    block: Block<BlockType.Variable>,
-    _next: typeof this.compile
-  ): string {
+  compileVariable(block: Block<BlockType.Variable>, _next: typeof this.compile): string {
     return block.data.name
     // variable blocks are always leafs, thus not compiling connected blocks
   }
@@ -85,10 +73,7 @@ export class KtCompiler extends BaseCompiler {
     }`
   }
 
-  compileConditional(
-    block: Block<BlockType.Conditional>,
-    next: typeof this.compile
-  ): string {
+  compileConditional(block: Block<BlockType.Conditional>, next: typeof this.compile): string {
     const ifBlock = block.connectedBlocks.byConnector(
       block.connectors.byRole(ConnectorRole.If_True)[0]
     )
@@ -101,8 +86,7 @@ export class KtCompiler extends BaseCompiler {
       ${next(ifBlock)}
     }`
 
-    if (elseBlock)
-      compiled += ` else {\n${next(elseBlock)}\n}`
+    if (elseBlock) compiled += ` else {\n${next(elseBlock)}\n}`
 
     return compiled + `\n${next(block.after)}`
   }
@@ -119,6 +103,6 @@ export class KtCompiler extends BaseCompiler {
    * @returns string template with the inputs
    */
   chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
-    return "\"" + block.inputs.map(it => "\${" + next(it) + "}").join(", ") + "\""
+    return '"' + block.inputs.map(it => "\${" + next(it) + "}").join(", ") + '"'
   }
 }

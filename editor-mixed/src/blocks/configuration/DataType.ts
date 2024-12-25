@@ -1,4 +1,4 @@
-export enum ValueDataType {
+export enum DataType {
   Int = "int",
   Float = "float",
   String = "string",
@@ -12,21 +12,21 @@ export enum ValueDataType {
   // todo store function reference in value and create a separate block for function output as input
 }
 
-export type TsTypeByValueType<T extends ValueDataType> =
-  T extends ValueDataType.Int
+export type TsTypeByDataType<T extends DataType> =
+  T extends DataType.Int
     ? number
-    : T extends ValueDataType.Float
+    : T extends DataType.Float
       ? number
-      : T extends ValueDataType.String
+      : T extends DataType.String
         ? string
-        : T extends ValueDataType.Boolean
+        : T extends DataType.Boolean
           ? boolean
-          : T extends ValueDataType.IntArray
+          : T extends DataType.IntArray
             ? number[]
-            : T extends ValueDataType.FloatArray
+            : T extends DataType.FloatArray
               ? number[]
-              : T extends ValueDataType.StringArray
+              : T extends DataType.StringArray
                 ? string[]
-                : T extends ValueDataType.BooleanArray
+                : T extends DataType.BooleanArray
                   ? boolean[]
                   : never
