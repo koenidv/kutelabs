@@ -50,11 +50,10 @@
                   },
                   "connectedBlocks": [
                     {
-                      "on": "inputExtension",
+                      "on": "input",
                       "type": "variable",
                       "data": {
-                        "name": "name",
-                        "type": "string"
+                        "name": "name"
                       }
                     }
                   ]
@@ -65,8 +64,7 @@
               "on": "output",
               "type": "variable",
               "data": {
-                "name": "name",
-                "type": "string"
+                "name": "name"
               }
             }
           ]
@@ -88,7 +86,7 @@
     ],
     "hideDrawer": true,
     "invisibleCode": {
-      "js": "function processUsername() {const name = inputName();setUsername(name);return name;}"
+      "js": "async function processUsername() {const name = await inputName();setUsername(name);return name;}"
     },
     "mainFunction": "processUsername"
   }

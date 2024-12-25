@@ -12,6 +12,11 @@ import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import "../../inputs/SimpleInputElement"
 
+export enum BlockMarking {
+  Executing = "executing",
+  Error = "error",
+}
+
 export abstract class BaseBlockRenderer {
   private readonly blockRegistry: BlockRegistry
   private readonly layouter: BaseLayouter

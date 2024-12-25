@@ -22,9 +22,12 @@ import type { VariableHInterface } from "./variables/VariableHInterface"
 
 import "@kutelabs/shared"
 import "./drag/DragLayer"
+import { generateCallbacks } from "./environment/Environment"
+import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
+  //#region Properties
   workspaceRef = createRef<SVGSVGElement>()
   drawerRef = createRef<SVGSVGElement>()
   dragWorkspaceRef = createRef<SVGSVGElement>()
@@ -78,6 +81,8 @@ export class EditorMixed extends LitElement {
       this.requestUpdate.bind(this)
     )
   }
+
+  //#region Rendering
 
   static styles = css`
     #editor-container {
@@ -150,6 +155,8 @@ export class EditorMixed extends LitElement {
     // console.timeEnd("editor | render time")
     return result
   }
+
+  //#region State changes
 
   private get isCorrectlyConfigured(): boolean {
     return (
@@ -226,15 +233,29 @@ export class EditorMixed extends LitElement {
     super.firstUpdated(_changedProperties)
   }
 
-  public compile<T>(compilerClass: {
-    new (): T extends BaseCompiler ? T : null
-  }): CompilationResult {
+  //#region Public API
+
+  public compile<T>(
+    compilerClass: {
+      new (): T extends BaseCompiler ? T : null
+    },
+    callbacks: SandboxCallbacks
+  ): CompilationResult {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 
     const instance = new compilerClass()
     if (instance == null) throw new Error("Compiler instance is null")
 
-    return instance.compileFromRoot(this.blockRegistry.root, this.data?.mainFunction ?? "main")
+    return instance.compileFromRoot(
+      this.blockRegistry.root,
+      this.data?.mainFunction ?? "main",
+      callbacks,
+      this.data?.invisibleCode ?? {}
+    )
+  }
+
+  public getExecutionCallbacks(): { [name: string]: (...args: any) => any } {
+    return generateCallbacks(this)
   }
 }

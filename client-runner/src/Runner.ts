@@ -43,17 +43,19 @@ export class Runner {
             console.log("Call yielded result:", data)
             break
           case "error":
-            console.error("Worker error:", data)
+            console.error("Worker yielded error:", data)
             reject(new Error(data.message))
             break
           case "log":
             console.log("[Sandbox]", ...data)
             break
+          default:
+            config.callbacks?.onWorkerMessage(event)
         }
       }
 
       worker.onerror = error => {
-        reject(new Error(`Worker error: ${error.message}`))
+        reject(new Error(`Fatal error in worker: ${error.message}, lineno: ${error.lineno}:${error.colno}`))
       }
     })
 

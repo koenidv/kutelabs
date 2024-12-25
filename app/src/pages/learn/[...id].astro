@@ -44,23 +44,29 @@ const challenge = Astro.props.challenge as Challenge
 <script>
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
-  import { SandboxCallbacks, SandboxRunner } from "@kutelabs/client-runner"
+  import { SandboxRunner } from "@kutelabs/client-runner"
   import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
+import { filterCallbacks } from "../../execution/EnvironmentContext"
 
   document.querySelector("#btn-tojs")!.addEventListener(
     "click",
     (() => {
-      console.log((document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler))
+      const editor = document.querySelector("editor-mixed") as EditorMixed
+      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+      console.log(editor.compile(JsCompiler, callbacks).code)
     }).bind(this)
   )
 
   document.querySelector("#btn-execjs")!.addEventListener(
     "click",
     (() => {
-      const compiled = (document.querySelector("editor-mixed") as EditorMixed).compile(JsCompiler)
+      const editor = document.querySelector("editor-mixed") as EditorMixed
+      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+      const compiled = editor.compile(JsCompiler, callbacks)
       const sandboxRunner = new SandboxRunner()
       sandboxRunner.execute(compiled.code, compiled.argNames, compiled.entrypoint, {
-        callbacks: new SandboxCallbacks(),
+        callbacks: callbacks,
+        timeout: 30_000,
       })
     }).bind(this)
   )
@@ -68,7 +74,9 @@ const challenge = Astro.props.challenge as Challenge
   document.querySelector("#btn-tokt")!.addEventListener(
     "click",
     (() => {
-      console.log((document.querySelector("editor-mixed") as EditorMixed).compile(KtCompiler))
+      const editor = document.querySelector("editor-mixed") as EditorMixed
+      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+      console.log(editor.compile(KtCompiler, callbacks).code)
     }).bind(this)
   )
 </script>

@@ -1,16 +1,35 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
-import { ValueDataType } from "../blocks/configuration/ValueDataType"
+import { DataType } from "../blocks/configuration/DataType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
+import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 
 export class KtCompiler extends BaseCompiler {
-  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
+  declareEnvironmentFunctions(callbacks: SandboxCallbacks): string {
+    return [...callbacks.callbacks.keys()]
+      .map(name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`)
+      .join("\n")
+  }
+
+  callFunction(name: string, ...args: string[]): string {
+    return `${name}(${args.join(", ")});\n`
+  }
+
+  addDelay(ms: number): string {
+    return `delay(${ms});\n`
+  }
+
+  addCode(codeByLang: Record<string, string>): string {
+    return codeByLang["kt"] ?? ""
+  }
+
+  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile, blockMarkings: string): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
     const ret = block.output ? `\n\treturn ${next(block.output)};` : ""
 
-    return `function ${block.data.name}() {\n\t${inner} ${ret} }` // todo function inputs
+    return `suspend function ${block.data.name}() {\n${blockMarkings}\n\t${inner} ${ret} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 

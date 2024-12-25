@@ -4,6 +4,7 @@ import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import type { BlockMarking } from "../render/BlockRenderers/BaseBlockRenderer"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
@@ -148,6 +149,17 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
       if (registered.isInvalidated || registered.size == null) return false
     }
     return true
+  }
+
+  markedBlocks: Map<AnyBlock, BlockMarking> = new Map()
+  public markBlock(block: AnyBlock | string, marking: BlockMarking, single = true) {
+    const target = typeof block === "string" ? this.getRegisteredById(block)?.block : block
+    if (!target) {
+      console.error("Could not find block to mark", block)
+      return
+    }
+    if (single) this.markedBlocks.clear()
+    this.markedBlocks.set(target, marking)
   }
 
   public clear() {

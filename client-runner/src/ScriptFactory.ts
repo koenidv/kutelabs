@@ -16,7 +16,7 @@ export class ScriptFactory {
   constructor() {}
 
   public build(): string {
-    return this.buildGlobals().addCompletionMessage().sortSteps().joinSteps()
+    return this.buildGlobals().addCompletionMessage().sortSteps().enableAwait().joinSteps()
   }
 
   private buildGlobals(): this {
@@ -41,11 +41,13 @@ export class ScriptFactory {
     return this
   }
 
+  private enableAwait(): this {
+    this.steps.unshift({ type: StepType.Disallow, step: "(async()=>{" })
+    this.steps.push({ type: StepType.Execute, step: "})()" })
+    return this
+  }
+
   private joinSteps(): string {
-    console.log(
-      "built script:\n",
-      this.steps.reduce((acc, curr) => acc + curr.step, "")
-    )
     return this.steps.reduce((acc, curr) => acc + curr.step, "")
   }
 
@@ -70,7 +72,7 @@ export class ScriptFactory {
     if (callbacks) {
       callbacks.proxies().forEach(proxy => {
         for (const [name, func] of Object.entries(proxy)) {
-          this.globals.set(name, func.toString())
+          this.globals.set(name, func)
         }
       }, this)
     }
@@ -93,17 +95,15 @@ export class ScriptFactory {
   }
 
   public setCode(unsafeCode: string, argNames: string[] = [], entrypoint = "main"): this {
-    return this.tryCatch(() => {
-      this.addDefineStep(`
-          const userFunction = new Function(
-          ${argNames.length > 0 ? argNames.join(",") + "," : ""}
-          \`
-            const { ${[...this.globals.keys()].join(", ")} } = this;
-            ${unsafeCode}
-            return ${entrypoint}(${argNames.join(",")});
-          \`
-          );`)
-    })
+    return this.addDefineStep(`
+      const userFunction = new Function(
+      ${argNames.length > 0 ? argNames.join(",") + "," : ""}
+      \`
+        const { ${[...this.globals.keys()].join(", ")} } = this;
+        ${unsafeCode}
+        return ${entrypoint}(${argNames.join(",")});
+      \`
+      );`)
   }
 
   public runCode(args: any[] = []): this {
@@ -111,7 +111,7 @@ export class ScriptFactory {
     if (argsList.length > 0) argsList = `, ${argsList}`
     return this.tryCatch(
       () => {
-        this.addExecuteStep(`const result = userFunction.call(globals${argsList});`)
+        this.addExecuteStep(`const result = await userFunction.call(globals${argsList});`)
         this.addExecuteStep(`postMessage({ type: "result", data: result });`)
       },
       StepType.Execute,
