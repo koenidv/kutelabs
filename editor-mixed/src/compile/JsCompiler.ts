@@ -14,7 +14,7 @@ export class JsCompiler extends BaseCompiler {
     return `${name}(${args.join(", ")});\n`
   }
 
-  addDelay(ms: number): string {
+  addDelayCode(ms: number): string {
     return `await new Promise(r => setTimeout(r, ${ms}));\n`
   }
 
@@ -22,9 +22,18 @@ export class JsCompiler extends BaseCompiler {
     return codeByLang["js"] ?? ""
   }
 
-  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile, blockMarkings: string): string {
+  compileFunction(
+    block: Block<BlockType.Function>,
+    next: typeof this.compile,
+    blockMarkings: string
+  ): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
-    const ret = block.output ? `\n\treturn ${next(block.output)};` : ""
+    let ret = ""
+    if (block.output) {
+      if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
+      if (this.executionDelay > 0) ret += this.addDelayCode(this.executionDelay)
+      ret += `return ${next(block.output)};`
+    }
 
     return `async function ${block.data.name}() {\n${blockMarkings}\n${inner} ${ret} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here

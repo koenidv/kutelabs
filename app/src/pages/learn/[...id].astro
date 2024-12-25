@@ -46,7 +46,7 @@ const challenge = Astro.props.challenge as Challenge
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
   import { SandboxRunner } from "@kutelabs/client-runner"
   import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
-import { filterCallbacks } from "../../execution/EnvironmentContext"
+  import { filterCallbacks } from "../../execution/EnvironmentContext"
 
   document.querySelector("#btn-tojs")!.addEventListener(
     "click",
@@ -61,15 +61,22 @@ import { filterCallbacks } from "../../execution/EnvironmentContext"
     "click",
     (() => {
       const editor = document.querySelector("editor-mixed") as EditorMixed
-      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+      const callbacks = filterCallbacks(["setUsername"], {
+        setUsername: (username: string) => {
+          console.log("Username will be set to '", username, "' once implemented")
+        },
+        ...editor.getExecutionCallbacks(),
+      })
       const compiled = editor.compile(JsCompiler, callbacks)
       const sandboxRunner = new SandboxRunner()
-      sandboxRunner.execute(compiled.code, compiled.argNames, compiled.entrypoint, {
-        callbacks: callbacks,
-        timeout: 30_000,
-      }).then(_result => {
-        editor.onExecutionFinished()
-      })
+      sandboxRunner
+        .execute(compiled.code, compiled.argNames, compiled.entrypoint, {
+          callbacks: callbacks,
+          timeout: compiled.totalDelay + 5000,
+        })
+        .then(_result => {
+          editor.onExecutionFinished()
+        })
     }).bind(this)
   )
 

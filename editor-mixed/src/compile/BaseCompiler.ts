@@ -9,11 +9,14 @@ export type CompilationResult = {
   code: string
   entrypoint: string
   argNames: string[]
+  totalDelay: number
 }
 
 export abstract class BaseCompiler {
-  private readonly addBlockMarkings = true
-  private readonly executionDelay = 1000
+  protected readonly addBlockMarkings = true
+  protected readonly executionDelay = 1000
+
+  protected accumulateDelay = 0
 
   compileFromRoot(
     root: RootBlock,
@@ -22,13 +25,14 @@ export abstract class BaseCompiler {
     invisibleCode: Record<string, string>
   ): CompilationResult {
     const functionBlocks = root.blocks.filter(({ block }) => block.type == BlockType.Function)
+    this.accumulateDelay = 0
     let code =
       this.declareEnvironmentFunctions(callbacks) +
       "\n" +
       functionBlocks.map(it => this.compile(it.block)).join("\n") +
       "\n" +
       this.addCode(invisibleCode)
-    return { code, entrypoint, argNames: [] }
+    return { code, entrypoint, argNames: [], totalDelay: this.accumulateDelay }
   }
 
   compile<T, S>(block: Block<T extends BlockType ? T : never, S> | null): string {
@@ -36,7 +40,7 @@ export abstract class BaseCompiler {
     let prefix = ""
     if (![BlockType.Value, BlockType.Variable].includes(block.type)) {
       if (this.addBlockMarkings) prefix += this.callFunction("markBlock", `"${block.id}"`)
-      if (this.executionDelay > 0) prefix += this.addDelay(this.executionDelay)
+      if (this.executionDelay > 0) prefix += this.addDelayCode(this.executionDelay)
     }
     switch (block.type) {
       case BlockType.Function:
@@ -91,9 +95,14 @@ export abstract class BaseCompiler {
     }
   }
 
+  protected addDelay(ms: number): string {
+    this.accumulateDelay += ms
+    return this.addDelayCode(ms)
+  }
+
   abstract declareEnvironmentFunctions(callbacks: SandboxCallbacks): string
   abstract callFunction(name: string, ...args: string[]): string
-  abstract addDelay(ms: number): string
+  abstract addDelayCode(ms: number): string
   abstract addCode(codeByLang: Record<string, string>): string
   abstract compileFunction(
     block: Block<BlockType.Function>,

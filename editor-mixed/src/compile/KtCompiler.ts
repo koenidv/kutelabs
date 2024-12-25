@@ -17,7 +17,7 @@ export class KtCompiler extends BaseCompiler {
     return `${name}(${args.join(", ")});\n`
   }
 
-  addDelay(ms: number): string {
+  addDelayCode(ms: number): string {
     return `delay(${ms});\n`
   }
 
@@ -27,7 +27,12 @@ export class KtCompiler extends BaseCompiler {
 
   compileFunction(block: Block<BlockType.Function>, next: typeof this.compile, blockMarkings: string): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
-    const ret = block.output ? `\n\treturn ${next(block.output)};` : ""
+    let ret = ""
+    if (block.output) {
+      if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
+      if (this.executionDelay > 0) ret += this.addDelayCode(this.executionDelay)
+      ret += `return ${next(block.output)};`
+    }
 
     return `suspend function ${block.data.name}() {\n${blockMarkings}\n\t${inner} ${ret} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
