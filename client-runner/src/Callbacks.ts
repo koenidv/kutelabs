@@ -19,7 +19,6 @@ export class Callbacks {
   public onWorkerMessage(e: MessageEvent<any>): boolean {
     const { type, data } = e.data
     if (type != MSG_TYPE_CALLBACK) return false
-    console.log("Received callback", data)
     return this.invokeCallback(data.name, data.data)
   }
 

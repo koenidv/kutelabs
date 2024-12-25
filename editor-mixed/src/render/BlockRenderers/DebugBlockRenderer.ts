@@ -10,48 +10,51 @@ import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
 import { HeightProp, SizeProps } from "../SizeProps"
-import { BaseBlockRenderer } from "./BaseBlockRenderer"
+import { BaseBlockRenderer, BlockMarking } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderBlockElement(
-    block: AnyBlock,
-    size: SizeProps,
-    position: Coordinates,
+    registered: AnyRegisteredBlock,
     renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="block-${block.type}">
-      ${this.renderBlockContainer(block, size, position)}
+    <g class="block-${registered.block.type}">
+      ${this.renderBlockContainer(registered)}
 
-      ${this.renderBlockContents(block, size, position)}
+      ${this.renderBlockContents(registered)}
 
-      ${block.connectors.all.map(connector => this.renderConnector(connector, position))}
+      ${registered.block.connectors.all.map(connector => this.renderConnector(connector, registered.globalPosition))}
       
-      ${block.after != null && renderConnected(block.after)}
+      ${registered.block.after != null && renderConnected(registered.block.after)}
   
-      ${block.inners.map(inner => renderConnected(inner))}
-      ${block.extensions.map(extension => renderConnected(extension))}
-      ${block.output != null && renderConnected(block.output)}
+      ${registered.block.inners.map(inner => renderConnected(inner))}
+      ${registered.block.extensions.map(extension => renderConnected(extension))}
+      ${registered.block.output != null && renderConnected(registered.block.output)}
       
 	  </g>
     `
     // todo inner blocks, extension blocks
   }
 
-  private renderBlockContainer(
-    block: AnyBlock,
-    size: SizeProps,
-    _position: Coordinates
-  ): TemplateResult<2>[] {
+  private renderBlockContainer({ block, size, marking }: AnyRegisteredBlock): TemplateResult<2>[] {
+    if (!size) throw new Error("Size is not defined for " + JSON.stringify(block))
     let heightOffset = 0
+
+    const strokeColor =
+      marking == BlockMarking.Executing
+        ? "#ae78fe"
+        : marking == BlockMarking.Error
+          ? "#832232"
+          : "#303030"
+    const strokeWidth = marking != null ? 3 : 1
 
     const boxes = size.heights.map(
       sizing =>
         svg`
-      <g class="block-${block.type}">
         <rect
           x="0"
           y=${(heightOffset += sizing.value) - sizing.value}
@@ -60,7 +63,6 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           fill=${sizing.prop == HeightProp.Head ? "#add1eb" : sizing.prop == HeightProp.Tail ? "#f8d6c6" : sizing.prop == HeightProp.Intermediate ? "#d6d6d6" : "#fabcde"}
           opacity="0.6"
           stroke="#909090"/>
-      </g>
       `
     )
 
@@ -73,7 +75,8 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
           width=${size.fullWidth}
           height=${size.fullHeight}
           fill="transparent"
-          stroke="#303030"/>
+          stroke=${strokeColor}
+          stroke-width=${strokeWidth} />
       </g>
       `
     )
@@ -81,11 +84,12 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     return boxes
   }
 
-  private renderBlockContents(
-    block: AnyBlock,
-    size: SizeProps,
-    position: Coordinates
-  ): TemplateResult<2> | undefined {
+  private renderBlockContents({
+    block,
+    size,
+    globalPosition: position,
+  }: AnyRegisteredBlock): TemplateResult<2> | undefined {
+    if (!size) throw new Error("Size is not defined for " + JSON.stringify(block))
     switch (block.type) {
       case BlockType.VarInit:
         const blockData = block.data as BlockDataVariableInit<any>
@@ -117,7 +121,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         )
       case BlockType.Expression:
         if ((block as Block<BlockType.Expression>).data.editable)
-          return this.renderEditableCodeContents(block, size)
+          return this.renderEditableCodeContents(block as Block<BlockType.Expression>, size)
         else
           return svg`<text x="5" y="20" fill="black" style="user-select: none;">${(block.data as BlockDataExpression).expression}</text>`
       default:

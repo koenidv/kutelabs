@@ -1,4 +1,4 @@
-import type { AnyBlock } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
@@ -10,7 +10,6 @@ import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
 import type { BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
-import type { ConnectorRInterface } from "./ConnectorRInterface"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
 
@@ -29,10 +28,13 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   notifyConnecting: (block: AnyBlock, to: AnyBlock) => void
   notifyDisconnecting: (block: AnyBlock, from: AnyBlock) => void
 
-  constructor(connectorRegistry: ConnectorRegistry) {
+  private readonly requestUpdate: () => void
+
+  constructor(connectorRegistry: ConnectorRegistry, requestUpdate: () => void) {
     super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
+    this.requestUpdate = requestUpdate
 
     this.workspaceState = new WorkspaceStateHelper(this.emit.bind(this))
     this.notifyConnecting = this.workspaceState.onConnecting.bind(this.workspaceState)
@@ -41,7 +43,11 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
 
-  public register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void {
+  public register<T extends BlockType, S>(
+    block: Block<T, S>,
+    position?: Coordinates,
+    size?: SizeProps
+  ): void {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block, position, size))
   }
@@ -151,15 +157,33 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     return true
   }
 
-  markedBlocks: Map<AnyBlock, BlockMarking> = new Map()
   public markBlock(block: AnyBlock | string, marking: BlockMarking, single = true) {
-    const target = typeof block === "string" ? this.getRegisteredById(block)?.block : block
-    if (!target) {
-      console.error("Could not find block to mark", block)
+    const registered =
+      typeof block === "string" ? this.getRegisteredById(block) : this._blocks.get(block)
+    if (!registered) {
+      console.error("Block to mark is not registered or could not be found", block)
       return
     }
-    if (single) this.markedBlocks.clear()
-    this.markedBlocks.set(target, marking)
+
+    if (single) this.clearMarked()
+    registered.marking = marking
+
+    registered.block.extensions.forEach(it => {
+      this.markBlock(it, marking, false)
+    }, this)
+
+    this.requestUpdate()
+  }
+
+  public clearMarked() {
+    let changed = false
+    this._blocks.forEach(it => {
+      if (it.marking != null) {
+        it.marking = null
+        changed = true
+      }
+    })
+    if (changed) this.requestUpdate()
   }
 
   public clear() {

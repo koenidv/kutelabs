@@ -5,12 +5,12 @@ import type { BlockRegistry } from "../../registries/BlockRegistry"
 import { isSafari } from "../../util/browserCheck"
 import { Coordinates } from "../../util/Coordinates"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
-import { SizeProps } from "../SizeProps"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import "../../inputs/SimpleInputElement"
+import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 
 export enum BlockMarking {
   Executing = "executing",
@@ -85,15 +85,12 @@ export abstract class BaseBlockRenderer {
    * @returns SVG template for block group
    */
   public renderBlock(block: AnyBlock, ref: AnyBlock | Coordinates): TemplateResult<2> {
-    const size = this.blockRegistry.getSize(block)
-    const position = this.blockRegistry.getPosition(block)
-
     return this.draggableContainer(
       block.id,
       this.determineRenderOffset(block, ref),
       block.draggable,
       () =>
-        this.renderBlockElement(block, size, position, (next: AnyBlock) =>
+        this.renderBlockElement(this.blockRegistry.getRegistered(block), (next: AnyBlock) =>
           this.renderBlock(next, block)
         )
     )
@@ -120,9 +117,7 @@ export abstract class BaseBlockRenderer {
   }
 
   protected abstract renderBlockElement(
-    block: AnyBlock,
-    size: SizeProps,
-    position: Coordinates,
+    registered: AnyRegisteredBlock,
     renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2>
 

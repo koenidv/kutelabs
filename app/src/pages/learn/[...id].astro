@@ -67,6 +67,8 @@ import { filterCallbacks } from "../../execution/EnvironmentContext"
       sandboxRunner.execute(compiled.code, compiled.argNames, compiled.entrypoint, {
         callbacks: callbacks,
         timeout: 30_000,
+      }).then(_result => {
+        editor.onExecutionFinished()
       })
     }).bind(this)
   )

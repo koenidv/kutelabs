@@ -73,7 +73,7 @@ export class EditorMixed extends LitElement {
     super()
 
     this.connectorRegistry = new ConnectorRegistry()
-    this.blockRegistry = new BlockRegistry(this.connectorRegistry)
+    this.blockRegistry = new BlockRegistry(this.connectorRegistry, this.requestUpdate.bind(this))
 
     this.variableHelper = new VariableHelper(
       this.blockRegistry,
@@ -89,7 +89,6 @@ export class EditorMixed extends LitElement {
       height: 100%;
       width: 100%;
       background-color: white;
-      border: 1px solid black;
       user-select: none;
       cursor: default;
       overflow: hidden;
@@ -257,5 +256,9 @@ export class EditorMixed extends LitElement {
 
   public getExecutionCallbacks(): { [name: string]: (...args: any) => any } {
     return generateCallbacks(this)
+  }
+
+  public onExecutionFinished() {
+    this.blockRegistry.clearMarked()
   }
 }
