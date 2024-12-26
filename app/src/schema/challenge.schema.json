@@ -121,26 +121,30 @@
             }
           },
           "run": {
-            "type": "array",
-            "description": "Tests to run on the result of the tested function",
-            "items": {
-              "type": "object",
-              "properties": {
-                "function": {
-                  "type": "string",
-                  "description": "Lambda notation. Must return true if test passed. Arguments are passed as first argument args[], tested function result is passed as second argument. String returns will be used as error messages."
+            "type": "object",
+            "description": "Tests to run on the result of the tested function, key is the test id",
+            "patternProperties": {
+              "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+                "type": "object",
+                "properties": {
+                  "function": {
+                    "type": "string",
+                    "description": "Lambda notation. Must return true if test passed. Arguments are passed as first argument args[], tested function result is passed as second argument. String returns will be used as error messages."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the test, will be used as error message if test fails but no message is returned."
+                  }
                 },
-                "description": {
-                  "type": "string",
-                  "description": "Description of the test, will be used as error message if test fails but no message is returned."
-                }
-              },
-              "required": [
-                "function",
-                "description"
-              ],
-              "additionalProperties": false
-            }
+                "required": [
+                  "function",
+                  "description"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "minItems": 1
           }
         },
         "required": [

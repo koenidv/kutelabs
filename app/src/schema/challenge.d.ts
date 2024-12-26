@@ -177,18 +177,24 @@ export interface Challenge {
      */
     args: unknown[][]
     /**
-     * Tests to run on the result of the tested function
+     * Tests to run on the result of the tested function, key is the test id
      */
     run: {
       /**
-       * Lambda notation. Must return true if test passed. Arguments are passed as first argument args[], tested function result is passed as second argument. String returns will be used as error messages.
+       * This interface was referenced by `undefined`'s JSON-Schema definition
+       * via the `patternProperty` "^[a-zA-Z_][a-zA-Z0-9_]*$".
        */
-      function: string
-      /**
-       * Description of the test, will be used as error message if test fails but no message is returned.
-       */
-      description: string
-    }[]
+      [k: string]: {
+        /**
+         * Lambda notation. Must return true if test passed. Arguments are passed as first argument args[], tested function result is passed as second argument. String returns will be used as error messages.
+         */
+        function: string
+        /**
+         * Description of the test, will be used as error message if test fails but no message is returned.
+         */
+        description: string
+      }
+    }
   }[]
   editor: MixedContentEditorConfiguration | TextEditorConfiguration
   [k: string]: unknown

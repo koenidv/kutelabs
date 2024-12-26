@@ -4,7 +4,7 @@ import { ScriptFactory } from "./ScriptFactory"
 
 type Args = any[]
 export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
-export type TestSet = { args: Args[]; run: Test[] }
+export type TestSet = { args: Args[]; run: { [id: string]: Test } }
 export type TestSuite = TestSet[]
 
 export type ExecutionConfig = {
@@ -36,9 +36,11 @@ export class TestRunner {
     const sets = this.getTestsForArgs(args)
 
     sets.forEach(set => {
-      set.run.forEach(test => {
+      Object.entries(set.run).forEach(([id, test]) => {
         const testResult = test.function(args, result)
-        console.log(`Test '${test.description}': ${testResult === true ? "Passed" : testResult || "Failed"}`)
+        console.log(
+          `Test ${id}('${test.description}'): ${testResult === true ? "Passed" : testResult || "Failed"}`
+        )
       })
     })
   }

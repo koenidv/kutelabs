@@ -57,7 +57,7 @@ const challenge = Astro.props.challenge as Challenge
       document.querySelector("[data-tests]")!.getAttribute("data-tests")!
     ) as Challenge["tests"]
     parsed.forEach(tests => {
-      tests.run.forEach(test => {
+      Object.entries(tests.run).forEach(([_id, test]) => {
         test.function = eval(test.function)
       })
     })
