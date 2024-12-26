@@ -108,11 +108,14 @@ export class ScriptFactory {
 
   public runCode(args: any[] = []): this {
     let argsList = args.map(arg => JSON.stringify(arg)).join(", ")
-    if (argsList.length > 0) argsList = `, ${argsList}`
     return this.tryCatch(
       () => {
-        this.addExecuteStep(`const result = await userFunction.call(globals${argsList});`)
-        this.addExecuteStep(`postMessage({ type: "result", data: result });`)
+        this.addExecuteStep(
+          `const result = await userFunction.call(globals${argsList.length > 0 ? ", " : ""}${argsList});`
+        )
+        this.addExecuteStep(
+          `postMessage({ type: "result", data: { args: [${argsList}], result: result } });`
+        )
       },
       StepType.Execute,
       { args: args }

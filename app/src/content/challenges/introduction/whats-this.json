@@ -20,6 +20,19 @@
       "setUsername"
     ]
   },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": [
+        {
+          "function": "(args,result)=>{return result.trim()!=''&&result.trim()!='Your name here';}",
+          "description": "Enter your name"
+        }
+      ]
+    }
+  ],
   "editor": {
     "type": "mixed",
     "initialBlocks": [
