@@ -40,12 +40,19 @@ export class PanZoomHelper {
 
   private pan(deltaX: number, deltaY: number, panFactor = this.panSpeed) {
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
-    if (!viewBox) {
+    const ctm = this.workspaceRef?.value?.getScreenCTM()
+    if (!viewBox || !ctm) {
       console.error("Could not pan; Workspace not initialized")
       return
     }
-    const x = (viewBox.x + deltaX * panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
-    const y = (viewBox.y + deltaY * panFactor).coerceIn(this.bounds.minY, this.bounds.maxY)
+    const x = (viewBox.x + (deltaX * panFactor) / ctm.a).coerceIn(
+      this.bounds.minX,
+      this.bounds.maxX
+    )
+    const y = (viewBox.y + (deltaY * panFactor) / ctm.a).coerceIn(
+      this.bounds.minY,
+      this.bounds.maxY
+    )
 
     viewBox.x = x
     viewBox.y = y
@@ -59,27 +66,21 @@ export class PanZoomHelper {
     this.removeWidgets()
   }
 
-  private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomSpeed) {
+  private zoom(delta: number, cursorX: number, cursorY: number, zoomFactor = this.zoomSpeed) {
     this.setInitialWorkspaceSize()
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     const clientRect = this.workspaceRef?.value?.getBoundingClientRect()
-    if (!viewBox || !clientRect) {
+    const ctm = this.workspaceRef?.value?.getScreenCTM()
+    if (!viewBox || !clientRect || !ctm) {
       console.error("Could not zoom; Workspace not initialized")
       return
     }
 
-    const modifier = (1 + (delta / 100 * zoomFactor)).coerceIn(0.5, 1.5)
-    const newSize = (viewBox.width * modifier).coerceIn(
-      this.bounds.minZoom,
-      this.bounds.maxZoom
-    )
+    const modifier = (1 + (delta / 100) * zoomFactor).coerceIn(0.5, 1.5)
+    const oldSize = viewBox.width
+    const newSize = (viewBox.width * modifier).coerceIn(this.bounds.minZoom, this.bounds.maxZoom)
 
-    if (cursorX != null && cursorY != null) {
-      cursorX = ((cursorX - clientRect.left) / clientRect.width) * viewBox.width
-      cursorY = ((cursorY - clientRect.top) / clientRect.height) * viewBox.height
-    }
-
-    const appliedDelta = newSize - viewBox.width
+    const appliedFactor = viewBox.width / newSize - 1
     viewBox.width = viewBox.height = newSize
 
     this.syncRefs.forEach(ref => {
@@ -88,18 +89,14 @@ export class PanZoomHelper {
       })
     })
 
-    if (!cursorX || !cursorY) {
-      this.pan(-appliedDelta / 2, -appliedDelta / 2, 1)
-      return
-    }
+    const percentX = (cursorX - clientRect.x) / clientRect.width
+    const percentY = (cursorY - clientRect.y) / clientRect.height
 
     this.pan(
-      -cursorX * (appliedDelta / viewBox.width),
-      -cursorY * (appliedDelta / viewBox.height),
-      1
+      percentX * oldSize * appliedFactor,
+      percentY * oldSize * appliedFactor,
+      ctm.a
     )
-
-    console.log(newSize, this.initialWorkspaceSize!.width, newSize / this.initialWorkspaceSize!.width)
 
     this.removeWidgets()
     this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
@@ -112,9 +109,6 @@ export class PanZoomHelper {
       height: this.workspaceRef.value?.viewBox.baseVal.height ?? 0,
     }
   }
-
-
-  // todo on first interaction, observe a few events to determine trackpad or mouse
 
   //#region Trackpad / Mouse Wheel
 
