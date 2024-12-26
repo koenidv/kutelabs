@@ -20,6 +20,7 @@ export abstract class BaseDrawerRenderer {
   }
 
   minWidth = 150
+  maxWidth = 150
 
   constructor(
     blockRegistry: BlockRegistry,
@@ -48,7 +49,7 @@ export abstract class BaseDrawerRenderer {
         style="min-height: 100%; display: block;">
         ${this.renderDrawer(
           layout.positions,
-          layout.fullWidth,
+          Math.max(layout.fullWidth, this.minWidth),
           layout.fullHeight,
           this.blockRenderer.renderBlock.bind(this.blockRenderer)
         )}
@@ -59,6 +60,13 @@ export abstract class BaseDrawerRenderer {
   private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {
     return blocks.map(({ block, count }) => {
       const size = this.layouter.measureBlock(block)
+      const fullWidth = size.fullWidth
+      if (fullWidth > this.maxWidth) {
+        size.widths = size.widths.map(it => ({
+          prop: it.prop,
+          value: (it.value * this.maxWidth) / fullWidth,
+        }))
+      }
       this.blockRegistry.setSize(block, size)
       return { block, size, count }
     })
