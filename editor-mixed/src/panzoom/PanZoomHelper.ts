@@ -7,7 +7,9 @@ export class PanZoomHelper {
   private readonly scrollInputHelper: ScrollInputHelper
 
   private panSpeed = 1.3
+  private panSpeedTouch = 1.15
   private zoomSpeed = 1.2
+  private zoomSpeedTouch = 0.6
   private bounds = {
     minX: -1000,
     minY: -1000,
@@ -92,11 +94,7 @@ export class PanZoomHelper {
     const percentX = (cursorX - clientRect.x) / clientRect.width
     const percentY = (cursorY - clientRect.y) / clientRect.height
 
-    this.pan(
-      percentX * oldSize * appliedFactor,
-      percentY * oldSize * appliedFactor,
-      ctm.a
-    )
+    this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, ctm.a)
 
     this.removeWidgets()
     this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
@@ -187,9 +185,9 @@ export class PanZoomHelper {
     evt.preventDefault()
 
     this.pan(
-      -(evt.touches[0].clientX - this.lastTouches[0].x) / ctm.a,
-      -(evt.touches[0].clientY - this.lastTouches[0].y) / ctm.d,
-      1
+      -(evt.touches[0].clientX - this.lastTouches[0].x),
+      -(evt.touches[0].clientY - this.lastTouches[0].y),
+      this.panSpeedTouch
     )
 
     this.setTouches(evt)
@@ -216,7 +214,7 @@ export class PanZoomHelper {
       y: (evt.touches[0].clientY + evt.touches[1].clientY) / 2,
     }
 
-    this.zoom(previousDelta - currentDelta, center.x, center.y, this.zoomSpeed)
+    this.zoom(previousDelta - currentDelta, center.x, center.y, this.zoomSpeedTouch)
 
     this.setTouches(evt)
   }
