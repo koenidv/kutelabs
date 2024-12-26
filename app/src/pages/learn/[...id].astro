@@ -31,6 +31,17 @@ const challenge = Astro.props.challenge as Challenge
         <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
         <p class="font-medium" set:html={challenge.story.dialog?.static} />
         <hr />
+        {
+          challenge.tests.map(it =>
+            Object.entries(it.run).map(([id, test]) => (
+              <div class="flex flex-col gap-2 kt-test" id={`test-${id}`}>
+                <p class="font-medium">{test.description}</p>
+              </div>
+            ))
+          )
+        }
+
+        <hr />
         <a href="#" id="btn-tojs">Print JS</a>
         <a href="#" id="btn-tokt">Print KT</a>
         <hr />
@@ -51,6 +62,7 @@ const challenge = Astro.props.challenge as Challenge
   import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
   import { filterCallbacks } from "../../execution/EnvironmentContext"
   import type { Challenge } from "../../schema/challenge"
+  import { TestResult } from "@kutelabs/client-runner/src/TestRunner"
 
   const deserializeTests = (): TestSuite => {
     const parsed = JSON.parse(
@@ -62,6 +74,10 @@ const challenge = Astro.props.challenge as Challenge
       })
     })
     return parsed as unknown as TestSuite
+  }
+
+  const countTests = (tests: TestSuite): number => {
+    return tests.reduce((acc, suite) => acc + suite.args.length, 0)
   }
 
   document.querySelector("#btn-tojs")!.addEventListener(
@@ -86,13 +102,18 @@ const challenge = Astro.props.challenge as Challenge
         ...editor.getExecutionCallbacks(),
       })
       const compiled = editor.compile(JsCompiler, callbacks)
-      const sandboxRunner = new SandboxTestRunner(tests)
+      const sandboxRunner = new SandboxTestRunner(tests, (id, result, message) => {
+        const display = document.querySelector(`#test-${id}`) as HTMLElement
+        console.log("element:", display)
+        display.classList.remove("passed", "failed")
+        display.classList.add(result == TestResult.Passed ? "passed" : "failed")
+      })
       sandboxRunner
         .execute(compiled.code, {
           argNames: compiled.argNames,
           entrypoint: compiled.entrypoint,
           callbacks: callbacks,
-          timeout: compiled.totalDelay + 5000,
+          timeout: compiled.totalDelay * countTests(tests) + 5000,
         })
         .then(_result => {
           editor.onExecutionFinished()

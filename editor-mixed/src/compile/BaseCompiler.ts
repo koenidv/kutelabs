@@ -40,7 +40,7 @@ export abstract class BaseCompiler {
     let prefix = ""
     if (![BlockType.Value, BlockType.Variable].includes(block.type)) {
       if (this.addBlockMarkings) prefix += this.callFunction("markBlock", `"${block.id}"`)
-      if (this.executionDelay > 0) prefix += this.addDelayCode(this.executionDelay)
+      if (this.executionDelay > 0) prefix += this.addDelay(this.executionDelay)
     }
     switch (block.type) {
       case BlockType.Function:

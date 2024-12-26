@@ -6,6 +6,15 @@ type Args = any[]
 export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
 export type TestSet = { args: Args[]; run: { [id: string]: Test } }
 export type TestSuite = TestSet[]
+export type PivotTest = Test & { args: Args[] }
+export type PivotTestSuite = { [id: string]: PivotTest }
+
+export enum TestResult {
+  Passed = "passed",
+  Failed = "failed",
+  Timeout = "timeout",
+  Error = "error",
+}
 
 export type ExecutionConfig = {
   argNames: string[]
@@ -20,38 +29,72 @@ const DEFAULT_DISALLOWED_GLOBALS = ["window", "document", "localStorage", "fetch
 const DEFAULT_ALLOWED_APIS = ["Math"]
 
 export class TestRunner {
-  testSuite: TestSuite
+  private readonly testSuite: TestSuite
+  private pivotTests: PivotTestSuite = {}
 
-  constructor(testSuite: TestSuite) {
+  private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
+
+  constructor(testSuite: TestSuite, onResult: typeof this.onFinalTestResult) {
     this.testSuite = testSuite
+    this.onFinalTestResult = onResult
   }
 
   execute(userCode: string, config: ExecutionConfig) {
+    this.resetPivotTests()
     const script = this.buildScript(userCode, config)
     const executor = new Executor()
     return executor.execute(script, config.timeout, config.callbacks, this.onResult.bind(this))
   }
 
-  private onResult(args: Args, result: any) {
-    const sets = this.getTestsForArgs(args)
-
-    sets.forEach(set => {
+  private resetPivotTests() {
+    this.pivotTests = this.testSuite.reduce((acc, set) => {
       Object.entries(set.run).forEach(([id, test]) => {
-        const testResult = test.function(args, result)
-        console.log(
-          `Test ${id}('${test.description}'): ${testResult === true ? "Passed" : testResult || "Failed"}`
-        )
+        acc[id] = { ...test, args: set.args }
       })
-    })
+      return acc
+    }, {} as PivotTestSuite)
   }
 
-  private getTestsForArgs(args: Args) {
-    return this.testSuite.filter(set =>
-      set.args.some(
-        argSet =>
-          argSet.length === args.length && argSet.every((value, index) => value === args[index])
+  private onResult(args: Args, result: any) {
+    this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
+  }
+
+  private getTestsForArgs(args: Args): (PivotTest & { id: string })[] {
+    return Object.entries(this.pivotTests)
+      .filter(([_id, test]) =>
+        test.args.some(
+          argSet =>
+            argSet.length === args.length && argSet.every((value, index) => value === args[index])
+        )
       )
+      .map(([id, test]) => ({ ...test, id }))
+  }
+
+  private runTest(test: PivotTest & { id: string }, args: Args, result: any) {
+    try {
+      const testResult = test.function(args, result)
+      this.onTestResult(
+        test.id,
+        args,
+        testResult === true ? TestResult.Passed : TestResult.Failed,
+        typeof testResult === "string" ? testResult : undefined
+      )
+    } catch (error) {
+      console.error(`Test ${test.id}('${test.description}') failed:`, error)
+    }
+  }
+
+  private onTestResult(id: string, args: Args, passed: TestResult, message?: string) {
+    this.pivotTests[id].args = this.pivotTests[id].args.filter(
+      argSet =>
+        argSet.length != args.length || !argSet.every((value, index) => value === args[index])
     )
+    if (this.pivotTests[id].args.length === 0) {
+      delete this.pivotTests[id]
+      this.onFinalTestResult(id, passed, message)
+    } else {
+      console.log(`test ${id}(${args}): ${this.pivotTests[id].args.length} argsets remaining`)
+    }
   }
 
   private buildScript(userCode: string, config: ExecutionConfig) {
