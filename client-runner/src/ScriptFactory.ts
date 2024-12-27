@@ -68,6 +68,14 @@ export class ScriptFactory {
     return this
   }
 
+  public addRejectedPromiseHandler(): this {
+    this.steps.push({
+      type: StepType.Define,
+      step: `self.onunhandledrejection = (error) => { throw error.reason; };`,
+    })
+    return this
+  }
+
   public addCallbacks(callbacks?: Callbacks): this {
     if (callbacks) {
       callbacks.proxies().forEach(proxy => {
@@ -95,15 +103,15 @@ export class ScriptFactory {
   }
 
   public setCode(unsafeCode: string, argNames: string[] = [], entrypoint = "main"): this {
-    return this.addDefineStep(`
-      const userFunction = new Function(
+    return this.addDefineStep(
+      `/*__startUser*/const userFunction = new Function(
       ${argNames.length > 0 ? argNames.join(",") + "," : ""}
       \`
         const { ${[...this.globals.keys()].join(", ")} } = this;
         ${unsafeCode}
         return ${entrypoint}(${argNames.join(",")});
-      \`
-      );`)
+      \`/*__endUser*/);`
+    )
   }
 
   public runCode(args: any[] = []): this {
@@ -133,9 +141,10 @@ export class ScriptFactory {
       type,
       step: `
         } catch (error) {
+         console.log(error);
           postMessage({ 
             type: 'error', 
-            data: {...${JSON.stringify(data)}, "message": error.message, "stack": error.stack }
+            data: {...${JSON.stringify(data)}, "message": error.message, "stack": error.stack, "line": error.lineNumber, "column": error.columnNumber }
           });
         }`,
     })

@@ -48,7 +48,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       marking == BlockMarking.Executing
         ? "#ae78fe"
         : marking == BlockMarking.Error
-          ? "#832232"
+          ? "#FA003F"
           : "#303030"
     const strokeWidth = marking != null ? 3 : 1
 

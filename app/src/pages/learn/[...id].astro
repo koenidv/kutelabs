@@ -38,7 +38,7 @@ const challenge = Astro.props.challenge as Challenge
               <p class="font-medium" set:html={challenge.story.dialog?.static} />
               <hr />
               {
-                challenge.tests.map(it =>
+                challenge.tests?.map(it =>
                   Object.entries(it.run).map(([id, test]) => (
                     <div class="flex flex-col gap-2 kt-test" id={`test-${id}`}>
                       <p class="font-medium">{test.description}</p>
@@ -56,7 +56,7 @@ const challenge = Astro.props.challenge as Challenge
           </Fragment>
 
           <Fragment slot="panel-2">
-            <h2>If your code prints anything, it will show up here.</h2>
+            <h2>If your code prints anything or throws an error, it will show up here.</h2>
             <div class="flex flex-col pt-4 kt-logs"></div>
           </Fragment>
         </Tabs>
@@ -77,6 +77,7 @@ const challenge = Astro.props.challenge as Challenge
   import { filterCallbacks } from "../../execution/EnvironmentContext"
   import type { Challenge } from "../../schema/challenge"
   import { TestResult } from "@kutelabs/client-runner/src/TestRunner"
+  import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
 
   const deserializeTests = (): TestSuite => {
     const parsed = JSON.parse(
@@ -128,8 +129,18 @@ const challenge = Astro.props.challenge as Challenge
           const log = document.createElement("p")
           log.innerText = args.map(it => it.toString()).join(", ")
           logs.appendChild(log)
+        },
+        console.error,
+        (id, message) => {
+          const logs = document.querySelector(".kt-logs") as HTMLElement
+          const log = document.createElement("p")
+          log.innerText = message
+          log.classList.add("text-red-500")
+          logs.appendChild(log)
+          callbacks.callbacks.get("markBlock")!(id, BlockMarking.Error)
         }
       )
+      editor.clearMarkings()
       sandboxRunner
         .execute(compiled.code, {
           argNames: compiled.argNames,
@@ -137,7 +148,7 @@ const challenge = Astro.props.challenge as Challenge
           callbacks: callbacks,
           timeout: compiled.totalDelay * countTests(tests) + 5000,
         })
-        .then(_result => {
+        ?.then(_result => {
           editor.onExecutionFinished()
         })
     }).bind(this)

@@ -259,6 +259,10 @@ export class EditorMixed extends LitElement {
   }
 
   public onExecutionFinished() {
-    this.blockRegistry.clearMarked()
+    this.blockRegistry.clearMarked(true)
+  }
+
+  public clearMarkings() {
+    this.blockRegistry.clearMarked(false)
   }
 }

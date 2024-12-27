@@ -1,6 +1,7 @@
 import { Block, type AnyBlock } from "../blocks/Block"
 import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
+import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { Connector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
@@ -107,10 +108,9 @@ function normalizeBlockData(
   data: BlockDataByType<typeof type>
 ): BlockDataByType<typeof type> {
   if (!data) return data
-
   switch (type) {
     case BlockType.Expression:
-      if ((data as BlockDataExpression).editable) {
+      if ((data as BlockDataExpression).expression == DefinedExpression.Custom) {
         // deep copy custom expression
         ;(data as BlockDataExpression).customExpression = new Map(
           Object.entries((data as BlockDataExpression).customExpression as object)

@@ -17,6 +17,14 @@
   "environment": {
     "language": "js"
   },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
   "editor": {
     "type": "mixed",
     "initialBlocks": [
@@ -178,6 +186,16 @@
         "data": {
           "name": "testVarHelper",
           "type": "array<string>"
+        }
+      },
+      {
+        "type": "expression",
+        "count": 1,
+        "data": {
+          "customExpression": {
+            "js": "throw new Error('test')"
+          },
+          "expression": "Custom"
         }
       }
     ]

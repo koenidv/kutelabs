@@ -2,7 +2,7 @@ const MSG_TYPE_CALLBACK = "callback"
 
 export class Callbacks {
   private _callbacks: Map<string, (data: any) => void>
-  public get callbacks(): Map<string, (data: any) => void> {
+  public get callbacks(): Map<string, (...data: any[]) => void> {
     return this._callbacks
   }
 

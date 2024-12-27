@@ -4,7 +4,7 @@ import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
-import type { BlockMarking } from "../render/BlockRenderers/BaseBlockRenderer"
+import { BlockMarking } from "../render/BlockRenderers/BaseBlockRenderer"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
@@ -175,10 +175,10 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     this.requestUpdate()
   }
 
-  public clearMarked() {
+  public clearMarked(keepErrors: boolean = true) {
     let changed = false
     this._blocks.forEach(it => {
-      if (it.marking != null) {
+      if (it.marking != null && (!keepErrors || it.marking != BlockMarking.Error)) {
         it.marking = null
         changed = true
       }

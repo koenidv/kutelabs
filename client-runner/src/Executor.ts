@@ -2,8 +2,13 @@ import { Callbacks } from "./Callbacks"
 
 export enum ErrorType {
   Timeout = "timeout",
-  Logged = "logged",
+  Execution = "execution",
   Worker = "worker",
+}
+
+export type LoggedError = {
+  message: string
+  stack: string
 }
 
 export class Executor {
@@ -14,9 +19,9 @@ export class Executor {
     timeoutMs: number,
     callbacks?: Callbacks,
     onResult?: (args: any[], result: any) => void,
-    onError?: (type: ErrorType, error: Error | ErrorEvent) => void,
+    onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
     onLog?: (args: any[]) => void
-  ) {
+  ): Promise<unknown> {
     let running = true
     const workerUrl = URL.createObjectURL(
       new Blob([script], {
@@ -37,7 +42,7 @@ export class Executor {
             onResult?.(data.args, data.result)
             break
           case "error":
-            onError?.(ErrorType.Logged, new Error(data.message))
+            onError?.(ErrorType.Execution, data as LoggedError)
             break
           case "log":
             onLog?.(Object.values(data))
@@ -52,7 +57,7 @@ export class Executor {
         onError?.(ErrorType.Worker, error)
         reject(
           new Error(
-            `Fatal error in worker: ${error.message}, lineno: ${error.lineno}:${error.colno}`
+            `Worker execution failed at ${error.lineno}:${error.colno} with message "${error.message}".`
           )
         )
       }
@@ -60,7 +65,7 @@ export class Executor {
 
     const lifeTimer = new Promise((_, reject) => {
       setTimeout(() => {
-        if (running) onError?.(ErrorType.Timeout, new Error("Execution timed out"))
+        if (running) onError?.(ErrorType.Timeout, new ErrorEvent("Execution timed out"))
         reject(new Error("Execution timed out"))
       }, timeoutMs)
     })
