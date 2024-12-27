@@ -21,6 +21,10 @@ html {
   font-weight: 600;
 }
 
+/**
+* Tests
+*/
+
 .kt-test {
   &.passed {
     color: limegreen;
@@ -30,6 +34,54 @@ html {
     color: coral;
   }
 }
+
+/**
+* Logs
+*/
+
+.kt-logs>* {
+  font-weight: normal;
+  padding: 0.5rem;
+  border-top: 1px solid theme("colors.beige.200");
+
+  &:last-child {
+    border-bottom: 1px solid theme("colors.beige.200");
+  }
+}
+
+/**
+* Tabs
+*/
+
+.tabs>nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .tab-wrapper {
+    flex-grow: 1;
+    text-align: center;
+    background-color: theme("colors.beige.100");
+    border-width: 1px;
+    transition: border 150ms ease-out, background-color 150ms ease-out;
+
+    .tab {
+      padding: 0.5rem;
+    }
+
+    &:hover {
+      border: 1px solid black;
+    }
+
+    &:has(.tab-selector:checked) {
+      background-color: unset;
+      border: 1px solid black;
+    }
+  }
+
+}
+
+
 
 @layer components {
   .elevated-card {

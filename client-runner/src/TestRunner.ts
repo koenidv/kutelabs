@@ -1,5 +1,5 @@
 import type { Callbacks } from "./Callbacks"
-import { Executor } from "./Executor"
+import { ErrorType, Executor } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
 
 type Args = any[]
@@ -10,6 +10,7 @@ export type PivotTest = Test & { args: Args[] }
 export type PivotTestSuite = { [id: string]: PivotTest }
 
 export enum TestResult {
+  Testing = "testing",
   Passed = "passed",
   Failed = "failed",
   Timeout = "timeout",
@@ -33,26 +34,51 @@ export class TestRunner {
   private pivotTests: PivotTestSuite = {}
 
   private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
+  private readonly onLog: (args: any[]) => void = console.log
 
-  constructor(testSuite: TestSuite, onResult: typeof this.onFinalTestResult) {
+  constructor(testSuite: TestSuite, onResult: typeof this.onFinalTestResult, onLog?: typeof console.log) {
     this.testSuite = testSuite
     this.onFinalTestResult = onResult
+    if (onLog) this.onLog = onLog
   }
 
   execute(userCode: string, config: ExecutionConfig) {
+    console.log(config.timeout)
     this.resetPivotTests()
     const script = this.buildScript(userCode, config)
     const executor = new Executor()
-    return executor.execute(script, config.timeout, config.callbacks, this.onResult.bind(this))
+    return executor.execute(
+      script,
+      config.timeout,
+      config.callbacks,
+      this.onResult.bind(this),
+      this.onError.bind(this),
+      this.onLog.bind(this)
+    )
   }
 
   private resetPivotTests() {
     this.pivotTests = this.testSuite.reduce((acc, set) => {
       Object.entries(set.run).forEach(([id, test]) => {
         acc[id] = { ...test, args: set.args }
-      })
+        this.onFinalTestResult(id, TestResult.Testing)
+      }, this)
       return acc
     }, {} as PivotTestSuite)
+  }
+
+  private buildScript(userCode: string, config: ExecutionConfig) {
+    const factory = new ScriptFactory()
+      .disallowGlobals(config.disallowedGlobals ?? DEFAULT_DISALLOWED_GLOBALS)
+      .allowApis(config.allowedApis ?? DEFAULT_ALLOWED_APIS)
+      .addCallbacks(config.callbacks)
+      .addConsoleApi()
+      .setCode(userCode, config.argNames, config.entrypoint)
+    this.testSuite.forEach(
+      testSet => testSet.args.forEach(args => factory.runCode(args), this),
+      this
+    )
+    return factory.build()
   }
 
   private onResult(args: Args, result: any) {
@@ -97,17 +123,7 @@ export class TestRunner {
     }
   }
 
-  private buildScript(userCode: string, config: ExecutionConfig) {
-    const factory = new ScriptFactory()
-      .disallowGlobals(config.disallowedGlobals ?? DEFAULT_DISALLOWED_GLOBALS)
-      .allowApis(config.allowedApis ?? DEFAULT_ALLOWED_APIS)
-      .addCallbacks(config.callbacks)
-      .addConsoleApi()
-      .setCode(userCode, config.argNames, config.entrypoint)
-    this.testSuite.forEach(
-      testSet => testSet.args.forEach(args => factory.runCode(args), this),
-      this
-    )
-    return factory.build()
+  private onError(type: ErrorType, error: Error | ErrorEvent) {
+    console.error("Error during test execution:", type, error)
   }
 }

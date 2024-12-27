@@ -17,6 +17,7 @@ export class Executor {
     onError?: (type: ErrorType, error: Error | ErrorEvent) => void,
     onLog?: (args: any[]) => void
   ) {
+    let running = true
     const workerUrl = URL.createObjectURL(
       new Blob([script], {
         type: "application/javascript",
@@ -29,6 +30,7 @@ export class Executor {
         const { type, data } = event.data
         switch (type) {
           case "completed":
+            console.log("completed exec")
             resolve(data)
             break
           case "result":
@@ -38,7 +40,7 @@ export class Executor {
             onError?.(ErrorType.Logged, new Error(data.message))
             break
           case "log":
-            onLog?.(data.args)
+            onLog?.(Object.values(data))
             break
           default:
             callbacks?.onWorkerMessage(event)
@@ -46,6 +48,7 @@ export class Executor {
       }
 
       worker.onerror = error => {
+        running = false
         onError?.(ErrorType.Worker, error)
         reject(
           new Error(
@@ -57,7 +60,7 @@ export class Executor {
 
     const lifeTimer = new Promise((_, reject) => {
       setTimeout(() => {
-        onError?.(ErrorType.Timeout, new Error("Execution timed out"))
+        if (running) onError?.(ErrorType.Timeout, new Error("Execution timed out"))
         reject(new Error("Execution timed out"))
       }, timeoutMs)
     })
@@ -65,6 +68,7 @@ export class Executor {
     try {
       return await Promise.race([executionPromise, lifeTimer])
     } finally {
+      running = false
       worker.terminate()
       URL.revokeObjectURL(workerUrl)
     }
