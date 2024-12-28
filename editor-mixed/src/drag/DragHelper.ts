@@ -54,6 +54,9 @@ export class DragHelper {
    * @param evt Mouse or touch start event
    */
   startDrag(evt: MouseEvent | TouchEvent) {
+
+    console.log("startDrag", evt.defaultPrevented, evt)
+
     if (evt.defaultPrevented) return
     if (evt instanceof MouseEvent && evt.button != 0) return
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1)

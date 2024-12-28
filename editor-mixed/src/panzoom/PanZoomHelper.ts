@@ -42,16 +42,15 @@ export class PanZoomHelper {
 
   private pan(deltaX: number, deltaY: number, panFactor = this.panSpeed) {
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
-    const ctm = this.workspaceRef?.value?.getScreenCTM()
-    if (!viewBox || !ctm) {
+    if (!viewBox) {
       console.error("Could not pan; Workspace not initialized")
       return
     }
-    const x = (viewBox.x + (deltaX * panFactor) / ctm.a).coerceIn(
+    const x = (viewBox.x + (deltaX * panFactor)).coerceIn(
       this.bounds.minX,
       this.bounds.maxX
     )
-    const y = (viewBox.y + (deltaY * panFactor) / ctm.a).coerceIn(
+    const y = (viewBox.y + (deltaY * panFactor)).coerceIn(
       this.bounds.minY,
       this.bounds.maxY
     )
@@ -94,7 +93,7 @@ export class PanZoomHelper {
     const percentX = (cursorX - clientRect.x) / clientRect.width
     const percentY = (cursorY - clientRect.y) / clientRect.height
 
-    this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, ctm.a)
+    this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, 1)
 
     this.removeWidgets()
     this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
@@ -111,7 +110,8 @@ export class PanZoomHelper {
   //#region Trackpad / Mouse Wheel
 
   onWheel(evt: WheelEvent) {
-    if (evt.shiftKey) return // escape panzoom on shift
+    const ctm = this.workspaceRef.value?.getScreenCTM()
+    if (evt.shiftKey || ctm == null) return // escape panzoom on shift
     evt.preventDefault()
 
     if (
@@ -121,7 +121,7 @@ export class PanZoomHelper {
     ) {
       this.zoom(evt.deltaY, evt.clientX, evt.clientY)
     } else {
-      this.pan(evt.deltaX, evt.deltaY)
+      this.pan(evt.deltaX, evt.deltaY, 1 / ctm.a)
     }
   }
 
