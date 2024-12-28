@@ -37,6 +37,10 @@ export class SizeProps {
     )
   }
 
+  static get zero() {
+    return new SizeProps([], [])
+  }
+
   addHeight(prop: HeightProp, value: number) {
     this.heights.push({ prop, value })
   }
