@@ -12,16 +12,24 @@ export type LoggedError = {
 }
 
 export class Executor {
-  constructor() {}
+  onResult?: (args: any[], result: any) => void
+  onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void
+  onLog?: (args: any[]) => void
+  onRequestWait: (resolve: () => void) => void = resolve => resolve()
 
-  async execute(
-    script: string,
-    timeoutMs: number,
-    callbacks?: Callbacks,
+  constructor(
     onResult?: (args: any[], result: any) => void,
     onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
-    onLog?: (args: any[]) => void
-  ): Promise<unknown> {
+    onLog?: (args: any[]) => void,
+    onRequestWait?: (resolve: () => void) => void
+  ) {
+    this.onResult = onResult
+    this.onError = onError
+    this.onLog = onLog
+    if (onRequestWait) this.onRequestWait = onRequestWait
+  }
+
+  async execute(script: string, timeoutMs: number, callbacks?: Callbacks): Promise<unknown> {
     let running = true
     const workerUrl = URL.createObjectURL(
       new Blob([script], {
@@ -39,13 +47,18 @@ export class Executor {
             resolve(data)
             break
           case "result":
-            onResult?.(data.args, data.result)
+            this.onResult?.(data.args, data.result)
             break
           case "error":
-            onError?.(ErrorType.Execution, data as LoggedError)
+            this.onError?.(ErrorType.Execution, data as LoggedError)
             break
           case "log":
-            onLog?.(Object.values(data))
+            this.onLog?.(Object.values(data))
+            break
+          case "requestWait":
+            this.onRequestWait(() => {
+              worker.postMessage({ type: "resolveWait", id: data.id })
+            })
             break
           default:
             callbacks?.onWorkerMessage(event)
@@ -54,7 +67,7 @@ export class Executor {
 
       worker.onerror = error => {
         running = false
-        onError?.(ErrorType.Worker, error)
+        this.onError?.(ErrorType.Worker, error)
         reject(
           new Error(
             `Worker execution failed at ${error.lineno}:${error.colno} with message "${error.message}".`

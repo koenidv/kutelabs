@@ -5,13 +5,13 @@ interface Props {
 const { executeLanguage } = Astro.props
 ---
 
-<div class="flex flex-col gap-4 py-4 justify-between">
+<div class="flex flex-row lg:flex-col gap-4 py-4 justify-between">
   <button
     id="run-code"
     data-language={executeLanguage}
     class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button
   >
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-row lg:flex-col gap-4">
     <button
       id="print-js"
       class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
@@ -102,6 +102,7 @@ const { executeLanguage } = Astro.props
         argNames: compiled.argNames,
         entrypoint: compiled.entrypoint,
         callbacks: callbacks,
+        executionDelay: 1000,
         timeout: compiled.totalDelay * countTests(tests) + 5000,
       })
       ?.then(_result => {

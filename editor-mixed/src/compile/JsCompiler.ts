@@ -15,7 +15,7 @@ export class JsCompiler extends BaseCompiler {
   }
 
   addDelayCode(ms: number): string {
-    return `await new Promise(r => setTimeout(r, ${ms}));\n`
+    return `await requestWait();\n`
   }
 
   addCode(codeByLang: Record<string, string>): string {

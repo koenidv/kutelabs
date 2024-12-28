@@ -20,6 +20,7 @@ export enum TestResult {
 export type ExecutionConfig = {
   argNames: string[]
   entrypoint: string
+  executionDelay: number
   timeout: number
   disallowedGlobals?: string[]
   allowedApis?: string[]
@@ -42,6 +43,9 @@ export class TestRunner {
   ) => void = console.error
   private readonly onBlockError: (blockId: string, message: string) => void = console.error
 
+  private executionDelay = 0
+  private firstCallFinished = false
+
   private currentScript: string | null = null
 
   constructor(
@@ -58,6 +62,10 @@ export class TestRunner {
     if (onBlockError) this.onBlockError = onBlockError
   }
 
+  public setExecutionDelay(delay: number) {
+    this.executionDelay = delay
+  }
+
   /**
    * Executes the user code with the given configuration and runs the test suite on the results.
    * @param userCode user code to run
@@ -69,16 +77,16 @@ export class TestRunner {
       return
     }
     this.resetPivotTests()
+    this.executionDelay = config.executionDelay
+    this.firstCallFinished = false
     this.currentScript = this.buildScript(userCode, config)
-    const executor = new Executor()
-    return executor.execute(
-      this.currentScript,
-      config.timeout,
-      config.callbacks,
+    const executor = new Executor(
       this.onResult.bind(this),
       this.onError.bind(this),
-      this.onLog.bind(this)
+      this.onLog.bind(this),
+      this.onWaitRequest.bind(this)
     )
+    return executor.execute(this.currentScript, config.timeout, config.callbacks)
   }
 
   /**
@@ -105,6 +113,7 @@ export class TestRunner {
       .disallowGlobals(config.disallowedGlobals ?? DEFAULT_DISALLOWED_GLOBALS)
       .allowApis(config.allowedApis ?? DEFAULT_ALLOWED_APIS)
       .addRejectedPromiseHandler()
+      .addDelayApi()
       .addCallbacks(config.callbacks)
       .addConsoleApi()
       .setCode(userCode, config.argNames, config.entrypoint)
@@ -115,12 +124,17 @@ export class TestRunner {
     return factory.build()
   }
 
+  onWaitRequest(resolve: () => void) {
+    setTimeout(resolve, this.firstCallFinished ? 0 : this.executionDelay)
+  }
+
   /**
    * Called when an invokation of the user function has completed. The user function is called for each set of arguments defined in the test suite.
    * @param args Set of arguments the user function was called with
    * @param result Result of the user function
    */
   private onResult(args: Args, result: any): void {
+    this.firstCallFinished = true
     this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
   }
 

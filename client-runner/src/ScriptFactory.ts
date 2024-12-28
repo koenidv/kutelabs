@@ -25,7 +25,7 @@ export class ScriptFactory {
       objectStringBuilder.push(`${key}:(${value.toString()})`)
     }
     this.steps.push({
-      type: StepType.Allow,
+      type: StepType.Define,
       step: `const globals = {${objectStringBuilder.join(",")}};`,
     })
     return this
@@ -73,6 +73,29 @@ export class ScriptFactory {
       type: StepType.Define,
       step: `self.onunhandledrejection = (error) => { throw error.reason; };`,
     })
+    return this
+  }
+
+  public addDelayApi(): this {
+    this.steps.push({
+      type: StepType.Define,
+      step: `let waitRequestCount = 0;const waitRequests = new Map();`,
+    })
+    this.steps.push({
+      type: StepType.Define,
+      step: `self.onmessage=(e)=>{if(e.data.type=="resolveWait"){
+      waitRequests.get(e.data.id)()
+      waitRequests.delete(e.data.id)
+      }};`,
+    })
+    this.globals.set(
+      "requestWait",
+      `()=>{let resolve;
+      const promise=new Promise(it=>resolve=it);
+      waitRequests.set(++waitRequestCount,resolve);
+      postMessage({type:"requestWait",data:{id:waitRequestCount}});
+      return promise;}`
+    )
     return this
   }
 
