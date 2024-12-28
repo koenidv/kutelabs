@@ -1,17 +1,18 @@
 import { html, svg, type TemplateResult } from "lit"
 import { createRef, type Ref } from "lit/directives/ref.js"
 import type { AnyBlock, Block } from "../../blocks/Block"
+import { BlockType } from "../../blocks/configuration/BlockType"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
+import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 import { isSafari } from "../../util/browserCheck"
 import { Coordinates } from "../../util/Coordinates"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 
-import { BlockType } from "../../blocks/configuration/BlockType"
+/* import custom elements - this is required but will not throw if it's removed */
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import "../../inputs/SimpleInputElement"
-import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 
 export enum BlockMarking {
   Executing = "executing",
@@ -20,13 +21,19 @@ export enum BlockMarking {
 
 export type SvgResult = TemplateResult<2> | TemplateResult<2>[]
 
+/**
+ * The BlockRenderer is responsible for rendering blocks in the workspace.
+ * It will also be called from other renderers to render blocks in different contexts.
+ */
 export abstract class BaseBlockRenderer {
   private readonly blockRegistry: BlockRegistry
   private readonly layouter: BaseLayouter
 
   protected readonly setWidget: typeof BaseWidgetRenderer.prototype.setWidget
 
+  /* Because Safari doesn't apply viewBox scaling to foreignObject elements, we need to apply a workaround*/
   protected _workspaceScaleFactor = 1
+  /** additional classes to apply, will hold scale information for safari */
   protected _safariTransform = ""
   public setWorkspaceScaleFactor(value: number) {
     this._workspaceScaleFactor = value
@@ -45,11 +52,18 @@ export abstract class BaseBlockRenderer {
     this.setWidget = setWidget
   }
 
+  /**
+   * Renders all blocks in the workspace
+   * @returns List of an SVG template for each block
+   */
   render(): TemplateResult<2>[] {
     this.init()
     return this.renderFromRoot()
   }
 
+  /**
+   * Measures and positions all blocks in the workspace for a complete rerender
+   */
   protected init() {
     this.layouter.measureSetAll()
     this.layouter.calculatePositionsFromRoot()
@@ -99,6 +113,12 @@ export abstract class BaseBlockRenderer {
     )
   }
 
+  /**
+   * Renders a block element and its connected blocks
+   * @param registered registered block to render
+   * @param renderConnected Function to render a connected block
+   * @returns SVG template for block group
+   */
   protected renderBlockElement(
     registered: AnyRegisteredBlock,
     renderConnected: (block: AnyBlock) => TemplateResult<2>
@@ -112,6 +132,11 @@ export abstract class BaseBlockRenderer {
     `
   }
 
+  /**
+   * Renders the content of a block, depending on its type
+   * @param registered registered block to render
+   * @returns SVG template for block content
+   */
   protected renderContent(registered: AnyRegisteredBlock): SvgResult {
     switch (registered.block.type) {
       case BlockType.Function:
@@ -142,6 +167,11 @@ export abstract class BaseBlockRenderer {
 
   //#region Utilities
 
+  /**
+   * Wraps a block in a tap-or-drag-layer element to enable dragging the block on this element
+   * @param content Function to render the content of the layer
+   * @returns HTML template result
+   */
   protected tapOrDragLayer(content: (ref: Ref<HTMLElement>) => TemplateResult<1>) {
     const ref = createRef<HTMLElement>()
     return html`
@@ -149,6 +179,15 @@ export abstract class BaseBlockRenderer {
     `
   }
 
+  /**
+   * Wraps a block in a container that will be recognized as draggable by the DragHelper.
+   * The container should also handle displaying block markings.
+   * @param blockId id of the block
+   * @param translate offset to the previous group
+   * @param draggable whether the block should be draggable
+   * @param child Function to render the content of the group
+   * @returns SVG template for block group
+   */
   protected draggableContainer(
     blockId: string,
     translate: Coordinates,
@@ -161,6 +200,14 @@ export abstract class BaseBlockRenderer {
     </g>`
   }
 
+  /**
+   * Determines the offset to render a block relative to a reference block or coordinates.
+   * - If the reference is a block, the offset is calculated from the block's position.
+   * - If the reference is coordinates, the offset is the coordinates.
+   * @param block block that is going to be rendered
+   * @param ref reference block or coordinates to calulcate the offset from
+   * @returns offset coordinates from the previous group
+   */
   private determineRenderOffset(block: AnyBlock, ref: AnyBlock | Coordinates): Coordinates {
     if (ref instanceof Coordinates) return ref
     else
@@ -172,6 +219,14 @@ export abstract class BaseBlockRenderer {
 
   //#region Input Wrappers
 
+  /**
+   * Renders an input field for a block.
+   * This wrapper handles retrieving the language-specific value and changes to it.
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @returns SVG template result for the editable code input
+   */
   protected editableCode(
     registered: AnyRegisteredBlock,
     position: Coordinates,
@@ -195,48 +250,48 @@ export abstract class BaseBlockRenderer {
 
   //#region Block Contents
 
-  protected renderContentFunction(
-    registered: RegisteredBlock<BlockType.Function, any>
-  ): SvgResult {
+  /** Override this to customize how the content of **function** blocks is rendered */
+  protected renderContentFunction(registered: RegisteredBlock<BlockType.Function, any>): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
+  /** Override this to customize how the content of **expression** blocks is rendered */
   protected renderContentExpression(
     registered: RegisteredBlock<BlockType.Expression, any>
   ): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
-  protected renderContentValue(
-    registered: RegisteredBlock<BlockType.Value, any>
-  ): SvgResult {
+  /** Override this to customize how the content of **value** blocks is rendered */
+  protected renderContentValue(registered: RegisteredBlock<BlockType.Value, any>): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
-  protected renderContentVariable(
-    registered: RegisteredBlock<BlockType.Variable, any>
-  ): SvgResult {
+  /** Override this to customize how the content of **variable** blocks is rendered */
+  protected renderContentVariable(registered: RegisteredBlock<BlockType.Variable, any>): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
+  /** Override this to customize how the content of **variable init** blocks is rendered */
   protected renderContentVariableInit(
     registered: RegisteredBlock<BlockType.VarInit, any>
   ): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
+  /** Override this to customize how the content of **variable set** blocks is rendered */
   protected renderContentVariableSet(
     registered: RegisteredBlock<BlockType.VarSet, any>
   ): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
-  protected renderContentLoop(
-    registered: RegisteredBlock<BlockType.Loop, any>
-  ): SvgResult {
+  /** Override this to customize how the content of **loop** blocks is rendered */
+  protected renderContentLoop(registered: RegisteredBlock<BlockType.Loop, any>): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
+  /** Override this to customize how the content of **conditional** blocks is rendered */
   protected renderContentConditional(
     registered: RegisteredBlock<BlockType.Conditional, any>
   ): SvgResult {
@@ -245,14 +300,29 @@ export abstract class BaseBlockRenderer {
 
   //#region Abstract methods
 
-  protected abstract renderContainer(
-    registered: AnyRegisteredBlock
-  ): SvgResult
+  /**
+   * Renders the background container for a block.
+   * The container is rendered behind the elements of the block and does not have children.
+   * @param registered registered block that is being rendered
+   * @returns SVG template or array for the container
+   */
+  protected abstract renderContainer(registered: AnyRegisteredBlock): SvgResult
 
-  protected abstract renderDefaultContent(
-    registered: AnyRegisteredBlock
-  ): SvgResult
+  /**
+   * Renders the contents of a block when no specific content renderer is defined.
+   * @param registered registered block to render contents for
+   * @returns SVG template or array
+   */
+  protected abstract renderDefaultContent(registered: AnyRegisteredBlock): SvgResult
 
+  /**
+   * Renders an editable code input field
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @param value current value of the input field
+   * @param onChange function to call when the value changes
+   */
   protected abstract renderEditableCode(
     registered: AnyRegisteredBlock,
     position: Coordinates,
@@ -261,6 +331,14 @@ export abstract class BaseBlockRenderer {
     onChange: (value: string) => void
   ): TemplateResult<2>
 
+  /**
+   * Renders an input field for a block
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @param value current value of the input field
+   * @param onChange function to call when the value changes
+   */
   protected abstract renderInput(
     registered: AnyRegisteredBlock,
     position: Coordinates,
@@ -269,6 +347,17 @@ export abstract class BaseBlockRenderer {
     onChange: (value: string) => void
   ): TemplateResult<2>
 
+  /**
+   * Renders a selector input
+   * The input may display a widget to facilitate selecting from a list of values
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @param widgetPosition position of the widget, relative to the root (global svg position)
+   * @param values list of ids and values to select from
+   * @param selected id of the currently selected value
+   * @param onSelect function to call with the selected id when a value is selected
+   */
   protected abstract renderSelector(
     registered: AnyRegisteredBlock,
     position: Coordinates,
