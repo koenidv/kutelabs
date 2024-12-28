@@ -1,10 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 @tailwind variants;
 
 :root {
@@ -26,12 +22,33 @@ html {
 */
 
 .kt-test {
+
+  .passed-only,
+  .failed-only,
+  .pending-only {
+    display: none;
+  }
+
   &.passed {
     color: limegreen;
+
+    .passed-only {
+      display: block;
+    }
   }
 
   &.failed {
     color: coral;
+
+    .failed-only {
+      display: block;
+    }
+  }
+
+  &.pending {
+    .pending-only {
+      display: block;
+    }
   }
 }
 

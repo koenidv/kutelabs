@@ -10,7 +10,7 @@ export type PivotTest = Test & { args: Args[] }
 export type PivotTestSuite = { [id: string]: PivotTest }
 
 export enum TestResult {
-  Testing = "testing",
+  Pending = "pending",
   Passed = "passed",
   Failed = "failed",
   Timeout = "timeout",
@@ -88,7 +88,7 @@ export class TestRunner {
     this.pivotTests = this.testSuite.reduce((acc, set) => {
       Object.entries(set.run).forEach(([id, test]) => {
         acc[id] = { ...test, args: set.args }
-        this.onFinalTestResult(id, TestResult.Testing)
+        this.onFinalTestResult(id, TestResult.Pending)
       }, this)
       return acc
     }, {} as PivotTestSuite)
@@ -161,6 +161,15 @@ export class TestRunner {
   }
 
   /**
+   * Fails all still remaining tests. This is called when an error occurs or the execution times out.
+   */
+  private failRemainingTests(message?: string) {
+    Object.entries(this.pivotTests).forEach(([testId, test]) => {
+      this.onFinalTestResult(testId, TestResult.Failed, message)
+    })
+  }
+
+  /**
    * Called when a test has completed.
    * This updates the list of arguments remaining for the test and reports the result if there are no more arguments to run the test with.
    * @param id id of the test that was completed
@@ -196,6 +205,7 @@ export class TestRunner {
    */
   private onError(type: ErrorType, error: ErrorEvent | LoggedError) {
     if (type == ErrorType.Worker || type == ErrorType.Timeout) {
+      this.failRemainingTests()
       this.onGeneralError(type, error.message)
       return
     }
@@ -210,6 +220,7 @@ export class TestRunner {
       console.error("Could not find block by line:", line)
       return
     }
+    this.failRemainingTests((error as LoggedError).message)
     this.onBlockError(blockId, (error as LoggedError).message)
   }
 
@@ -238,7 +249,7 @@ export class TestRunner {
 
     let blockId: string | undefined = undefined
     let currentLine = line - 1
-    while (!blockId && currentLine > 0 && (line - currentLine) < 5) {
+    while (!blockId && currentLine > 0 && line - currentLine < 5) {
       blockId = lines[currentLine].match(/markBlock\("([^"]+)"\)/)?.pop()
       currentLine--
     }

@@ -6,7 +6,7 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
 import MixedEditorControls from "../../components/MixedEditorControls.astro"
-import { date } from "astro:schema"
+import { Icon } from "astro-icon/components"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -46,8 +46,14 @@ const challenge = Astro.props.challenge as Challenge
                 {
                   challenge.tests?.map(it =>
                     Object.entries(it.run).map(([id, test]) => (
-                      <div class="flex flex-col gap-2 kt-test" id={`test-${id}`}>
-                        <p class="font-medium">{test.description}</p>
+                      <div class="flex flex-row gap-2 kt-test items-center" id={`test-${id}`}>
+                        <Icon class="passed-only" name="humbleicons:check-circle" size="20" />
+                        <Icon class="failed-only" name="humbleicons:times-circle" size="20" />
+                        <Icon class="pending-only" name="svg-spinners:ring-resize" size="20" />
+                        <div class="flex flex-col gap-1">
+                          <p class="font-medium">{test.description}</p>
+                          <p id="test-error" class="font-normal" />
+                        </div>
                       </div>
                     ))
                   )

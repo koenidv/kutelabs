@@ -37,7 +37,6 @@ const { executeLanguage } = Astro.props
 
 <script>
   import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
-  import { TestResult } from "@kutelabs/client-runner/src/TestRunner"
   import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
   import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
@@ -76,10 +75,10 @@ const { executeLanguage } = Astro.props
     const compiled = editor.compile(JsCompiler, callbacks)
     const sandboxRunner = new SandboxTestRunner(
       tests,
-      (id, result, message) => {
+      (id, result, _message) => {
         const display = document.querySelector(`#test-${id}`) as HTMLElement
-        display.classList.remove("passed", "failed")
-        display.classList.add(result == TestResult.Passed ? "passed" : "failed")
+        display.classList.remove("passed", "failed", "pending")
+        display.classList.add(result)
       },
       (args: any[]) => {
         const logs = document.querySelector(".kt-logs") as HTMLElement
