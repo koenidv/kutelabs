@@ -8,6 +8,10 @@ import type { Connector } from "../../connections/Connector"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 
+/**
+ * The DragRenderer renders a currently dragged block and potential snap connection
+ * It relies on a BlockRenderer to render the actual block element
+ */
 export abstract class BaseDragRenderer {
   protected readonly blockRegistry: BlockRegistry
   private readonly blockRenderer: BaseBlockRenderer
@@ -21,21 +25,33 @@ export abstract class BaseDragRenderer {
   private snap: Connection | null = null
   private position = Coordinates.zero
 
-  update(
-    dragged: AnyRegisteredBlock,
-    position: Coordinates,
-    snap: Connection | null
-  ) {
+  /**
+   * Update the dragged block, position and snap connection.
+   * This must be called every time the dragged block is moved,
+   * along with an update request on the layer this is beig rendered in.
+   * @param dragged
+   * @param position
+   * @param snap
+   */
+  update(dragged: AnyRegisteredBlock, position: Coordinates, snap: Connection | null) {
     this.dragged = dragged
     this.position = position
     this.snap = snap
   }
 
+  /**
+   * Remove the dragged block from the renderer.
+   * An update must be requested on the layer this is being rendered in.
+   */
   remove() {
     this.dragged = null
     this.position = Coordinates.zero
   }
 
+  /**
+   * Render the dragged block and snap connection if available.
+   * @returns 
+   */
   render() {
     if (this.dragged == null) return nothing
     return [
@@ -45,10 +61,14 @@ export abstract class BaseDragRenderer {
     ]
   }
 
+  /**
+   * Render a snap indicator if a connection available, depending on the type of snap.
+   * Snap indicators will be rendered on top of the dragged block.
+   * @returns 
+   */
   protected renderSnap() {
     if (this.snap == null || this.dragged == null) return nothing
-    if (this.snap.to.parentBlock == null)
-      throw new Error("Snap has no parent block")
+    if (this.snap.to.parentBlock == null) throw new Error("Snap has no parent block")
 
     switch (this.snap.to.type) {
       case ConnectorType.After:
@@ -84,6 +104,14 @@ export abstract class BaseDragRenderer {
     }
   }
 
+  /**
+   * Render a snap indicator for a connection to a **before** connector.
+   * Snap indicators will be rendered on top of the dragged block.
+   * @param localRegistered registered block that is being dragged
+   * @param localConnector affected connector of the dragged block
+   * @param remoteBlock block that can be snapped to
+   * @param remoteConnector connector that can be snapped to
+   */
   protected abstract renderBeforeSnap(
     localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
@@ -91,6 +119,14 @@ export abstract class BaseDragRenderer {
     remoteConnector: Connector
   ): TemplateResult<2>
 
+  /**
+   * Render a snap indicator for a connection to an **after** connector.
+   * Snap indicators will be rendered on top of the dragged block.
+   * @param localRegistered registered block that is being dragged
+   * @param localConnector affected connector of the dragged block
+   * @param remoteBlock block that can be snapped to
+   * @param remoteConnector connector that can be snapped to
+   */
   protected abstract renderAfterSnap(
     localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
@@ -98,6 +134,14 @@ export abstract class BaseDragRenderer {
     remoteConnector: Connector
   ): TemplateResult<2>
 
+  /**
+   * Render a snap indicator for a connection to an **inner** connector.
+   * Snap indicators will be rendered on top of the dragged block.
+   * @param localRegistered registered block that is being dragged
+   * @param localConnector affected connector of the dragged block
+   * @param remoteBlock block that can be snapped to
+   * @param remoteConnector connector that can be snapped to
+   */
   protected abstract renderInnerSnap(
     localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
@@ -105,6 +149,14 @@ export abstract class BaseDragRenderer {
     remoteConnector: Connector
   ): TemplateResult<2>
 
+  /**
+   * Render a snap indicator for a connection to an **extension** connector.
+   * Snap indicators will be rendered on top of the dragged block.
+   * @param localRegistered registered block that is being dragged
+   * @param localConnector affected connector of the dragged block
+   * @param remoteBlock block that can be snapped to
+   * @param remoteConnector connector that can be snapped to
+   */
   protected abstract renderExtensionSnap(
     localRegistered: AnyRegisteredBlock,
     localConnector: Connector,
@@ -114,8 +166,5 @@ export abstract class BaseDragRenderer {
 }
 
 export type DragRendererConstructorType = {
-  new (
-    blockRegistry: BlockRegistry,
-    blockRenderer: BaseBlockRenderer
-  ): BaseDragRenderer
+  new (blockRegistry: BlockRegistry, blockRenderer: BaseBlockRenderer): BaseDragRenderer
 }
