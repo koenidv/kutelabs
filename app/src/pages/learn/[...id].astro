@@ -5,6 +5,8 @@ import type { Challenge } from "../../schema/challenge"
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
+import MixedEditorControls from "../../components/MixedEditorControls.astro"
+import { date } from "astro:schema"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -26,32 +28,31 @@ const challenge = Astro.props.challenge as Challenge
     id="kutelabs"
     class="flex w-full flex-col justify-center"
     data-tests={JSON.stringify(challenge.tests)}>
-    <div class="flex flex-col lg:flex-row px-12 pb-12 lg:h-[90vh] gap-8">
+    <div class="flex flex-col lg:flex-row px-12 pb-12 lg:h-[90vh] gap-4">
       <div class="border-4 border-beige-200 bg-beige-50 p-4 w-full lg:w-[40%] min-w-72 flex-grow">
-        <Tabs>
+        <Tabs class="h-full">
           <Fragment class="w-full" slot="tab-1">Story</Fragment>
           <Fragment class="w-full" slot="tab-2">Logs</Fragment>
 
-          <Fragment slot="panel-1">
-            <div class="flex flex-col gap-4">
-              <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
-              <p class="font-medium" set:html={challenge.story.dialog?.static} />
-              <hr />
-              {
-                challenge.tests?.map(it =>
-                  Object.entries(it.run).map(([id, test]) => (
-                    <div class="flex flex-col gap-2 kt-test" id={`test-${id}`}>
-                      <p class="font-medium">{test.description}</p>
-                    </div>
-                  ))
-                )
-              }
+          <Fragment slot="panel-1" class="h-full">
+            <div class="flex flex-col h-full gap-4 justify-between">
+              <div class="flex flex-col gap-4">
+                <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
+                <p class="font-medium" set:html={challenge.story.dialog?.static} />
+              </div>
 
-              <hr />
-              <a href="#" id="btn-tojs">Print JS</a>
-              <a href="#" id="btn-tokt">Print KT</a>
-              <hr />
-              <a href="#" id="btn-execjs">Execute JS</a>
+              <div class="flex flex-col gap-4">
+                <hr />
+                {
+                  challenge.tests?.map(it =>
+                    Object.entries(it.run).map(([id, test]) => (
+                      <div class="flex flex-col gap-2 kt-test" id={`test-${id}`}>
+                        <p class="font-medium">{test.description}</p>
+                      </div>
+                    ))
+                  )
+                }
+              </div>
             </div>
           </Fragment>
 
@@ -62,104 +63,11 @@ const challenge = Astro.props.challenge as Challenge
         </Tabs>
       </div>
 
+      <MixedEditorControls executeLanguage={challenge.environment.language} />
+
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
         <EditorMixed data={challenge.editor} />
       </ElevatedBox>
     </div>
   </div>
 </InnerLayout>
-
-<script>
-  import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
-  import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
-  import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
-  import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
-  import { filterCallbacks } from "../../execution/EnvironmentContext"
-  import type { Challenge } from "../../schema/challenge"
-  import { TestResult } from "@kutelabs/client-runner/src/TestRunner"
-  import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
-
-  const deserializeTests = (): TestSuite => {
-    const parsed = JSON.parse(
-      document.querySelector("[data-tests]")!.getAttribute("data-tests")!
-    ) as Challenge["tests"]
-    parsed.forEach(tests => {
-      Object.entries(tests.run).forEach(([_id, test]) => {
-        test.function = eval(test.function)
-      })
-    })
-    return parsed as unknown as TestSuite
-  }
-
-  const countTests = (tests: TestSuite): number => {
-    return tests.reduce((acc, suite) => acc + suite.args.length, 0)
-  }
-
-  document.querySelector("#btn-tojs")!.addEventListener(
-    "click",
-    (() => {
-      const editor = document.querySelector("editor-mixed") as EditorMixed
-      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
-      console.log(editor.compile(JsCompiler, callbacks).code)
-    }).bind(this)
-  )
-
-  document.querySelector("#btn-execjs")!.addEventListener(
-    "click",
-    (() => {
-      const editor = document.querySelector("editor-mixed") as EditorMixed
-      const tests = deserializeTests()
-
-      const callbacks = filterCallbacks(["setUsername"], {
-        setUsername: (username: string) => {
-          console.log("Username will be set to '", username, "' once implemented")
-        },
-        ...editor.getExecutionCallbacks(),
-      })
-      const compiled = editor.compile(JsCompiler, callbacks)
-      const sandboxRunner = new SandboxTestRunner(
-        tests,
-        (id, result, message) => {
-          const display = document.querySelector(`#test-${id}`) as HTMLElement
-          display.classList.remove("passed", "failed")
-          display.classList.add(result == TestResult.Passed ? "passed" : "failed")
-        },
-        (args: any[]) => {
-          const logs = document.querySelector(".kt-logs") as HTMLElement
-          const log = document.createElement("p")
-          log.innerText = args.map(it => it.toString()).join(", ")
-          logs.appendChild(log)
-        },
-        console.error,
-        (id, message) => {
-          const logs = document.querySelector(".kt-logs") as HTMLElement
-          const log = document.createElement("p")
-          log.innerText = message
-          log.classList.add("text-red-500")
-          logs.appendChild(log)
-          callbacks.callbacks.get("markBlock")!(id, BlockMarking.Error)
-        }
-      )
-      editor.clearMarkings()
-      sandboxRunner
-        .execute(compiled.code, {
-          argNames: compiled.argNames,
-          entrypoint: compiled.entrypoint,
-          callbacks: callbacks,
-          timeout: compiled.totalDelay * countTests(tests) + 5000,
-        })
-        ?.then(_result => {
-          editor.onExecutionFinished()
-        })
-    }).bind(this)
-  )
-
-  document.querySelector("#btn-tokt")!.addEventListener(
-    "click",
-    (() => {
-      const editor = document.querySelector("editor-mixed") as EditorMixed
-      const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
-      console.log(editor.compile(KtCompiler, callbacks).code)
-    }).bind(this)
-  )
-</script>

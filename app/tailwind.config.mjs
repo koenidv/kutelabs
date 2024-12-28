@@ -17,6 +17,9 @@ export default {
 					300: "#e7dbc0",
 					400: "#e0d0ae",
 				},
+				"purp": {
+					400: "#AE78FE"
+				}
 			}
 		},
 	},

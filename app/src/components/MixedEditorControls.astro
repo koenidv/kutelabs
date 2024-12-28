@@ -1,0 +1,143 @@
+---
+interface Props {
+  executeLanguage: "kt" | "js"
+}
+const { executeLanguage } = Astro.props
+---
+
+<div class="flex flex-col gap-4 py-4 justify-between">
+  <button
+    id="run-code"
+    data-language={executeLanguage}
+    class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button
+  >
+  <div class="flex flex-col gap-4">
+    <button
+      id="print-js"
+      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
+      >print JS</button
+    >
+    <button
+      id="print-kt"
+      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
+      >print Kt</button
+    >
+    <button
+      id="run-js"
+      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
+      >run Js</button
+    >
+    <button
+      id="run-kt"
+      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
+      >run Kt</button
+    >
+  </div>
+</div>
+
+<script>
+  import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
+  import { TestResult } from "@kutelabs/client-runner/src/TestRunner"
+  import { JsCompiler } from "@kutelabs/editor-mixed/src/compile/JsCompiler"
+  import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
+  import type { EditorMixed } from "@kutelabs/editor-mixed/src/editor"
+  import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
+  import { filterCallbacks } from "../execution/EnvironmentContext"
+  import type { Challenge } from "../schema/challenge"
+
+  const getEditor = () => document.querySelector("editor-mixed") as EditorMixed
+
+  const deserializeTests = (): TestSuite => {
+    const parsed = JSON.parse(
+      document.querySelector("[data-tests]")!.getAttribute("data-tests")!
+    ) as Challenge["tests"]
+    parsed.forEach(tests => {
+      Object.entries(tests.run).forEach(([_id, test]) => {
+        test.function = eval(test.function)
+      })
+    })
+    return parsed as unknown as TestSuite
+  }
+
+  const countTests = (tests: TestSuite): number => {
+    return tests.reduce((acc, suite) => acc + suite.args.length, 0)
+  }
+
+  const runJs = () => {
+    const editor = getEditor()
+    const tests = deserializeTests()
+
+    const callbacks = filterCallbacks(["setUsername"], {
+      setUsername: (username: string) => {
+        console.log("Username will be set to '", username, "' once implemented")
+      },
+      ...editor.getExecutionCallbacks(),
+    })
+    const compiled = editor.compile(JsCompiler, callbacks)
+    const sandboxRunner = new SandboxTestRunner(
+      tests,
+      (id, result, message) => {
+        const display = document.querySelector(`#test-${id}`) as HTMLElement
+        display.classList.remove("passed", "failed")
+        display.classList.add(result == TestResult.Passed ? "passed" : "failed")
+      },
+      (args: any[]) => {
+        const logs = document.querySelector(".kt-logs") as HTMLElement
+        const log = document.createElement("p")
+        log.innerText = args.map(it => it.toString()).join(", ")
+        logs.appendChild(log)
+      },
+      console.error,
+      (id, message) => {
+        const logs = document.querySelector(".kt-logs") as HTMLElement
+        const log = document.createElement("p")
+        log.innerText = message
+        log.classList.add("text-red-500")
+        logs.appendChild(log)
+        callbacks.callbacks.get("markBlock")!(id, BlockMarking.Error)
+      }
+    )
+    editor.clearMarkings()
+    sandboxRunner
+      .execute(compiled.code, {
+        argNames: compiled.argNames,
+        entrypoint: compiled.entrypoint,
+        callbacks: callbacks,
+        timeout: compiled.totalDelay * countTests(tests) + 5000,
+      })
+      ?.then(_result => {
+        editor.onExecutionFinished()
+      })
+  }
+
+  const runKt = () => {
+    alert("Not yet implemented")
+  }
+
+  document.querySelector("#run-code")!.addEventListener("click", () => {
+    const language = document.querySelector("#run-code")!.getAttribute("data-language")
+    if (language === "js") {
+      runJs()
+    } else if (language === "kt") {
+      runKt()
+    } else {
+      throw new Error("Invalid language")
+    }
+  })
+
+  document.querySelector("#print-js")!.addEventListener("click", () => {
+    const editor = getEditor()
+    const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+    console.log(editor.compile(JsCompiler, callbacks).code)
+  })
+
+  document.querySelector("#run-js")!.addEventListener("click", runJs)
+
+  document.querySelector("#print-kt")!.addEventListener("click", () => {
+    const editor = getEditor()
+    const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
+    console.log(editor.compile(KtCompiler, callbacks).code)
+  })
+
+  document.querySelector("#run-kt")?.addEventListener("click", runKt)
+</script>
