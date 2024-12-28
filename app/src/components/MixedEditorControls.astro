@@ -1,4 +1,6 @@
 ---
+import { Icon } from "astro-icon/components"
+
 interface Props {
   executeLanguage: "kt" | "js"
 }
@@ -6,11 +8,28 @@ const { executeLanguage } = Astro.props
 ---
 
 <div class="flex flex-row lg:flex-col gap-4 py-4 justify-between">
-  <button
-    id="run-code"
-    data-language={executeLanguage}
-    class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button
-  >
+  <div class="flex flex-row lg:flex-col gap-4 items-center">
+    <button
+      id="run-code"
+      data-language={executeLanguage}
+      class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button
+    >
+    <button
+      id="speed-fast"
+      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      <Icon name="speed-fast" size={32} class="group-hover:text-purp-400 transition-colors" />
+    </button>
+    <button
+      id="speed-medium"
+      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      <Icon name="speed-medium" size={32} class="group-hover:text-purp-400 transition-colors" />
+    </button>
+    <button
+      id="speed-slow"
+      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      <Icon name="speed-slow" size={32} class="group-hover:text-purp-400 transition-colors" />
+    </button>
+  </div>
   <div class="flex flex-row lg:flex-col gap-4">
     <button
       id="print-js"
@@ -44,27 +63,22 @@ const { executeLanguage } = Astro.props
   import { filterCallbacks } from "../execution/EnvironmentContext"
   import type { Challenge } from "../schema/challenge"
 
-  const getEditor = () => document.querySelector("editor-mixed") as EditorMixed
+  // fixme this breaks during prerenders, but should be fixed with the transition to svelte
 
-  const deserializeTests = (): TestSuite => {
-    const parsed = JSON.parse(
-      document.querySelector("[data-tests]")!.getAttribute("data-tests")!
-    ) as Challenge["tests"]
-    parsed.forEach(tests => {
-      Object.entries(tests.run).forEach(([_id, test]) => {
-        test.function = eval(test.function)
+  onload = () => {
+    const editor = document.querySelector("editor-mixed") as EditorMixed
+
+    const tests: TestSuite = (() => {
+      const parsed = JSON.parse(
+        document.querySelector("[data-tests]")!.getAttribute("data-tests")!
+      ) as Challenge["tests"]
+      parsed.forEach(tests => {
+        Object.entries(tests.run).forEach(([_id, test]) => {
+          test.function = eval(test.function)
+        })
       })
-    })
-    return parsed as unknown as TestSuite
-  }
-
-  const countTests = (tests: TestSuite): number => {
-    return tests.reduce((acc, suite) => acc + suite.args.length, 0)
-  }
-
-  const runJs = () => {
-    const editor = getEditor()
-    const tests = deserializeTests()
+      return parsed as unknown as TestSuite
+    })()
 
     const callbacks = filterCallbacks(["setUsername"], {
       setUsername: (username: string) => {
@@ -72,8 +86,8 @@ const { executeLanguage } = Astro.props
       },
       ...editor.getExecutionCallbacks(),
     })
-    const compiled = editor.compile(JsCompiler, callbacks)
-    const sandboxRunner = new SandboxTestRunner(
+
+    const testRunner = new SandboxTestRunner(
       tests,
       (id, result, _message) => {
         const display = document.querySelector(`#test-${id}`) as HTMLElement
@@ -96,48 +110,70 @@ const { executeLanguage } = Astro.props
         callbacks.callbacks.get("markBlock")!(id, BlockMarking.Error)
       }
     )
-    editor.clearMarkings()
-    sandboxRunner
-      .execute(compiled.code, {
-        argNames: compiled.argNames,
-        entrypoint: compiled.entrypoint,
-        callbacks: callbacks,
-        executionDelay: 1000,
-        timeout: compiled.totalDelay * countTests(tests) + 5000,
-      })
-      ?.then(_result => {
-        editor.onExecutionFinished()
-      })
-  }
 
-  const runKt = () => {
-    alert("Not yet implemented")
-  }
+    let executionDelay = 800
 
-  document.querySelector("#run-code")!.addEventListener("click", () => {
-    const language = document.querySelector("#run-code")!.getAttribute("data-language")
-    if (language === "js") {
-      runJs()
-    } else if (language === "kt") {
-      runKt()
-    } else {
-      throw new Error("Invalid language")
+    const countTests = (tests: TestSuite): number => {
+      return tests.reduce((acc, suite) => acc + suite.args.length, 0)
     }
-  })
 
-  document.querySelector("#print-js")!.addEventListener("click", () => {
-    const editor = getEditor()
-    const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
-    console.log(editor.compile(JsCompiler, callbacks).code)
-  })
+    const runJs = () => {
+      const compiled = editor.compile(JsCompiler, callbacks)
+      editor.clearMarkings()
 
-  document.querySelector("#run-js")!.addEventListener("click", runJs)
+      testRunner
+        .execute(compiled.code, {
+          argNames: compiled.argNames,
+          entrypoint: compiled.entrypoint,
+          callbacks: callbacks,
+          executionDelay: executionDelay,
+          timeout: compiled.totalDelay * countTests(tests) + 5000,
+        })
+        ?.then(_result => {
+          editor.onExecutionFinished()
+        })
+    }
 
-  document.querySelector("#print-kt")!.addEventListener("click", () => {
-    const editor = getEditor()
-    const callbacks = filterCallbacks([], editor.getExecutionCallbacks())
-    console.log(editor.compile(KtCompiler, callbacks).code)
-  })
+    const runKt = () => {
+      alert("Not yet implemented")
+    }
 
-  document.querySelector("#run-kt")?.addEventListener("click", runKt)
+    document.querySelector("#run-code")!.addEventListener("click", () => {
+      const language = document.querySelector("#run-code")!.getAttribute("data-language")
+      if (language === "js") {
+        runJs()
+      } else if (language === "kt") {
+        runKt()
+      } else {
+        throw new Error("Invalid language")
+      }
+    })
+
+    document.querySelector("#print-js")!.addEventListener("click", () => {
+      console.log(editor.compile(JsCompiler, callbacks).code)
+    })
+
+    document.querySelector("#run-js")!.addEventListener("click", runJs)
+
+    document.querySelector("#print-kt")!.addEventListener("click", () => {
+      console.log(editor.compile(KtCompiler, callbacks).code)
+    })
+
+    document.querySelector("#run-kt")?.addEventListener("click", runKt)
+
+    document.querySelector("#speed-fast")!.addEventListener("click", () => {
+      executionDelay = 250
+      testRunner.setExecutionDelay(executionDelay)
+    })
+
+    document.querySelector("#speed-medium")!.addEventListener("click", () => {
+      executionDelay = 1000
+      testRunner.setExecutionDelay(executionDelay)
+    })
+
+    document.querySelector("#speed-slow")!.addEventListener("click", () => {
+      executionDelay = 2200
+      testRunner.setExecutionDelay(executionDelay)
+    })
+  }
 </script>

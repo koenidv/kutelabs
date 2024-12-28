@@ -15,17 +15,20 @@ export class Executor {
   onResult?: (args: any[], result: any) => void
   onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void
   onLog?: (args: any[]) => void
+  onCompleted?: () => void
   onRequestWait: (resolve: () => void) => void = resolve => resolve()
 
   constructor(
     onResult?: (args: any[], result: any) => void,
     onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
     onLog?: (args: any[]) => void,
+    onCompleted?: () => void,
     onRequestWait?: (resolve: () => void) => void
   ) {
     this.onResult = onResult
     this.onError = onError
     this.onLog = onLog
+    this.onCompleted = onCompleted
     if (onRequestWait) this.onRequestWait = onRequestWait
   }
 
@@ -78,7 +81,7 @@ export class Executor {
 
     const lifeTimer = new Promise((_, reject) => {
       setTimeout(() => {
-        if (running) onError?.(ErrorType.Timeout, new ErrorEvent("Execution timed out"))
+        if (running) this.onError?.(ErrorType.Timeout, new ErrorEvent("Execution timed out"))
         reject(new Error("Execution timed out"))
       }, timeoutMs)
     })
@@ -89,6 +92,7 @@ export class Executor {
       running = false
       worker.terminate()
       URL.revokeObjectURL(workerUrl)
+      this.onCompleted?.()
     }
   }
 }

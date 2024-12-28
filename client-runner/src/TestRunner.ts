@@ -84,6 +84,7 @@ export class TestRunner {
       this.onResult.bind(this),
       this.onError.bind(this),
       this.onLog.bind(this),
+      this.onExecutionCompleted.bind(this),
       this.onWaitRequest.bind(this)
     )
     return executor.execute(this.currentScript, config.timeout, config.callbacks)
@@ -124,6 +125,10 @@ export class TestRunner {
     return factory.build()
   }
 
+  /**
+   * Resolves wait requests from the executed code with a delay if this is the first call
+   * @param resolve resolving function for the wait request
+   */
   onWaitRequest(resolve: () => void) {
     setTimeout(resolve, this.firstCallFinished ? 0 : this.executionDelay)
   }
@@ -279,5 +284,13 @@ export class TestRunner {
       /\/\*__startUser\*\/([\s\S]*)\/\*__endUser\*\//
     )!.pop()
     return userFunction!.split("\n")
+  }
+
+  /**
+   * Resets the execution state of the TestRunner.
+   * Called when the execution of the user code has completed.
+   */
+  private onExecutionCompleted() {
+    this.currentScript = null
   }
 }
