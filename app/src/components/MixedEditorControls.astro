@@ -62,6 +62,8 @@ const { executeLanguage } = Astro.props
   import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
   import { filterCallbacks } from "../execution/EnvironmentContext"
   import type { Challenge } from "../schema/challenge"
+  import { transpileKtJs } from "../execution/transpile"
+  import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
 
   // fixme this breaks during prerenders, but should be fixed with the transition to svelte
 
@@ -91,7 +93,7 @@ const { executeLanguage } = Astro.props
       tests,
       (id, result, _message) => {
         const display = document.querySelector(`#test-${id}`) as HTMLElement
-        display.classList.remove("passed", "failed", "pending")
+        display.classList.remove("passed", "failed", "pending", "untested")
         display.classList.add(result)
       },
       (args: any[]) => {
@@ -134,8 +136,27 @@ const { executeLanguage } = Astro.props
         })
     }
 
-    const runKt = () => {
-      alert("Not yet implemented")
+    const runKt = async () => {
+      const compiled = editor.compile(KtCompiler, callbacks)
+      editor.clearMarkings()
+
+      const transpiled = await transpileKtJs(compiled.code)
+      if (
+        transpiled === null ||
+        transpiled.status != TranspilationStatus.Success ||
+        !transpiled.transpiledCode
+      ) {
+        console.error("Transpilation failed")
+        return
+      }
+
+      testRunner.execute(transpiled.transpiledCode, {
+        argNames: compiled.argNames,
+        entrypoint: compiled.entrypoint,
+        callbacks: callbacks,
+        executionDelay: executionDelay,
+        timeout: compiled.totalDelay * countTests(tests) + 5000,
+      })
     }
 
     document.querySelector("#run-code")!.addEventListener("click", () => {

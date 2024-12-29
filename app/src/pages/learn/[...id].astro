@@ -46,7 +46,8 @@ const challenge = Astro.props.challenge as Challenge
                 {
                   challenge.tests?.map(it =>
                     Object.entries(it.run).map(([id, test]) => (
-                      <div class="flex flex-row gap-2 kt-test items-center" id={`test-${id}`}>
+                      <div class="flex flex-row gap-2 kt-test items-center untested" id={`test-${id}`}>
+                        <Icon class="untested-only" name="humbleicons:circle" size="20" />
                         <Icon class="passed-only" name="humbleicons:check-circle" size="20" />
                         <Icon class="failed-only" name="humbleicons:times-circle" size="20" />
                         <Icon class="pending-only" name="svg-spinners:ring-resize" size="20" />
