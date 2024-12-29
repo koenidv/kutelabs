@@ -64,7 +64,7 @@ const { executeLanguage } = Astro.props
   import type { Challenge } from "../schema/challenge"
   import { transpileKtJs } from "../execution/transpile"
   import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
-import { setTestResult } from "../state/state"
+import { addLog, setTestResult } from "../state/state"
 
   // fixme this breaks during prerenders, but should be fixed with the transition to svelte
 
@@ -93,12 +93,7 @@ import { setTestResult } from "../state/state"
     const testRunner = new SandboxTestRunner(
       tests,
       setTestResult,
-      (args: any[]) => {
-        const logs = document.querySelector(".kt-logs") as HTMLElement
-        const log = document.createElement("p")
-        log.innerText = args.map(it => it.toString()).join(", ")
-        logs.appendChild(log)
-      },
+      addLog,
       console.error,
       (id, message) => {
         const logs = document.querySelector(".kt-logs") as HTMLElement

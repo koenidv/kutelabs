@@ -7,6 +7,7 @@ import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
 import MixedEditorControls from "../../components/MixedEditorControls.astro"
 import Tests from "../../components/Tests.svelte"
+import Logs from "../../components/Logs.svelte"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -34,20 +35,21 @@ const challenge = Astro.props.challenge as Challenge
           <Fragment class="w-full" slot="tab-1">Story</Fragment>
           <Fragment class="w-full" slot="tab-2">Logs</Fragment>
 
-          <Fragment slot="panel-1" class="h-full">
-            <div class="flex flex-col h-full gap-4 justify-between">
+          <Fragment slot="panel-1">
+            <div class="flex flex-col h-full gap-6 pb-8">
               <div class="flex flex-col gap-4">
                 <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
                 <p class="font-medium" set:html={challenge.story.dialog?.static} />
               </div>
+
+              <hr />
 
               <Tests tests={challenge.tests} client:load />
             </div>
           </Fragment>
 
           <Fragment slot="panel-2">
-            <h2>If your code prints anything or throws an error, it will show up here.</h2>
-            <div class="flex flex-col pt-4 kt-logs"></div>
+            <Logs client:idle />
           </Fragment>
         </Tabs>
       </div>

@@ -24,7 +24,6 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  <hr />
   {#each tests as test}
     <div
       class={`flex flex-row gap-2 kt-test items-center ${[stateToColorClass($testState[test.id]?.state)]}`}

@@ -23,7 +23,7 @@
   "tests": [
     {
       "args": [
-        ["a"], ["b"], ["c"]
+        []
       ],
       "run": {
         "entername": {
