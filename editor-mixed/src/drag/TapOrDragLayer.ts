@@ -62,7 +62,6 @@ export class TapOrDragLayer extends LitElement {
   }
 
   private onMouseDown(evt: MouseEvent | TouchEvent) {
-    console.log("mouse down", "prevented", evt.defaultPrevented, "invalid", this.initialCoords != null || this.isFocusLocked, "coords", this.initialCoords, "locked", this.isFocusLocked)
     if (this.initialCoords !== null || this.isFocusLocked) return
     this.initialCoords = normalizePrimaryPointerPosition(evt)
     this.initialTime = Date.now()
@@ -94,23 +93,19 @@ export class TapOrDragLayer extends LitElement {
   }
 
   private onMouseMove(evt: MouseEvent | TouchEvent) {
-    console.log("mouse move", "prevented", evt.defaultPrevented, "invalid/locked", this.initialTime == null || this.initialCoords == null || this.isFocusLocked)
     if (this.initialTime == null || this.initialCoords == null || this.isFocusLocked) return
     this.capturedEvents.push(evt)
     evt.preventDefault()
-    console.log("delta", this.delta(evt), "treshold", this.dragTreshold ?? 8)
     if (this.delta(evt) > (this.dragTreshold ?? 8)) {
-      console.log("release from mouse move")
       this.releaseEvents(this.draggableComponent?.value ?? this)
     }
   }
 
   private onMouseUp(evt: MouseEvent | TouchEvent) {
-    console.log("mouse up", "prevented", evt.defaultPrevented, "invalid/locked", this.initialTime == null || this.initialCoords == null || this.isFocusLocked)
     if (this.initialTime == null || this.initialCoords == null || this.isFocusLocked) return
     this.capturedEvents.push(evt)
     evt.preventDefault()
-    console.log("release from mouse up")
+    
     this.releaseEvents(
       (this.delta(evt) > (this.dragTreshold ?? 8) && Date.now() - this.initialTime > 200
         ? this.draggableComponent?.value

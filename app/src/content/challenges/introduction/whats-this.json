@@ -27,7 +27,7 @@
       ],
       "run": {
         "entername": {
-          "function": "(args,result)=>{return result.trim()!=''&&result.trim()!='Your name here';}",
+          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
           "description": "Enter your name"
         }
       }

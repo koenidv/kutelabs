@@ -18,46 +18,6 @@ html {
 }
 
 /**
-* Tests
-*/
-
-.kt-test {
-
-  .passed-only,
-  .failed-only,
-  .pending-only,
-  .untested-only{
-    display: none;
-  }
-
-  &.untested .untested-only {
-    display: block;
-  }
-
-  &.passed {
-    color: limegreen;
-
-    .passed-only {
-      display: block;
-    }
-  }
-
-  &.failed {
-    color: coral;
-
-    .failed-only {
-      display: block;
-    }
-  }
-
-  &.pending {
-    .pending-only {
-      display: block;
-    }
-  }
-}
-
-/**
 * Logs
 */
 

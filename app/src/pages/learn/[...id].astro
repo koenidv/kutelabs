@@ -6,7 +6,7 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import EditorMixed from "../../components/EditorMixedWrapper.astro"
 import MixedEditorControls from "../../components/MixedEditorControls.astro"
-import { Icon } from "astro-icon/components"
+import Tests from "../../components/Tests.svelte"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -41,25 +41,7 @@ const challenge = Astro.props.challenge as Challenge
                 <p class="font-medium" set:html={challenge.story.dialog?.static} />
               </div>
 
-              <div class="flex flex-col gap-4">
-                <hr />
-                {
-                  challenge.tests?.map(it =>
-                    Object.entries(it.run).map(([id, test]) => (
-                      <div class="flex flex-row gap-2 kt-test items-center untested" id={`test-${id}`}>
-                        <Icon class="untested-only" name="humbleicons:circle" size="20" />
-                        <Icon class="passed-only" name="humbleicons:check-circle" size="20" />
-                        <Icon class="failed-only" name="humbleicons:times-circle" size="20" />
-                        <Icon class="pending-only" name="svg-spinners:ring-resize" size="20" />
-                        <div class="flex flex-col gap-1">
-                          <p class="font-medium">{test.description}</p>
-                          <p id="test-error" class="font-normal" />
-                        </div>
-                      </div>
-                    ))
-                  )
-                }
-              </div>
+              <Tests tests={challenge.tests} client:load />
             </div>
           </Fragment>
 
