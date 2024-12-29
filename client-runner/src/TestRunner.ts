@@ -1,5 +1,5 @@
 import type { Callbacks } from "./Callbacks"
-import { ErrorType, Executor, type LoggedError } from "./Executor"
+import { ErrorType, Executor, type LoggedError, type LogType } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
 
 type Args = any[]
@@ -36,7 +36,7 @@ export class TestRunner {
   private pivotTests: PivotTestSuite = {}
 
   private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
-  private readonly onLog: (args: any[]) => void = console.log
+  private readonly onLog: (args: any[], type: LogType) => void = console.log
   private readonly onGeneralError: (
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string

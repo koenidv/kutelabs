@@ -1,4 +1,5 @@
 import type { TestResult } from "@kutelabs/client-runner"
+import type { LogType } from "@kutelabs/client-runner";
 import type { EditorMixed } from "@kutelabs/editor-mixed"
 import { atom, map } from "nanostores"
 
@@ -9,10 +10,10 @@ export function setTestResult(id: string, state: TestResult, message?: string) {
 }
 
 /* Stores logs from code execution */
-export const logState = atom<any[][]>([])
-export function addLog(log: any[], type: "log" | "error" | "warn" = "log") {
-  // todo log types in ui
-  logState.set([...logState.get(), log])
+export const logState = atom<{ log: any[]; type: LogType }[]>([])
+export function addLog(log: any[], type: LogType) {
+  logState.set([...logState.get(), { log, type }])
 }
 
+/* Stores a reference to the DOM element of the current editor  */
 export const editorRef = atom<null | EditorMixed>(null)

@@ -11,17 +11,19 @@ export type LoggedError = {
   stack: string
 }
 
+export type LogType = "log" | "error" | "warn"
+
 export class Executor {
   onResult?: (args: any[], result: any) => void
   onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void
-  onLog?: (args: any[]) => void
+  onLog?: (args: any[], type: LogType) => void
   onCompleted?: () => void
   onRequestWait: (resolve: () => void) => void = resolve => resolve()
 
   constructor(
     onResult?: (args: any[], result: any) => void,
     onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
-    onLog?: (args: any[]) => void,
+    onLog?: (args: any[], type: LogType) => void,
     onCompleted?: () => void,
     onRequestWait?: (resolve: () => void) => void
   ) {
@@ -56,7 +58,7 @@ export class Executor {
             this.onError?.(ErrorType.Execution, data as LoggedError)
             break
           case "log":
-            this.onLog?.(Object.values(data))
+            this.onLog?.(Object.values(data), "log")
             break
           case "requestWait":
             this.onRequestWait(() => {
