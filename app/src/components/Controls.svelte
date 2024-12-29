@@ -19,11 +19,21 @@
   }: { tests: Challenge["tests"]; environment: Challenge["environment"] } = $props()
 
   // parse tests
-  const tests = testData?.map(set => {
-    Object.entries(set.run).forEach(([_id, test]) => {
-      test.function = eval(test.function)
-    })
-    return set
+  const tests = (testData ?? []).map(set => {
+    return {
+      ...set,
+      run: Object.fromEntries(
+        Object.entries(set.run).map(([id, test]) => {
+          return [
+            id,
+            {
+              ...test,
+              function: eval(test.function),
+            },
+          ]
+        })
+      ),
+    }
   }) as unknown as TestSuite
 
   const testRunner = new SandboxTestRunner(
@@ -48,6 +58,10 @@
   }
 
   const executionSpeed = atom<"fast" | "medium" | "slow">("medium")
+  const setSpeed = (speed: "fast" | "medium" | "slow") => {
+    executionSpeed.set(speed)
+    testRunner.setExecutionDelay(executionDelay[speed])
+  }
   const executionDelay = {
     fast: 250,
     medium: 1000,
@@ -138,18 +152,18 @@
       onclick={run}
       class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button>
     <button
-      onclick={() => executionSpeed.set("fast")}
-      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      onclick={() => setSpeed("fast")}
+      class={`group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$executionSpeed == "fast" ? "border-black" : "border-transparent"}`}>
       <FastIcon />
     </button>
     <button
-      onclick={() => executionSpeed.set("medium")}
-      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      onclick={() => setSpeed("medium")}
+      class={`group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$executionSpeed == "medium" ? "border-black" : "border-transparent"}`}>
       <MediumIcon />
     </button>
     <button
-      onclick={() => executionSpeed.set("slow")}
-      class="group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors">
+      onclick={() => setSpeed("slow")}
+      class={`group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$executionSpeed == "slow" ? "border-black" : "border-transparent"}`}>
       <SlowIcon />
     </button>
   </div>
