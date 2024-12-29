@@ -1,15 +1,19 @@
 ---
 import type { Challenge } from "../schema/challenge"
-import { EditorMixed } from "@kutelabs/editor-mixed"
 
 interface Props {
   data: Challenge["editor"]
 }
 
 const { data } = Astro.props
+const dataString = JSON.stringify(data)
 ---
 
-<>
-<!-- @ts-ignore -->
-<EditorMixed data={data} useDefaultConfig client:only="lit" />
-</>
+<editor-mixed data={dataString} useDefaultConfig></editor-mixed>
+
+<script>
+  import "lit"
+  import "@kutelabs/editor-mixed"
+
+  console.log("editor loaded")
+</script>
