@@ -1,6 +1,6 @@
-import type { TestResult } from "@kutelabs/client-runner/src"
+import type { TestResult } from "@kutelabs/client-runner"
+import type { EditorMixed } from "@kutelabs/editor-mixed"
 import { atom, map } from "nanostores"
-import type { Challenge } from "../schema/challenge"
 
 /*Stores the state of the tests. The display data however is passed to the Tests component directly to enable SSR.*/
 export const testState = map<Record<string, { state: TestResult | null; message?: string }>>({})
@@ -10,7 +10,9 @@ export function setTestResult(id: string, state: TestResult, message?: string) {
 
 /* Stores logs from code execution */
 export const logState = atom<any[][]>([])
-export function addLog(log: any[]) {
-  console.log("adding log")
+export function addLog(log: any[], type: "log" | "error" | "warn" = "log") {
+  // todo log types in ui
   logState.set([...logState.get(), log])
 }
+
+export const editorRef = atom<null | EditorMixed>(null)
