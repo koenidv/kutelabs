@@ -60,7 +60,6 @@ export class DefaultConnectors {
 
   static inputExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
-      remote => {console.log("inputExtension", remote); return false},
       remote => remote.type === ConnectorType.Before && remote.role === ConnectorRole.Input,
     ])
   }
