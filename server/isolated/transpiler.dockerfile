@@ -30,4 +30,4 @@ RUN chmod +x /app/transpile.bash
 WORKDIR /data
 #USER kute
 
-CMD ["bash", "-c", "/app/transpile.bash -i /data/input/code.kt -o /data/js/ -l /usr/lib/kotlinc/lib/kotlin-stdlib-js.klib:/usr/lib/kotlinc/lib/kotlinx-coroutines-core-js.klib"]#
+CMD ["bash", "-c", "/app/transpile.bash -i /data/input/code.kt -o /data/js/ -l /usr/lib/kotlinc/lib/kotlin-stdlib-js.klib:/usr/lib/kotlinc/lib/kotlinx-coroutines-core-js.klib"]
