@@ -18,6 +18,6 @@ out/
 .env
 .env.*
 
-server/src/data/
+server/src/data
 
 **/schema/*.d.ts

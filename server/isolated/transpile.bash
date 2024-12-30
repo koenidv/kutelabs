@@ -11,9 +11,7 @@ done
 
 : ${input?"input (-i) is required"}
 : ${output?"output (-o) is required"}
-: ${libraries?"kotlin stdlib-js (-l) is required"}
-
-cat $input
+: ${libraries?"kotlin stdlib-js and kotlinx coroutines-core-js (-l) are required"}
 
 kotlinc-js \
   $input \
@@ -21,8 +19,6 @@ kotlinc-js \
   -ir-output-dir klib/ \
   -libraries $libraries \
   -Xreport-all-warnings \
-  -Xuse-fir-extended-checkers \
-  -Xir-only \
   -Xir-produce-klib-dir
 
 kotlinc-js \
@@ -31,7 +27,5 @@ kotlinc-js \
   -ir-output-dir $output \
   -libraries $libraries \
   -Xreport-all-warnings \
-  -Xuse-fir-extended-checkers \
-  -Xir-only \
   -Xir-produce-js \
   -Xir-dce
