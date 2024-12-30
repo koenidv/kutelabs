@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 1,
+  "title": "Introduction",
+  "hideSectionHead": true
+}

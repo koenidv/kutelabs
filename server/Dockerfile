@@ -2,7 +2,6 @@ FROM oven/bun:alpine AS base
 WORKDIR /app
 
 # TODO .dockerignore
-# TODO install runsc
 # todo env vars do not seem to be set
 
 FROM base AS builder
@@ -16,6 +15,10 @@ RUN jq '.workspaces = '"$(find out/json/ -mindepth 1 -maxdepth 1 -type d -exec b
 
 FROM base AS installer
 COPY --from=builder /app/out/json .
+COPY --from=builder /app/scripts ./scripts/
+RUN apk add --no-cache bash
+RUN ls -la ./scripts
+
 RUN bun install --yarn --frozen-lockfile --production
 COPY --from=builder /app/out/full .
 

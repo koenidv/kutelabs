@@ -64,9 +64,18 @@ async function transpileKtJs(
 
     const exitCode = await process.exited
     clearTimeout(killTimeout)
-    console.info("Ressource usage:", process.resourceUsage())
-
-    if (process.signalCode === "SIGKILL") return
+    console.info(
+      "Ressource usage:",
+      process.resourceUsage(),
+      "compledted with exit code",
+      exitCode,
+      process.signalCode
+    )
+    if (process.signalCode === "SIGKILL") {
+      resolve({
+        status: TranspilationStatus.Timeout,
+      })
+    }
     switch (exitCode) {
       case 0:
         resolve({ status: TranspilationStatus.Success })
@@ -78,10 +87,10 @@ async function transpileKtJs(
         })
         break
       default:
-        return {
+        resolve({
           status: TranspilationStatus.UnknownError,
           message: await new Response(process.stderr).text(),
-        }
+        })
     }
   })
 }

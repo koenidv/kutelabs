@@ -4,7 +4,8 @@
   "main": "src/editor.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "json-schema-to-typescript": "^15.0.3"
   },
   "peerDependencies": {
     "typescript": "^5.6.3"

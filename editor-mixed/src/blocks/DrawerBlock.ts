@@ -1,82 +1,131 @@
 import { Connection } from "../connections/Connection"
-import type { Connector } from "../connections/Connector"
+import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
-import type { BlockRegistry } from "../registries/BlockRegistry"
+import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
+import { objectsEqual1d } from "../util/ObjectUtils"
 import { Block, type AnyBlock } from "./Block"
-import { BlockType } from "./BlockType"
+import { BlockType } from "./configuration/BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
   public readonly drawerConnector: Connector
-  constructor(
-    blockRegistry: BlockRegistry,
-    connectorRegistry: ConnectorRegistry
-  ) {
+
+  private readonly blockRegistry: BlockRInterface
+  private readonly connectorRegistry: ConnectorRegistry
+
+  constructor(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRegistry) {
     const drawerConnector = DefaultConnectors.drawer()
     super(
-      null,
       BlockType.Root,
       null,
-      [drawerConnector],
+      [{ connector: drawerConnector }],
       false,
       blockRegistry,
       connectorRegistry
     )
     this.drawerConnector = drawerConnector
+
+    this.blockRegistry = blockRegistry
+    this.connectorRegistry = connectorRegistry
   }
 
-  blocks: AnyBlock[] = []
+  private _blocks: Map<AnyBlock, number> = new Map()
+  public get blocks(): { block: AnyBlock; count: number }[] {
+    return [...this._blocks.entries()].map(([block, count]) => ({ block, count }))
+  }
 
   override connect(
+    registry: BlockRInterface,
     block: AnyBlock,
     connection: Connection,
     atPosition?: Coordinates,
-    isOppositeAction: boolean = false
+    drawerItemCount?: number
   ): void {
-    if (
-      connection.from != this.drawerConnector &&
-      connection.to != this.drawerConnector
-    )
-      throw new Error("Drawer block can only connect on drawer connector")
-
-    if (this.blocks.includes(block)) return
+    registry.notifyConnecting(block, this)
 
     // Disconnect any connected blocks and attach to drawer individually, but keep order
-    const downstreamBlocks = block.downstreamWithConnectors.map(
-      ({ block: it }) => block.disconnect(it)
-    )
+    block.downstreamWithConnectors.forEach(({ block: it }) => {
+      it.disconnectSelf(registry)?.let(popped => {
+        this.connect(
+          registry,
+          popped,
+          new Connection(this.drawerConnector, popped.connectors.internal)
+        )
+      })
+    })
 
-    this.blocks.push(block)
+    this.silentConnect(block, connection, atPosition, false, drawerItemCount)
+  }
+
+  override silentConnect(
+    block: AnyBlock,
+    connection: Connection,
+    atPosition?: Coordinates,
+    isOppositeAction: boolean = false,
+    drawerItemCount: number = 1
+  ): void {
+    if (connection.from != this.drawerConnector && connection.to != this.drawerConnector)
+      throw new Error("Drawer block can only connect on drawer connector")
+
+    const matching = this.hasMatchingBlock(block)
+    if (matching) {
+      const currentCount = this._blocks.get(matching) ?? 0
+      if (currentCount > 0) this._blocks.set(matching, currentCount + drawerItemCount)
+      block.remove(this.blockRegistry, this.connectorRegistry)
+      return
+    }
+
+    this._blocks.set(block, this._blocks.get(block) ?? 0 + drawerItemCount)
     block.isInDrawer = true
     // todo invalidate block
 
-    downstreamBlocks.forEach(it => {
-      if (!it) return
-      this.connect(
-        it,
-        new Connection(this.drawerConnector, it.connectors.internal)
-      )
-    })
-
-    if (!isOppositeAction) block.connect(this, connection, atPosition, true)
+    if (!isOppositeAction) block.silentConnect(this, connection, atPosition, true)
   }
 
-  override disconnect(block: AnyBlock): AnyBlock | null {
-    const index = this.blocks.indexOf(block)
-    if (index !== -1) this.blocks.splice(index, 1)
+  override silentDisconnectBlock(block: AnyBlock): AnyBlock | null {
+    return this.takeBlock(block)
+  }
 
-    if (block.connectedBlocks.isConnected(this)) block.disconnect(this)
-    block.isInDrawer = false
+  private takeBlock(block: AnyBlock): AnyBlock {
+    const count = this._blocks.get(block) ?? 0
+    if (count != 1) {
+      this._blocks.set(block, count - 1)
+      // the block will have disconnected itself, reconnect to keep double link
+      block.silentConnect(
+        this,
+        new Connection(this.drawerConnector, block.connectors.internal),
+        undefined,
+        true
+      )
+      const clone = block.registerClone(this.blockRegistry, this.connectorRegistry)
+      setTimeout(() => (clone.isInDrawer = false), 0)
+      return clone
+    }
+    this._blocks.delete(block)
+    if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
+    setTimeout(() => (block.isInDrawer = false), 0)
     return block
   }
 
-  register(...values: AnyBlock[]) {
-    values.forEach(block =>
-      this.connect(
-        block,
-        new Connection(this.drawerConnector, block.connectors.internal)
-      )
-    )
+  public removeBlock(block: AnyBlock): void {
+    if (!this._blocks.has(block)) {
+      console.warn("Tried to remove block from drawer that is not in drawer", block)
+      return
+    }
+    this._blocks.delete(block)
+    if (block.connectedBlocks.isConnected(this)) block.silentDisconnectBlock(this)
+    block.isInDrawer = false
+  }
+
+  public clear() {
+    this._blocks.clear()
+  }
+
+  private hasMatchingBlock(block: AnyBlock): AnyBlock | null {
+    if (this._blocks.has(block)) return block
+    for (const test of this._blocks.keys())
+      if (block.type === test.type && objectsEqual1d(block.data, test.data)) return test
+    return null
   }
 }

@@ -1,7 +1,8 @@
 import { type TranspilationResult } from "../../transpile/transpile"
 import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import type { ResultDtoInterface } from "./ResultDtoInterface"
 
-export class ResultDTO {
+export class ResultDTO implements ResultDtoInterface {
   status: TranspilationStatus
   transpiledCode: string | null
   message: string | null = null
@@ -17,10 +18,7 @@ export class ResultDTO {
     this.message = message
   }
 
-  public static error(
-    status: TranspilationStatus,
-    message: string | null = null
-  ) {
+  public static error(status: TranspilationStatus, message: string | null = null) {
     return new ResultDTO(status, null, message)
   }
 

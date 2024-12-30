@@ -1,5 +1,6 @@
 import type { AnyBlock } from "../blocks/Block"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
@@ -10,17 +11,21 @@ export class Connector {
   role: ConnectorRole
   connectPredicates: ConnectPredicates
 
+  globalPosition: Coordinates
+
   constructor(
     type: ConnectorType,
     role: ConnectorRole = ConnectorRole.Default,
-    connectPredicates: ConnectPredicate[] = []
+    connectPredicates: ConnectPredicate[] = [],
+    position: Coordinates = Coordinates.zero
   ) {
     this.type = type
     this.role = role
     this.connectPredicates = new ConnectPredicates(this, connectPredicates)
+    this.globalPosition = position
   }
 
-  public register(registry: ConnectorRegistry, parentBlock: AnyBlock): this {
+  public register(registry: ConnectorRInterface, parentBlock: AnyBlock): this {
     if (this._parentBlock != null && parentBlock != this._parentBlock)
       throw new Error("Connector parent may not be changed")
     this._parentBlock = parentBlock
@@ -32,8 +37,6 @@ export class Connector {
   public get parentBlock(): AnyBlock | null {
     return this._parentBlock
   }
-
-  public globalPosition: Coordinates = Coordinates.zero
 
   get isDownstram() {
     return (

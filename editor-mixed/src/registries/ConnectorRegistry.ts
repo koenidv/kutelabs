@@ -2,8 +2,10 @@ import type { Connector } from "../connections/Connector"
 import { Coordinates } from "../util/Coordinates"
 import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
+import type { ConnectorRInterface } from "./ConnectorRInterface"
+import type { VariableHInterface } from "../variables/VariableHInterface"
 
-export class ConnectorRegistry {
+export class ConnectorRegistry implements ConnectorRInterface {
   private _connectors: Connector[] = []
   public get connectors(): Connector[] {
     return this._connectors
@@ -15,6 +17,16 @@ export class ConnectorRegistry {
    */
   public register(connector: Connector) {
     this._connectors.push(connector)
+  }
+
+  /**
+   * Deregister all connectors that belong to a block, used when a block is removed
+   * @param block Block to deregister connectors for
+   */
+  public deregisterForBlock(block: AnyBlock): void {
+    this._connectors = this._connectors.filter(
+      connector => connector.parentBlock === null || connector.parentBlock.id !== block.id
+    )
   }
 
   /**
@@ -35,10 +47,7 @@ export class ConnectorRegistry {
   ): Connection | null {
     let localConnector: Connector | null = null
     let remoteConnector: Connector | null = null
-    const connectedIds = [
-      block.id,
-      ...block.allConnectedRecursive.map(({ id }) => id),
-    ]
+    const connectedIds = [block.id, ...block.allConnectedRecursive.map(({ id }) => id)]
 
     // Regular before->after / before->extension / before->inner
     localConnector = block.connectors.before
@@ -49,8 +58,7 @@ export class ConnectorRegistry {
         Coordinates.add(localConnector.globalPosition, dragOffset),
         maxXY
       )
-      if (remoteConnector)
-        return new Connection(localConnector, remoteConnector)
+      if (remoteConnector) return new Connection(localConnector, remoteConnector)
     }
 
     // reverse after->before
@@ -62,8 +70,7 @@ export class ConnectorRegistry {
         Coordinates.add(localConnector.globalPosition, dragOffset),
         maxXY
       )
-      if (remoteConnector)
-        return new Connection(localConnector, remoteConnector)
+      if (remoteConnector) return new Connection(localConnector, remoteConnector)
     }
 
     // reverse inner->before
@@ -74,8 +81,7 @@ export class ConnectorRegistry {
         Coordinates.add(localConnector.globalPosition, dragOffset),
         maxXY
       )
-      if (remoteConnector)
-        return new Connection(localConnector, remoteConnector)
+      if (remoteConnector) return new Connection(localConnector, remoteConnector)
     }
 
     return null
@@ -95,12 +101,7 @@ export class ConnectorRegistry {
     position: Coordinates,
     maxXY: number
   ): Connector | null {
-    const connectors = this.getNearbyConnectors(
-      localConnector,
-      ignoreIds,
-      position,
-      maxXY
-    )
+    const connectors = this.getNearbyConnectors(localConnector, ignoreIds, position, maxXY)
     if (connectors.length === 0) return null
     return this.sortConnectorsByDistance(position, connectors)[0]
   }
@@ -120,17 +121,23 @@ export class ConnectorRegistry {
     maxXY: number
   ): Connector[] {
     return this._connectors.filter(connector => {
+      if (
+        Math.abs(connector.globalPosition.x - position.x) > maxXY ||
+        Math.abs(connector.globalPosition.y - position.y) > maxXY
+      ) {
+        return false
+      }
+
       if (connector.parentBlock === null) return false
       if (ingoreIds.includes(connector.parentBlock.id)) {
         return false
       }
 
-      if (localConnector.connectPredicates.allows(connector)) {
-        return (
-          connector.connectPredicates.allows(localConnector) &&
-          Math.abs(connector.globalPosition.x - position.x) <= maxXY &&
-          Math.abs(connector.globalPosition.y - position.y) <= maxXY
-        )
+      if (
+        localConnector.connectPredicates.allows(connector) &&
+        connector.connectPredicates.allows(localConnector)
+      ) {
+        return true
       }
 
       return false
@@ -143,20 +150,19 @@ export class ConnectorRegistry {
    * @param connectors List of connectors to sort
    * @returns Sorted list of connectors
    */
-  public sortConnectorsByDistance(
-    position: Coordinates,
-    connectors: Connector[]
-  ): Connector[] {
+  public sortConnectorsByDistance(position: Coordinates, connectors: Connector[]): Connector[] {
     return connectors.sort((a, b) => {
       const aDistance = Math.sqrt(
-        Math.pow(a.globalPosition.x - position.x, 2) +
-          Math.pow(a.globalPosition.y - position.y, 2)
+        Math.pow(a.globalPosition.x - position.x, 2) + Math.pow(a.globalPosition.y - position.y, 2)
       )
       const bDistance = Math.sqrt(
-        Math.pow(b.globalPosition.x - position.x, 2) +
-          Math.pow(b.globalPosition.y - position.y, 2)
+        Math.pow(b.globalPosition.x - position.x, 2) + Math.pow(b.globalPosition.y - position.y, 2)
       )
       return aDistance - bDistance
     })
+  }
+
+  public clear() {
+    this._connectors = []
   }
 }

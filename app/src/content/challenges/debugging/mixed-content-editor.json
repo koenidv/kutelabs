@@ -1,0 +1,203 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 1,
+    "title": "Mixed Content Editor",
+    "description": "This story implements the mixed content editor",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#FF91E9",
+    "imageStart": {
+      "src": "/images/illustration_debug_launch.png",
+      "alt": ""
+    },
+    "dialog": {
+      "static": "ヽ༼ ຈل͜ຈ༼ ▀̿̿Ĺ̯̿̿▀̿ ̿༽Ɵ͆ل͜Ɵ͆ ༽ﾉ<br/> ᕕ(⌐■_■)ᕗ ♪♬<br/>    let's go!<br/>ᕙ(`▽´)ᕗ<br/>─=≡Σ((( つ◕ل͜◕)つ"
+    }
+  },
+  "environment": {
+    "language": "js"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 400,
+          "y": 200
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "variable_init",
+              "data": {
+                "name": "imavar",
+                "type": "string"
+              },
+              "connectedBlocks": [
+                {
+                  "on": "after",
+                  "type": "variable_set",
+                  "connectedBlocks": [
+                    {
+                      "on": "inner",
+                      "type": "variable",
+                      "data": {
+                        "name": "imavar"
+                      }
+                    },
+                    {
+                      "on": "input",
+                      "type": "value",
+                      "data": {
+                        "type": "string",
+                        "value": "ooh a variable!"
+                      }
+                    },
+                    {
+                      "on": "after",
+                      "type": "expression",
+                      "data": {
+                        "expression": "Println"
+                      },
+                      "connectedBlocks": [
+                        {
+                          "on": "input",
+                          "type": "value",
+                          "data": {
+                            "type": "string",
+                            "value": "Hello World"
+                          }
+                        },
+                        {
+                          "on": "after",
+                          "type": "conditional",
+                          "elsebranch": true,
+                          "connectedBlocks": [
+                            {
+                              "on": "conditional",
+                              "type": "value",
+                              "data": {
+                                "type": "boolean",
+                                "value": true
+                              }
+                            },
+                            {
+                              "on": "ifTrue",
+                              "type": "expression",
+                              "data": {
+                                "expression": "Custom",
+                                "customExpression": {
+                                  "js": "1 + 2",
+                                  "kt": "1 + 2"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "block": {
+          "type": "variable",
+          "data": {
+            "name": "imavar"
+          }
+        },
+        "coordinates": {
+          "x": 600,
+          "y": 100
+        }
+      },
+      {
+        "block": {
+          "type": "value",
+          "data": {
+            "type": "array<int>",
+            "value": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "coordinates": {
+          "x": 800,
+          "y": 200
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "function",
+        "data": {
+          "name": "not-main"
+        },
+        "count": 2
+      },
+      {
+        "type": "expression",
+        "data": {
+          "expression": "Custom",
+          "customExpression": {
+            "kt": "1 + 2"
+          },
+          "editable": {
+            "lang": "kt"
+          }
+        },
+        "count": 3
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "string",
+          "value": "moin"
+        }
+      },
+      {
+        "type": "variable",
+        "data": {
+          "name": "imavar"
+        },
+        "count": -1
+      },
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "testVarHelper",
+          "type": "array<string>"
+        }
+      },
+      {
+        "type": "expression",
+        "count": 1,
+        "data": {
+          "customExpression": {
+            "js": "throw new Error('test')"
+          },
+          "expression": "Custom"
+        }
+      }
+    ]
+  }
+}
