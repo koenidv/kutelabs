@@ -4,7 +4,7 @@
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
   import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
   import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
-  import { atom } from "nanostores"
+import { persistentAtom } from '@nanostores/persistent'
   import { filterCallbacks } from "../execution/EnvironmentContext"
   import { transpileKtJs } from "../execution/transpile"
   import FastIcon from "../icons/speed-fast.svelte"
@@ -12,6 +12,7 @@
   import SlowIcon from "../icons/speed-slow.svelte"
   import type { Challenge } from "../schema/challenge"
   import { addLog, editorRef, setTestResult } from "../state/state"
+  import { onMount } from "svelte"
 
   const {
     tests: testData,
@@ -57,7 +58,7 @@
     console.log("Username will be set to '", username, "' once implemented")
   }
 
-  const executionSpeed = atom<"fast" | "medium" | "slow">("medium")
+  const executionSpeed = persistentAtom<"fast" | "medium" | "slow">("execSpeed")
   const setSpeed = (speed: "fast" | "medium" | "slow") => {
     executionSpeed.set(speed)
     testRunner.setExecutionDelay(executionDelay[speed])
@@ -67,6 +68,10 @@
     medium: 1000,
     slow: 2200,
   }
+  onMount(() => {
+    // set default on client only to prevent ssr flash
+    if (executionSpeed == undefined) executionSpeed.set("medium")
+  })
 
   function getCallbacks() {
     if (!$editorRef) throw new Error("Editor not found")
