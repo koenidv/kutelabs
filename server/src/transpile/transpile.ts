@@ -1,9 +1,9 @@
 import { spawn } from "bun"
-import { checkRunscEnvironment } from "./checkRunscEnv"
-import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
-import { checkTranspilerImage } from "./checkTranspilerImage"
 import { env } from "../env"
+import { checkRunscEnvironment } from "./checkRunscEnv"
+import { checkTranspilerImage } from "./checkTranspilerImage"
 import { TranspilationStatus } from "./TranspilationStatus"
+import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
 
 export type TranspilationResult = {
   status: TranspilationStatus
@@ -15,22 +15,29 @@ const withRunsc = await checkRunscEnvironment()
 await checkTranspilerImage()
 
 export async function transpile(code: string): Promise<TranspilationResult> {
-  return withTempDir(async workdir => {
-    await writeInputFile(workdir, code)
-    const processResult = await transpileKtJs(workdir, 30000, 512, withRunsc)
+  return withTempDir(
+    async (relative, absolute) => {
+      await writeInputFile(absolute, code)
+      const processResult = await transpileKtJs(env.DATA_VOLUME_NAME, relative, 30000, 768, withRunsc)
 
-    if (processResult.status !== TranspilationStatus.Success)
-      return { status: processResult.status, message: processResult.message }
+      if (processResult.status !== TranspilationStatus.Success)
+        return { status: processResult.status, message: processResult.message }
 
-    return {
-      status: processResult.status,
-      transpiled: await readOutputFile(workdir),
+      return {
+        status: processResult.status,
+        transpiled: await readOutputFile(absolute),
+      }
+    },
+    {
+      status: TranspilationStatus.UnknownError,
+      message: "An internal error occurred.",
     }
-  })
+  )
 }
 
 async function transpileKtJs(
-  workdir: string,
+  volumeName: string,
+  relativeWorkDir: string,
   timeout: number,
   maxMemory: number,
   withRunsc: boolean
@@ -40,13 +47,12 @@ async function transpileKtJs(
       [
         "docker",
         "run",
+        `--mount=source=${volumeName},volume-subpath=${relativeWorkDir},target=/data,type=volume`,
         withRunsc ? "--runtime=runsc" : "",
-        "--rm",
-        "-v",
-        `${workdir}:/data`,
         `--memory=${maxMemory}m`,
         "--cpus=1",
         "--network=none",
+        "--rm",
         `${env.TRANSPILER_NAME}:latest`,
       ],
       { stdout: "pipe", stderr: "pipe" }
@@ -67,7 +73,7 @@ async function transpileKtJs(
     console.info(
       "Ressource usage:",
       process.resourceUsage(),
-      "compledted with exit code",
+      "completed with exit code",
       exitCode,
       process.signalCode
     )
@@ -83,7 +89,10 @@ async function transpileKtJs(
       case 1:
         resolve({
           status: TranspilationStatus.CompilationError,
-          message: trimErrorMessage(await new Response(process.stderr).text()),
+          message:
+            (await new Response(process.stderr).text()) +
+            "\n" +
+            (await new Response(process.stdout).text()),
         })
         break
       default:
@@ -93,10 +102,4 @@ async function transpileKtJs(
         })
     }
   })
-}
-
-function trimErrorMessage(error: string): string {
-  const internalIndex = error.indexOf("info: produce executable: /data/js/")
-  if (internalIndex === -1) return error
-  return error.substring(0, internalIndex)
 }

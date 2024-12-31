@@ -1,6 +1,7 @@
 import { type TranspilationResult } from "../../transpile/transpile"
 import { TranspilationStatus } from "../../transpile/TranspilationStatus"
 import type { ResultDtoInterface } from "./ResultDtoInterface"
+import { trimErrorMessage } from "../../transpile/transpileUtils"
 
 export class ResultDTO implements ResultDtoInterface {
   status: TranspilationStatus
@@ -28,9 +29,11 @@ export class ResultDTO implements ResultDtoInterface {
         return new ResultDTO(TranspilationStatus.Success, result.transpiled!)
       case TranspilationStatus.CompilationError:
       case TranspilationStatus.Timeout:
-        return ResultDTO.error(result.status, result.message)
+        console.error("Compilation error", result.message)
+        return ResultDTO.error(result.status, trimErrorMessage(result.message))
       default:
-        return ResultDTO.error(TranspilationStatus.UnknownError)
+        console.error("Unknown error", result.message)
+        return ResultDTO.error(TranspilationStatus.UnknownError, "An internal error occurred and our team has been notified.")
     }
   }
 

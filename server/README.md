@@ -32,18 +32,22 @@ docker build --platform linux/amd64,linux/arm64 . -f server/Dockerfile -t kutela
 
 ### 3. Run Server
 
-Please ensure that [gVisor is installed](https://gvisor.dev/docs/user_guide/install/) on the host machine.
-The transpiler image must be available before running the server, but you can [specify the image name](#env) in an environment variable.
+Docker 26+ is required to run the server. On older versions, transpilation will fail with useless error messages.
+Please ensure that [gVisor is installed](https://gvisor.dev/docs/user_guide/install/) on the host machine. Alternatively, set `ENV` to `development` to disable the sandbox.
+The transpiler image must be available before running the server. You can [specify the image name](#env) in an environment variable.
 
 ```sh
 docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v data:/data -e TRANSPILER_NAME=kutelabs-transpiler kutelabs-server:latest
 ```
 
+or use the provided compose file.
+
 ## Env
 
-| Variable          | Description                                                | Default               |
-| ----------------- | ---------------------------------------------------------- | --------------------- |
-| `TRANSPILER_NAME` | Name of the transpiler image to use. Do not include a tag. | `kutelabs-transpiler` |
-| `DATA_DIR`        | Temp/cache data mount.                                     | `/data`               |
-| `PORT`            | The port to listen on.                                     | `3000`                |
-| `ENVIRONMENT`     | Environment hint: `development` or `production`.           | `undefined`           |
+| Variable           | Description                                                                 | Default               |
+| ------------------ | --------------------------------------------------------------------------- | --------------------- |
+| `TRANSPILER_NAME`  | Name of the transpiler image to use. Do not include a tag, will use latest. | `kutelabs-transpiler` |
+| `DATA_VOLUME_NAME` | Name of the volume used for shared data between server and transpiler.      | `kutelabs-data`       |
+| `DATA_DIR`         | Temp/cache data mount.                                                      | `/data`               |
+| `PORT`             | The port to listen on.                                                      | `3000`                |
+| `ENV`              | Environment hint: `development` or `production`.                            | `undefined`           |
