@@ -9,13 +9,10 @@ export type CompilationResult = {
   code: string
   entrypoint: string
   argNames: string[]
-  totalDelay: number
 }
 
 export abstract class BaseCompiler {
   protected readonly addBlockMarkings = true
-
-  protected accumulateDelay = 0
 
   compileFromRoot(
     root: RootBlock,
@@ -24,14 +21,13 @@ export abstract class BaseCompiler {
     invisibleCode: Record<string, string>
   ): CompilationResult {
     const functionBlocks = root.blocks.filter(({ block }) => block.type == BlockType.Function)
-    this.accumulateDelay = 0
     let code =
       this.declareImports(callbacks) +
       "\n" +
       functionBlocks.map(it => this.compile(it.block)).join("\n") +
       "\n" +
       this.addCode(invisibleCode)
-    return { code, entrypoint, argNames: [], totalDelay: this.accumulateDelay }
+    return { code, entrypoint, argNames: [] }
   }
 
   compile<T, S>(block: Block<T extends BlockType ? T : never, S> | null): string {

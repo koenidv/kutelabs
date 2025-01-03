@@ -43,6 +43,8 @@ export class TestRunner {
   ) => void = console.error
   private readonly onBlockError: (blockId: string, message: string) => void = console.error
 
+  private readonly executor: Executor
+
   private executionDelay = 0
   private firstCallFinished = false
 
@@ -60,6 +62,14 @@ export class TestRunner {
     if (onLog) this.onLog = onLog
     if (onGeneralError) this.onGeneralError = onGeneralError
     if (onBlockError) this.onBlockError = onBlockError
+
+    this.executor = new Executor(
+      this.onResult.bind(this),
+      this.onError.bind(this),
+      this.onLog.bind(this),
+      this.onExecutionCompleted.bind(this),
+      this.onWaitRequest.bind(this)
+    )
   }
 
   public setExecutionDelay(delay: number) {
@@ -80,14 +90,8 @@ export class TestRunner {
     this.executionDelay = config.executionDelay
     this.firstCallFinished = false
     this.currentScript = this.buildScript(userCode, config)
-    const executor = new Executor(
-      this.onResult.bind(this),
-      this.onError.bind(this),
-      this.onLog.bind(this),
-      this.onExecutionCompleted.bind(this),
-      this.onWaitRequest.bind(this)
-    )
-    return executor.execute(this.currentScript, config.timeout, config.callbacks)
+
+    return this.executor.execute(this.currentScript, config.timeout, config.callbacks)
   }
 
   /**
@@ -130,7 +134,14 @@ export class TestRunner {
    * @param resolve resolving function for the wait request
    */
   onWaitRequest(resolve: () => void) {
-    setTimeout(resolve, this.firstCallFinished ? 0 : this.executionDelay)
+    this.executor.pauseTimeout()
+    setTimeout(
+      () => {
+        this.executor.resumeTimeout()
+        resolve()
+      },
+      this.firstCallFinished ? 0 : this.executionDelay
+    )
   }
 
   /**
@@ -183,7 +194,7 @@ export class TestRunner {
    * Fails all still remaining tests. This is called when an error occurs or the execution times out.
    */
   private failRemainingTests(message?: string) {
-    Object.entries(this.pivotTests).forEach(([testId, test]) => {
+    Object.entries(this.pivotTests).forEach(([testId, _]) => {
       this.onFinalTestResult(testId, TestResult.Failed, message)
     })
   }

@@ -70,7 +70,7 @@ import { persistentAtom } from '@nanostores/persistent'
   }
   onMount(() => {
     // set default on client only to prevent ssr flash
-    if (executionSpeed == undefined) executionSpeed.set("medium")
+    if ($executionSpeed == undefined) executionSpeed.set("medium")
   })
 
   function getCallbacks() {
@@ -112,7 +112,7 @@ import { persistentAtom } from '@nanostores/persistent'
         entrypoint: compiled.entrypoint,
         callbacks: callbacks,
         executionDelay: executionDelay[$executionSpeed],
-        timeout: compiled.totalDelay + 5000,
+        timeout: 5000,
       })
       ?.then(_result => {
         $editorRef.onExecutionFinished()
@@ -143,7 +143,7 @@ import { persistentAtom } from '@nanostores/persistent'
         entrypoint: compiled.entrypoint,
         callbacks: callbacks,
         executionDelay: executionDelay[$executionSpeed],
-        timeout: compiled.totalDelay + 5000,
+        timeout: 5000,
       })
       ?.then(_result => {
         $editorRef.onExecutionFinished()

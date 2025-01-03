@@ -1,4 +1,5 @@
 import { Callbacks } from "./Callbacks"
+import { Timeout } from "./Timeout"
 
 export enum ErrorType {
   Timeout = "timeout",
@@ -19,6 +20,10 @@ export class Executor {
   onLog?: (args: any[], type: LogType) => void
   onCompleted?: () => void
   onRequestWait: (resolve: () => void) => void = resolve => resolve()
+
+  private timeout = new Timeout()
+  public pauseTimeout = () => this.timeout.pause()
+  public resumeTimeout = () => this.timeout.resume()
 
   constructor(
     onResult?: (args: any[], result: any) => void,
@@ -82,10 +87,10 @@ export class Executor {
     })
 
     const lifeTimer = new Promise((_, reject) => {
-      setTimeout(() => {
+      this.timeout.start(timeoutMs).then(() => {
         if (running) this.onError?.(ErrorType.Timeout, new ErrorEvent("Execution timed out"))
         reject(new Error("Execution timed out"))
-      }, timeoutMs)
+      })
     })
 
     try {
