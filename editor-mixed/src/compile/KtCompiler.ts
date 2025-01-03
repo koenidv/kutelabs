@@ -4,12 +4,12 @@ import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
-import { BaseCompiler } from "./BaseCompiler"
+import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
 
 export class KtCompiler extends BaseCompiler {
   declareImports(callbacks: SandboxCallbacks): string {
     const imports = ["import kotlin.js.Promise"]
-    const requestWait = "@JsName(\"requestWait\")\nexternal fun requestWait(): Promise<Unit>"
+    const requestWait = '@JsName("requestWait")\nexternal fun requestWait(): Promise<Unit>'
     const envFunctions = [...callbacks.callbacks.keys()].map(
       name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`
     )
@@ -28,17 +28,18 @@ export class KtCompiler extends BaseCompiler {
     return codeByLang["kt"] ?? ""
   }
 
-  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
-    const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
-    let ret = ""
-    if (block.output) {
-      if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
-      ret += this.wrapDelay(`return ${next(block.output)};`)
-    }
+  compileFunction(
+    block: Block<BlockType.Function>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string {
+    if (block.output) props = { ...props, returnblock: block.output as Block<BlockType> }
+    const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
 
     return `@JsExport
-    fun ${block.data.name}(): Promise<Unit> = Promise {r,s->
-    ${this.markBlock(block.id)}${this.wrapDelay(inner + "\n" + ret)}
+    fun ${block.data.name}(): Promise<dynamic> = Promise { resolve, _reject ->
+    ${this.markBlock(block.id)}\
+    ${this.wrapDelay(inner)}
     }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
@@ -131,7 +132,28 @@ export class KtCompiler extends BaseCompiler {
    * @param next function to compile the input blocks
    * @returns string template with the inputs
    */
-  chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
+  private chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
     return '"' + block.inputs.map(it => "\${" + next(it) + "}").join(", ") + '"'
+  }
+
+  handleProps(
+    props: InternalCompilationProps | undefined,
+    currentBlock: Block<BlockType>,
+    compile: (block: Block<BlockType>, newProps?: InternalCompilationProps) => string
+  ): string {
+    if (!props) return compile(currentBlock)
+
+    // consume return block on last block inside a function
+    // this is required because the return must be nested within the .then calls of the requestWait functions
+    if (props.returnblock && currentBlock.after == null) {
+      const returnBlock = props.returnblock
+      delete props.returnblock
+      return (
+        compile(currentBlock, props) +
+        this.markBlock(returnBlock.id) +
+        this.wrapDelay(`resolve(${compile(returnBlock)});`)
+      )
+    }
+    return compile(currentBlock, props)
   }
 }

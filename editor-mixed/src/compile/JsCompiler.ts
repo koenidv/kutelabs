@@ -3,7 +3,7 @@ import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
-import { BaseCompiler } from "./BaseCompiler"
+import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
 
 export class JsCompiler extends BaseCompiler {
   declareImports(): string {
@@ -22,10 +22,7 @@ export class JsCompiler extends BaseCompiler {
     return codeByLang["js"] ?? ""
   }
 
-  compileFunction(
-    block: Block<BlockType.Function>,
-    next: typeof this.compile
-  ): string {
+  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
     let ret = ""
     if (block.output) {
@@ -116,5 +113,13 @@ export class JsCompiler extends BaseCompiler {
 
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
+  }
+
+  handleProps(
+    _props: InternalCompilationProps | undefined,
+    currentBlock: Block<BlockType>,
+    compile: typeof this.compile
+  ): string {
+    return compile(currentBlock)
   }
 }

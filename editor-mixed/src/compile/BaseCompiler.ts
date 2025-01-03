@@ -11,6 +11,10 @@ export type CompilationResult = {
   argNames: string[]
 }
 
+export type InternalCompilationProps = {
+  returnblock?: Block<BlockType>
+}
+
 export abstract class BaseCompiler {
   protected readonly addBlockMarkings = true
 
@@ -30,45 +34,59 @@ export abstract class BaseCompiler {
     return { code, entrypoint, argNames: [] }
   }
 
-  compile<T, S>(block: Block<T extends BlockType ? T : never, S> | null): string {
+  compile<T, S>(
+    block: Block<T extends BlockType ? T : never, S> | null,
+    props?: InternalCompilationProps
+  ): string {
     if (block == null) return ""
     if (![BlockType.Value, BlockType.Variable, BlockType.Function].includes(block.type)) {
-      return this.applyBlockMeta(block as Block<BlockType>, this.compileByBlockType.bind(this))
+      return this.applyBlockMeta(
+        block as Block<BlockType>,
+        (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
+          this.handleProps(
+            newProps ?? props,
+            block,
+            (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
+              this.compileByBlockType(block, newProps ?? props)
+          )
+      )
     }
-    return this.compileByBlockType(block as Block<BlockType>)
+    return this.compileByBlockType(block as Block<BlockType>, props)
   }
 
-  protected compileByBlockType(block: Block<BlockType>): string {
+  protected compileByBlockType(block: Block<BlockType>, props?: InternalCompilationProps): string {
+    const compileNext = (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
+      this.compile(block, newProps ?? props)
+
     switch (block.type) {
       case BlockType.Function:
-        return this.compileFunction(block as Block<BlockType.Function>, this.compile.bind(this))
+        return this.compileFunction(block as Block<BlockType.Function>, compileNext, props)
       case BlockType.Expression:
         if ((block.data as BlockDataExpression).expression == DefinedExpression.Custom) {
           return this.compileCustomExpression(
             block as Block<BlockType.Expression>,
-            this.compile.bind(this)
+            compileNext,
+            props
           )
         } else {
           return this.compileDefinedExpression(
             block as Block<BlockType.Expression>,
-            this.compile.bind(this)
+            compileNext,
+            props
           )
         }
       case BlockType.Value:
-        return this.compileValue(block as Block<BlockType.Value>, this.compile.bind(this))
+        return this.compileValue(block as Block<BlockType.Value>, compileNext, props)
       case BlockType.Variable:
-        return this.compileVariable(block as Block<BlockType.Variable>, this.compile.bind(this))
+        return this.compileVariable(block as Block<BlockType.Variable>, compileNext, props)
       case BlockType.VarInit:
-        return this.compileVariableInit(block as Block<BlockType.VarInit>, this.compile.bind(this))
+        return this.compileVariableInit(block as Block<BlockType.VarInit>, compileNext, props)
       case BlockType.VarSet:
-        return this.compileVariableSet(block as Block<BlockType.VarSet>, this.compile.bind(this))
+        return this.compileVariableSet(block as Block<BlockType.VarSet>, compileNext, props)
       case BlockType.Loop:
-        return this.compileLoop(block as Block<BlockType.Loop>, this.compile.bind(this))
+        return this.compileLoop(block as Block<BlockType.Loop>, compileNext, props)
       case BlockType.Conditional:
-        return this.compileConditional(
-          block as Block<BlockType.Conditional>,
-          this.compile.bind(this)
-        )
+        return this.compileConditional(block as Block<BlockType.Conditional>, compileNext, props)
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -82,27 +100,73 @@ export abstract class BaseCompiler {
     return this.markBlock(block.id) + this.wrapDelay(compile(block))
   }
 
+  /** Handle information passed down the compile tree @param props the props to handle @param currentBlock block that is being compiled @param compile function to compile the current block with optionally modified props */
+  abstract handleProps(
+    props: InternalCompilationProps | undefined,
+    currentBlock: Block<BlockType>,
+    compile: typeof this.compile
+  ): string
+  /** Declare any initial setup needed to run the remaining code */
   abstract declareImports(callbacks: SandboxCallbacks): string
+  /** Create a function call by name and args @param name function name @args vararg args */
   abstract callFunction(name: string, ...args: string[]): string
+  /** Wrap code in a delay function @param code code to wrap */
   abstract wrapDelay(code: string): string
+  /** Add arbitrary code by language */
   abstract addCode(codeByLang: Record<string, string>): string
-  /** Function blocks are special because they must handle their own block meta */
-  abstract compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string
+  /** Compiles a **function** block. Function blocks must handle their own block meta.
+   * @param block Function block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileFunction(
+    block: Block<BlockType.Function>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **defined expression** block @param block Expression block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileDefinedExpression(
     block: Block<BlockType.Expression>,
-    next: typeof this.compile
+    next: typeof this.compile,
+    props?: InternalCompilationProps
   ): string
+  /** Compiles a **custom expression** block @param block Expression block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileCustomExpression(
     block: Block<BlockType.Expression>,
-    next: typeof this.compile
+    next: typeof this.compile,
+    props?: InternalCompilationProps
   ): string
-  abstract compileValue(block: Block<BlockType.Value>, next: typeof this.compile): string
-  abstract compileVariable(block: Block<BlockType.Variable>, next: typeof this.compile): string
-  abstract compileVariableInit(block: Block<BlockType.VarInit>, next: typeof this.compile): string
-  abstract compileVariableSet(block: Block<BlockType.VarSet>, next: typeof this.compile): string
-  abstract compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string
+  /** Compiles a **value** block @param block Value block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileValue(
+    block: Block<BlockType.Value>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **variable** block @param block Variable block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileVariable(
+    block: Block<BlockType.Variable>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **initialize variable** block @param block Variable init block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileVariableInit(
+    block: Block<BlockType.VarInit>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **set variable value** block @param block Variable set block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileVariableSet(
+    block: Block<BlockType.VarSet>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **loop** block @param block Loop block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileLoop(
+    block: Block<BlockType.Loop>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **conditional** block @param block Conditional block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileConditional(
     block: Block<BlockType.Conditional>,
-    next: typeof this.compile
+    next: typeof this.compile,
+    props?: InternalCompilationProps
   ): string
 }
