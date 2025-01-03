@@ -143,10 +143,11 @@ export class VariableHelper implements VariableHInterface {
   private handleVarBlockAdded = (block: Block<BlockType.Variable>) => {
     const data = this.dataByVarName(block.data.name)
     if (!data) {
-      console.info(
-        `Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`,
-        block.id
-      )
+      if (window.location.hostname == "localhost" || window.location.hostname.includes("main"))
+        console.info(
+          `Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`,
+          block.id
+        )
       this.pendingUsages.push(block)
       return
     }

@@ -12,7 +12,7 @@ export type CompilationResult = {
 }
 
 export type InternalCompilationProps = {
-  returnblock?: Block<BlockType>
+  resolveFunction?: string
 }
 
 export abstract class BaseCompiler {

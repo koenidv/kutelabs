@@ -33,10 +33,15 @@ export class KtCompiler extends BaseCompiler {
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string {
-    if (block.output) props = { ...props, returnblock: block.output as Block<BlockType> }
+    props = {
+      ...props,
+      resolveFunction:
+        block.output?.let(it => this.markBlock(it.id) + this.wrapDelay(`resolve(${next(it)});`)) ?? "resolve(Unit);",
+    }
     const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
 
     return `@JsExport
+    @kotlin.js.ExperimentalJsExport
     fun ${block.data.name}(): Promise<dynamic> = Promise { resolve, _reject ->
     ${this.markBlock(block.id)}\
     ${this.wrapDelay(inner)}
@@ -145,14 +150,10 @@ export class KtCompiler extends BaseCompiler {
 
     // consume return block on last block inside a function
     // this is required because the return must be nested within the .then calls of the requestWait functions
-    if (props.returnblock && currentBlock.after == null) {
-      const returnBlock = props.returnblock
-      delete props.returnblock
-      return (
-        compile(currentBlock, props) +
-        this.markBlock(returnBlock.id) +
-        this.wrapDelay(`resolve(${compile(returnBlock)});`)
-      )
+    if (props.resolveFunction && currentBlock.after == null) {
+      const resolve = props.resolveFunction
+      delete props.resolveFunction
+      return compile(currentBlock, props) + resolve
     }
     return compile(currentBlock, props)
   }

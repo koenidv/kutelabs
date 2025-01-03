@@ -4,7 +4,7 @@
   import { KtCompiler } from "@kutelabs/editor-mixed/src/compile/KtCompiler"
   import { BlockMarking } from "@kutelabs/editor-mixed/src/render/BlockRenderers/BaseBlockRenderer"
   import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
-import { persistentAtom } from '@nanostores/persistent'
+  import { persistentAtom } from "@nanostores/persistent"
   import { filterCallbacks } from "../execution/EnvironmentContext"
   import { transpileKtJs } from "../execution/transpile"
   import FastIcon from "../icons/speed-fast.svelte"
@@ -138,9 +138,9 @@ import { persistentAtom } from '@nanostores/persistent'
       throw new Error("Transpilation failed")
 
     testRunner
-      .execute(compiled.code, {
+      .execute(transpiled.transpiledCode, {
         argNames: compiled.argNames,
-        entrypoint: compiled.entrypoint,
+        entrypoint: `transpiled.${compiled.entrypoint}`,
         callbacks: callbacks,
         executionDelay: executionDelay[$executionSpeed],
         timeout: 5000,

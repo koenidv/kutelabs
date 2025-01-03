@@ -20,13 +20,17 @@ app.post("/kt/js", async c => {
     c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
   }
   const { code, ids: standardizedBlockIds } = standardizeBlockIds(body.kotlinCode)
-  if (env.CACHE_ENABLED && await existsInCache(code)) return c.json(await readTranspiledCache(code))
+  if (env.CACHE_ENABLED && (await existsInCache(code)))
+    return c.json(
+      (await readTranspiledCache(code)).postProcess(code =>
+        restoreBlockIds(code, standardizedBlockIds)
+      )
+    )
 
-  const dto = ResultDTO.fromTranspilationResult(await transpile(code), transpiled =>
-    restoreBlockIds(transpiled, standardizedBlockIds)
-  )
+  const dto = ResultDTO.fromTranspilationResult(await transpile(code))
   if (shouldCache(dto.status)) writeTranspiledCache(code, dto) // async, not blocking response
 
+  dto.postProcess(code => restoreBlockIds(code, standardizedBlockIds))
   return c.json(dto)
 })
 

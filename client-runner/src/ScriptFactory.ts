@@ -129,7 +129,7 @@ export class ScriptFactory {
     return this.addDefineStep(
       `/*__startUser*/const userFunction = new Function(
       ${argNames.length > 0 ? argNames.join(",") + "," : ""}
-      \`
+      String.raw\`
         const { ${[...this.globals.keys()].join(", ")} } = this;
         ${unsafeCode}
         return ${entrypoint}(${argNames.join(",")});

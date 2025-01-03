@@ -58,7 +58,6 @@ async function transpileKtJs(
 ): Promise<{ status: TranspilationStatus; message?: string }> {
   return new Promise(async resolve => {
     if (!volumeName && !dataDir) throw new Error("Either volumeName or dataDir must be provided")
-    console.log("STARTING TRANSPILER", dataDir)
     const process = spawn(
       [
         "docker",
@@ -88,11 +87,9 @@ async function transpileKtJs(
       }
     }, timeout)
 
-    console.log("TRANSPILER PID", process.pid)
     const exitCode = await process.exited
     clearTimeout(killTimeout)
 
-    console.log("TRANSPILER FINISHED")
     console.info(
       "Ressource usage:",
       process.resourceUsage(),

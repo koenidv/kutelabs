@@ -18,7 +18,6 @@ kotlinc-js \
   -ir-output-name transpiled \
   -ir-output-dir klib/ \
   -libraries $libraries \
-  -main noCall \
   -Xreport-all-warnings \
   -Xir-produce-klib-dir
 
@@ -27,6 +26,7 @@ kotlinc-js \
   -ir-output-name transpiled \
   -ir-output-dir $output \
   -libraries $libraries \
+  -module-kind plain \
   -main noCall \
   -nowarn \
   -Xir-produce-js \

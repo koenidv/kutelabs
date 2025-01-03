@@ -36,7 +36,7 @@ export class Timeout {
    * @returns The remaining time of the timeout.
    */
   public pause(): number {
-    if (this.timer == null) return console.error("Timer is not running")
+    if (this.timer == null) return console.error("Timer is not running"), 0
     this.remaining -= Date.now() - this.lastStart
     clearTimeout(this.timer)
     this.timer = null
@@ -47,8 +47,8 @@ export class Timeout {
    * Resume the timeout with the remaining time.
    * @returns The remaining time of the timeout.
    */
-  public resume() {
-    if (this.resolve == null || !this.remaining) return console.error("Timer is not initialized")
+  public resume(): number {
+    if (this.resolve == null || !this.remaining) return console.error("Timer is not initialized"), 0
     this.setTimer(this.remaining, this.resolve)
     return this.remaining
   }

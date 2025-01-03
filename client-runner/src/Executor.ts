@@ -41,6 +41,7 @@ export class Executor {
 
   async execute(script: string, timeoutMs: number, callbacks?: Callbacks): Promise<unknown> {
     let running = true
+
     const workerUrl = URL.createObjectURL(
       new Blob([script], {
         type: "application/javascript",

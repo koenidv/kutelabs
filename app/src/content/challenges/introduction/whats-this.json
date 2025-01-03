@@ -99,7 +99,8 @@
     ],
     "hideDrawer": true,
     "invisibleCode": {
-      "js": "async function processUsername() {const name = await inputName();setUsername(name);return name;}"
+      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
+      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
     },
     "mainFunction": "processUsername"
   }
