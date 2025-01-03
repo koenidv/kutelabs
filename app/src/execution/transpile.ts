@@ -13,6 +13,6 @@ export async function transpileKtJs(code: string): Promise<ResultDtoInterface | 
   })
   if (!res.ok) return null
   const json = await res.json()
-  console.log(json)
+  console.log(json.transpiledCode)
   return (json) as ResultDtoInterface
 }

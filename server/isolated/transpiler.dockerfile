@@ -11,6 +11,7 @@ RUN wget -O lib/kotlinx-coroutines-core-js.klib \
 
 FROM eclipse-temurin:21-jre-alpine
 VOLUME [ "/data" ]
+ENV INCLUDE_COROUTINE_LIB="false"
 
 RUN apk add --no-cache bash
 
@@ -30,4 +31,12 @@ RUN chmod +x /app/transpile.bash
 WORKDIR /data
 #USER kute
 
-CMD ["bash", "-c", "/app/transpile.bash -i /data/input/code.kt -o /data/js/ -l /usr/lib/kotlinc/lib/kotlin-stdlib-js.klib:/usr/lib/kotlinc/lib/kotlinx-coroutines-core-js.klib"]
+CMD [ \
+"bash", "-c", \
+"LIB_PATH='/usr/lib/kotlinc/lib/kotlin-stdlib-js.klib'; \
+if [ \"$INCLUDE_COROUTINE_LIB\" = \"true\" ]; then \
+  LIB_PATH=\"$LIB_PATH:/usr/lib/kotlinc/lib/kotlinx-coroutines-core-js.klib\"; \
+fi; \
+cat /data/input/code.kt; \
+/app/transpile.bash -i /data/input/code.kt -o /data/js/ -l \"$LIB_PATH\"" \
+]

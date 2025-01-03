@@ -6,6 +6,8 @@ This will be the backend for transpilation, authentication, and user progress pe
 bun run dev
 ```
 
+The images are built for amd64 and arm64 and available on as [koenidv/kutelabs-server](https://hub.docker.com/r/koenidv/kutelabs-server) and [koenidv/kutelabs-transpiler](https://hub.docker.com/r/koenidv/kutelabs-transpiler) on Docker Hub.
+
 ## Deployment
 
 GitHub Actions builds and pushes the server image on push to `release/server`.
@@ -44,10 +46,17 @@ or use the provided compose file.
 
 ## Env
 
-| Variable           | Description                                                                 | Default               |
-| ------------------ | --------------------------------------------------------------------------- | --------------------- |
-| `TRANSPILER_NAME`  | Name of the transpiler image to use. Do not include a tag, will use latest. | `kutelabs-transpiler` |
-| `DATA_VOLUME_NAME` | Name of the volume used for shared data between server and transpiler.      | `kutelabs-data`       |
-| `DATA_DIR`         | Temp/cache data mount.                                                      | `/data`               |
-| `PORT`             | The port to listen on.                                                      | `3000`                |
-| `ENV`              | Environment hint: `development` or `production`.                            | `undefined`           |
+| Variable                   | Description                                                                          | Default               |
+| -------------------------- | ------------------------------------------------------------------------------------ | --------------------- |
+| `DATA_VOLUME_NAME`         | Name of the volume used for shared data between server and transpiler.               | _undefined_           |
+| `DATA_DIR`                 | Absolute path instead of docker volume. Will be used if `DATA_VOLUME NAME` is unset. | `$(pwd)/data`         |
+| `PORT`                     | The port to listen on.                                                               | `3000`                |
+| `ENV`                      | Environment hint: `development` or `production`.                                     | _undefined_           |
+| `TRANSPILER_NAME`          | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler` |
+| `TRANSPILER_MEMORY`        | Memory limit for the transpiler container.                                           | `768m`                |
+| `TRANSPILER_MEMORY_SWAP`   | Memory swap limit for the transpiler container.                                      | `768m`                |
+| `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | `0.5`                 |
+| `TRANSPILER_TIMEOUT`       | Timeout for transpilation in milliseconds.                                           | `60000`               |
+| `TRANSPILER_COROUTINE_LIB` | Enable coroutine library in transpiler.                                              | `true`                |
+| `TRANSPILER_GVISOR`        | Enable gVisor sandbox for transpiler.                                                | `true`                |
+| `CACHE_ENABLED`            | Enable caching of transpiled code.                                                   | `true`                |

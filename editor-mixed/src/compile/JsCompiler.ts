@@ -1,12 +1,12 @@
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
-import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { DataType } from "../blocks/configuration/DataType"
+import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
 
 export class JsCompiler extends BaseCompiler {
-  declareEnvironmentFunctions(): string {
+  declareImports(): string {
     return ""
   }
 
@@ -14,8 +14,8 @@ export class JsCompiler extends BaseCompiler {
     return `${name}(${args.join(", ")});\n`
   }
 
-  addDelayCode(ms: number): string {
-    return `await requestWait();\n`
+  wrapDelay(code: string): string {
+    return `await requestWait();\n${code}`
   }
 
   addCode(codeByLang: Record<string, string>): string {
@@ -24,18 +24,16 @@ export class JsCompiler extends BaseCompiler {
 
   compileFunction(
     block: Block<BlockType.Function>,
-    next: typeof this.compile,
-    blockMarkings: string
+    next: typeof this.compile
   ): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
     let ret = ""
     if (block.output) {
       if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
-      if (this.executionDelay > 0) ret += this.addDelayCode(this.executionDelay)
-      ret += `return ${next(block.output)};`
+      ret += this.wrapDelay(`return ${next(block.output)};`)
     }
 
-    return `async function ${block.data.name}() {\n${blockMarkings}\n${inner} ${ret} }` // todo function inputs
+    return `async function ${block.data.name}() {\n${this.markBlock(block.id)}\n${this.wrapDelay(inner + "\n" + ret)} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 

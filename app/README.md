@@ -15,3 +15,9 @@ bun run dev
 
 The web app is continuously deployed via Netlify on push to `release/app` and available at [kutelabs.koeni.dev](https://kutelabs.koeni.dev).
 A staging environment for `main` is available at [main--kutelabs.netlify.app](https://main--kutelabs.netlify.app).
+
+## Environment Variables
+
+| Variable       | Description  | Default                          |
+| -------------- | ------------ | -------------------------------- |
+| `API_BASE_URL` | API base url | `https://api.kutelabs.koeni.dev` |

@@ -18,7 +18,17 @@ export async function transpile(code: string): Promise<TranspilationResult> {
   return withTempDir(
     async (relative, absolute) => {
       await writeInputFile(absolute, code)
-      const processResult = await transpileKtJs(env.DATA_VOLUME_NAME, relative, 30000, 768, withRunsc)
+      const processResult = await transpileKtJs(
+        env.DATA_VOLUME_NAME,
+        env.DATA_DIR,
+        relative,
+        env.TRANSPILER_TIMEOUT,
+        env.TRANSPILER_COROUTINE_LIB,
+        withRunsc,
+        env.TRANSPILER_MEMORY,
+        env.TRANSPILER_MEMORY_SWAP,
+        env.TRANSPILER_CPU
+      )
 
       if (processResult.status !== TranspilationStatus.Success)
         return { status: processResult.status, message: processResult.message }
@@ -36,26 +46,36 @@ export async function transpile(code: string): Promise<TranspilationResult> {
 }
 
 async function transpileKtJs(
-  volumeName: string,
+  volumeName: string | undefined,
+  dataDir: string | undefined,
   relativeWorkDir: string,
   timeout: number,
-  maxMemory: number,
-  withRunsc: boolean
+  withCoroutineLib: boolean,
+  withRunsc: boolean,
+  maxMemory: string,
+  maxSwap: string | undefined,
+  cpuLimit: number | undefined
 ): Promise<{ status: TranspilationStatus; message?: string }> {
   return new Promise(async resolve => {
+    if (!volumeName && !dataDir) throw new Error("Either volumeName or dataDir must be provided")
+    console.log("STARTING TRANSPILER", dataDir)
     const process = spawn(
       [
         "docker",
         "run",
-        `--mount=source=${volumeName},volume-subpath=${relativeWorkDir},target=/data,type=volume`,
+        volumeName
+          ? `--mount=source=${volumeName},volume-subpath=${relativeWorkDir},target=/data,type=volume`
+          : `-v=${dataDir}/${relativeWorkDir}:/data`,
         withRunsc ? "--runtime=runsc" : "",
-        `--memory=${maxMemory}m`,
-        "--cpus=1",
+        withCoroutineLib ? "--env=INCLUDE_COROUTINE_LIB=true" : "",
+        maxMemory ? `--memory=${maxMemory}` : "",
+        maxSwap ? `--memory-swap=${maxSwap}` : "",
+        cpuLimit ? `--cpus=${cpuLimit}` : "",
         "--network=none",
         "--rm",
         `${env.TRANSPILER_NAME}:latest`,
-      ],
-      { stdout: "pipe", stderr: "pipe" }
+      ].filter(Boolean),
+      { stdout: "inherit", stderr: "inherit" }
     )
 
     const killTimeout = setTimeout(() => {
@@ -68,8 +88,11 @@ async function transpileKtJs(
       }
     }, timeout)
 
+    console.log("TRANSPILER PID", process.pid)
     const exitCode = await process.exited
     clearTimeout(killTimeout)
+
+    console.log("TRANSPILER FINISHED")
     console.info(
       "Ressource usage:",
       process.resourceUsage(),

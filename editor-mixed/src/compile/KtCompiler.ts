@@ -1,40 +1,45 @@
+import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 import type { Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
-import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { DataType } from "../blocks/configuration/DataType"
+import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler } from "./BaseCompiler"
-import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 
 export class KtCompiler extends BaseCompiler {
-  declareEnvironmentFunctions(callbacks: SandboxCallbacks): string {
-    return [...callbacks.callbacks.keys()]
-      .map(name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`)
-      .join("\n")
+  declareImports(callbacks: SandboxCallbacks): string {
+    const imports = ["import kotlin.js.Promise"]
+    const requestWait = "@JsName(\"requestWait\")\nexternal fun requestWait(): Promise<Unit>"
+    const envFunctions = [...callbacks.callbacks.keys()].map(
+      name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`
+    )
+    return [...imports, requestWait, ...envFunctions].join("\n")
   }
 
   callFunction(name: string, ...args: string[]): string {
     return `${name}(${args.join(", ")});\n`
   }
 
-  addDelayCode(ms: number): string {
-    return `delay(${ms});\n`
+  wrapDelay(code: string): string {
+    return `requestWait().then { ${code} };\n`
   }
 
   addCode(codeByLang: Record<string, string>): string {
     return codeByLang["kt"] ?? ""
   }
 
-  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile, blockMarkings: string): string {
+  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string {
     const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
     let ret = ""
     if (block.output) {
       if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
-      if (this.executionDelay > 0) ret += this.addDelayCode(this.executionDelay)
-      ret += `return ${next(block.output)};`
+      ret += this.wrapDelay(`return ${next(block.output)};`)
     }
 
-    return `suspend function ${block.data.name}() {\n${blockMarkings}\n\t${inner} ${ret} }` // todo function inputs
+    return `@JsExport
+    fun ${block.data.name}(): Promise<Unit> = Promise {r,s->
+    ${this.markBlock(block.id)}${this.wrapDelay(inner + "\n" + ret)}
+    }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 

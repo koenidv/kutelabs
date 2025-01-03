@@ -14,7 +14,6 @@ export type CompilationResult = {
 
 export abstract class BaseCompiler {
   protected readonly addBlockMarkings = true
-  protected readonly executionDelay = 1000
 
   protected accumulateDelay = 0
 
@@ -27,7 +26,7 @@ export abstract class BaseCompiler {
     const functionBlocks = root.blocks.filter(({ block }) => block.type == BlockType.Function)
     this.accumulateDelay = 0
     let code =
-      this.declareEnvironmentFunctions(callbacks) +
+      this.declareImports(callbacks) +
       "\n" +
       functionBlocks.map(it => this.compile(it.block)).join("\n") +
       "\n" +
@@ -37,78 +36,62 @@ export abstract class BaseCompiler {
 
   compile<T, S>(block: Block<T extends BlockType ? T : never, S> | null): string {
     if (block == null) return ""
-    let prefix = ""
-    if (![BlockType.Value, BlockType.Variable].includes(block.type)) {
-      if (this.addBlockMarkings) prefix += this.callFunction("markBlock", `"${block.id}"`)
-      if (this.executionDelay > 0) prefix += this.addDelay(this.executionDelay)
+    if (![BlockType.Value, BlockType.Variable, BlockType.Function].includes(block.type)) {
+      return this.applyBlockMeta(block as Block<BlockType>, this.compileByBlockType.bind(this))
     }
+    return this.compileByBlockType(block as Block<BlockType>)
+  }
+
+  protected compileByBlockType(block: Block<BlockType>): string {
     switch (block.type) {
       case BlockType.Function:
-        return this.compileFunction(
-          block as Block<BlockType.Function>,
-          this.compile.bind(this),
-          prefix
-        )
+        return this.compileFunction(block as Block<BlockType.Function>, this.compile.bind(this))
       case BlockType.Expression:
         if ((block.data as BlockDataExpression).expression == DefinedExpression.Custom) {
-          return (
-            prefix +
-            this.compileCustomExpression(
-              block as Block<BlockType.Expression>,
-              this.compile.bind(this)
-            )
+          return this.compileCustomExpression(
+            block as Block<BlockType.Expression>,
+            this.compile.bind(this)
           )
         } else {
-          return (
-            prefix +
-            this.compileDefinedExpression(
-              block as Block<BlockType.Expression>,
-              this.compile.bind(this)
-            )
+          return this.compileDefinedExpression(
+            block as Block<BlockType.Expression>,
+            this.compile.bind(this)
           )
         }
       case BlockType.Value:
-        return prefix + this.compileValue(block as Block<BlockType.Value>, this.compile.bind(this))
+        return this.compileValue(block as Block<BlockType.Value>, this.compile.bind(this))
       case BlockType.Variable:
-        return (
-          prefix + this.compileVariable(block as Block<BlockType.Variable>, this.compile.bind(this))
-        )
+        return this.compileVariable(block as Block<BlockType.Variable>, this.compile.bind(this))
       case BlockType.VarInit:
-        return (
-          prefix +
-          this.compileVariableInit(block as Block<BlockType.VarInit>, this.compile.bind(this))
-        )
+        return this.compileVariableInit(block as Block<BlockType.VarInit>, this.compile.bind(this))
       case BlockType.VarSet:
-        return (
-          prefix +
-          this.compileVariableSet(block as Block<BlockType.VarSet>, this.compile.bind(this))
-        )
+        return this.compileVariableSet(block as Block<BlockType.VarSet>, this.compile.bind(this))
       case BlockType.Loop:
-        return prefix + this.compileLoop(block as Block<BlockType.Loop>, this.compile.bind(this))
+        return this.compileLoop(block as Block<BlockType.Loop>, this.compile.bind(this))
       case BlockType.Conditional:
-        return (
-          prefix +
-          this.compileConditional(block as Block<BlockType.Conditional>, this.compile.bind(this))
+        return this.compileConditional(
+          block as Block<BlockType.Conditional>,
+          this.compile.bind(this)
         )
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
   }
 
-  protected addDelay(ms: number): string {
-    this.accumulateDelay += ms
-    return this.addDelayCode(ms)
+  markBlock(blockId: string): string {
+    return this.callFunction("markBlock", `"${blockId}"`)
   }
 
-  abstract declareEnvironmentFunctions(callbacks: SandboxCallbacks): string
+  applyBlockMeta(block: Block<BlockType>, compile: typeof this.compileByBlockType): string {
+    return this.markBlock(block.id) + this.wrapDelay(compile(block))
+  }
+
+  abstract declareImports(callbacks: SandboxCallbacks): string
   abstract callFunction(name: string, ...args: string[]): string
-  abstract addDelayCode(ms: number): string
+  abstract wrapDelay(code: string): string
   abstract addCode(codeByLang: Record<string, string>): string
-  abstract compileFunction(
-    block: Block<BlockType.Function>,
-    next: typeof this.compile,
-    blockMarkings: string
-  ): string
+  /** Function blocks are special because they must handle their own block meta */
+  abstract compileFunction(block: Block<BlockType.Function>, next: typeof this.compile): string
   abstract compileDefinedExpression(
     block: Block<BlockType.Expression>,
     next: typeof this.compile

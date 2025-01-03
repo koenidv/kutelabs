@@ -23,10 +23,10 @@ export class ResultDTO implements ResultDtoInterface {
     return new ResultDTO(status, null, message)
   }
 
-  public static fromTranspilationResult(result: TranspilationResult) {
+  public static fromTranspilationResult(result: TranspilationResult, postProcessCode: (code: string) => string): ResultDTO {
     switch (result.status) {
       case TranspilationStatus.Success:
-        return new ResultDTO(TranspilationStatus.Success, result.transpiled!)
+        return new ResultDTO(TranspilationStatus.Success, postProcessCode(result.transpiled!))
       case TranspilationStatus.CompilationError:
       case TranspilationStatus.Timeout:
         console.error("Compilation error", result.message)

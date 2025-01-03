@@ -6,11 +6,15 @@ export async function checkRunscEnvironment(): Promise<boolean> {
     runscAvailable()
       .then(available => {
         if (!available) {
-          if (!isDev()) {
+          if (!isDev() && env.TRANSPILER_GVISOR) {
             console.error(
               "gVisor (runsc) is not available and is required for production."
             )
             process.exit(1)
+          } else if (!isDev()) {
+            console.warn(
+              "WARN: gVisor (runsc) is DISABLED. Transpilation security might be compromised."
+            )
           } else {
             console.warn(
               "WARN: gVisor (runsc) is not available and will not be used for transpilation. This will break in production."
