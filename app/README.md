@@ -18,6 +18,7 @@ A staging environment for `main` is available at [main--kutelabs.netlify.app](ht
 
 ## Environment Variables
 
-| Variable       | Description  | Default                          |
-| -------------- | ------------ | -------------------------------- |
-| `API_BASE_URL` | API base url | `https://api.kutelabs.koeni.dev` |
+| Variable          | Description  | Default                          |
+| ----------------- | ------------ | -------------------------------- |
+| `API_BASE_URL`    | API base url | `https://api.kutelabs.koeni.dev` |
+| `POSTHOG_API_KEY` | PostHog key  | _undefined_                      |

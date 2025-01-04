@@ -17,6 +17,7 @@ export default defineConfig({
   env: {
     schema: {
       API_BASE_URL: envField.string({ context: "client", "access": "public", optional: false, default: "http://api.kutelabs.koeni.dev", url: true }),
+      POSTHOG_API_KEY: envField.string({ context: "client", "access": "public", optional: true }),
     }
   },
   prefetch: {
