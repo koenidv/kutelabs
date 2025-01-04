@@ -1,4 +1,5 @@
 import { SandboxCallbacks } from "@kutelabs/client-runner"
+import { displayMessage } from "../state/state"
 
 export const defaultEnabledNames = ["markBlock"]
 
@@ -15,4 +16,13 @@ export function filterCallbacks(
     {} as Record<string, (...args: any) => any>
   )
   return new SandboxCallbacks(enabled)
+}
+
+export const appFeatures = {
+  setUsername,
+}
+
+function setUsername(name: string) {
+  displayMessage(`Welcome ${name}!`, "success")
+  localStorage.setItem("username", name)
 }

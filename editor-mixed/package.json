@@ -1,7 +1,7 @@
 {
   "name": "@kutelabs/editor-mixed",
-  "module": "src/editor.ts",
-  "main": "src/editor.ts",
+  "module": "src/index.ts",
+  "main": "src/index.ts",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest",
