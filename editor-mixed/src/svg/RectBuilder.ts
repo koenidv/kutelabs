@@ -4,7 +4,6 @@ export interface Point {
 }
 
 export interface Nook {
-  position: Point
   width: number
   length: number
   mode: "inward" | "outward"
@@ -12,7 +11,6 @@ export interface Nook {
 }
 
 export interface Inset {
-  position: Point
   width: number
   depth: number
 }
@@ -21,100 +19,80 @@ export interface RectangleConfig {
   width: number
   height: number
   cornerRadius: number
-  nooks: Nook[]
-  insets: Inset[]
 }
 
 export class RectBuilder {
   private config: RectangleConfig
+  private features: ((Nook | Inset) & { position: Point })[] = []
 
   constructor(config: RectangleConfig) {
     this.config = config
   }
 
+  public addToTop(feature: Nook | Inset, x: number): this {
+    this.features.push({ ...feature, position: { x, y: 0 } })
+    return this
+  }
+  public addToRight(feature: Nook | Inset, y: number): this {
+    this.features.push({ ...feature, position: { x: this.config.width, y } })
+    return this
+  }
+  public addToBottom(feature: Nook | Inset, x: number): this {
+    this.features.push({ ...feature, position: { x, y: this.config.height } })
+    return this
+  }
+  public addToLeft(feature: Nook | Inset, y: number): this {
+    this.features.push({ ...feature, position: { x: 0, y } })
+    return this
+  }
+  /**
+   * The feature MUST be placed along an outer or inset edge or it will not be rendered
+   * @param feature nook or inset to add
+   * @param position position of the feature on an edge
+   */
+  public add(feature: Nook | Inset, position: Point): this {
+    this.features.push({ ...feature, position })
+    return this
+  }
+
   generatePath(): string {
     const path: string[] = []
-    const { width, height, cornerRadius, nooks, insets } = this.config
+    const { width, height, cornerRadius } = this.config
 
     path.push(`M ${cornerRadius} 0`)
-
-    const getFeatures = (startX: number, startY: number, endX: number, endY: number) => {
-      return [...nooks, ...insets]
-        .filter(feature => {
-          const pos = "position" in feature ? feature.position : feature
-          return this.isPointOnLine({ x: startX, y: startY }, { x: endX, y: endY }, pos)
-        })
-        .sort((a, b) => {
-          // sort along line
-          return (
-            this.getDistance({ x: startX, y: startY }, a.position) -
-            this.getDistance({ x: startX, y: startY }, b.position)
-          )
-        })
-    }
-
     // top
-    this.addEdgeToPath(
-      path,
-      { x: cornerRadius, y: 0 },
-      { x: width - cornerRadius, y: 0 },
-      { x: 1, y: 1 },
-      getFeatures(cornerRadius, 0, width - cornerRadius, 0)
-    )
+    this.drawEdge(path, { x: cornerRadius, y: 0 }, { x: width - cornerRadius, y: 0 })
     path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${width} ${cornerRadius}`)
-
     // right
-    this.addEdgeToPath(
-      path,
-      { x: width, y: cornerRadius },
-      { x: width, y: height - cornerRadius },
-      { x: 1, y: -1 },
-      getFeatures(width, cornerRadius, width, height - cornerRadius)
-    )
+    this.drawEdge(path, { x: width, y: cornerRadius }, { x: width, y: height - cornerRadius })
     path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${width - cornerRadius} ${height}`)
-
     // bottom
-    this.addEdgeToPath(
-      path,
-      { x: width - cornerRadius, y: height },
-      { x: cornerRadius, y: height },
-      { x: -1, y: -1 },
-      getFeatures(width - cornerRadius, height, cornerRadius, height)
-    )
+    this.drawEdge(path, { x: width - cornerRadius, y: height }, { x: cornerRadius, y: height })
     path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 0 ${height - cornerRadius}`)
-
     // left
-    this.addEdgeToPath(
-      path,
-      { x: 0, y: height - cornerRadius },
-      { x: 0, y: cornerRadius },
-      { x: -1, y: 1 },
-      getFeatures(0, height - cornerRadius, 0, cornerRadius)
-    )
+    this.drawEdge(path, { x: 0, y: height - cornerRadius }, { x: 0, y: cornerRadius })
     path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${cornerRadius} 0`)
 
     path.push("Z")
     return path.join(" ")
   }
 
-  private addEdgeToPath(
-    path: string[],
-    start: Point,
-    end: Point,
-    transform: Point,
-    features: (Nook | Inset)[]
-  ): void {
-    path.push(`L ${start.x} ${start.y}`)
+  private drawEdge(path: string[], from: Point, to: Point) {
+    const features = this.consumeOnLine(from, to)
+    const transform = {
+      x: to.x > from.x || to.y > from.y ? 1 : -1,
+      y: to.y > from.y || to.x > from.x ? 1 : -1,
+    }
 
+    path.push(`L ${from.x} ${from.y}`)
     features.forEach(feature => {
-      if ("mode" in feature) this.addNook(path, feature as Nook, transform)
-      else this.addInset(path, feature as Inset, transform)
-    })
-
-    path.push(`L ${end.x} ${end.y}`)
+      if ("mode" in feature) this.drawNook(path, feature as Nook & { position: Point }, transform)
+      else this.drawInset(path, feature as Inset & { position: Point }, transform)
+    }, this)
+    path.push(`L ${to.x} ${to.y}`)
   }
 
-  private addNook(path: string[], nook: Nook, transform: Point) {
+  private drawNook(path: string[], nook: Nook & { position: Point }, transform: Point) {
     const modeFactor = nook.mode === "outward" ? -1 : 1
     if (nook.pointing === "vertical") {
       path.push(`L ${nook.position.x - (transform.y * nook.width) / 2} ${nook.position.y}`)
@@ -122,20 +100,37 @@ export class RectBuilder {
       path.push(`l ${(transform.y * nook.width) / 2} ${transform.x * modeFactor * -nook.length}`)
     } else {
       path.push(`L ${nook.position.x} ${nook.position.y - (transform.x * nook.length) / 2}`)
-      path.push(`l ${transform.y * modeFactor * nook.length} ${(transform.x * nook.width) / 2}`)
       path.push(`l ${transform.y * modeFactor * -nook.length} ${(transform.x * nook.width) / 2}`)
+      path.push(`l ${transform.y * modeFactor * nook.length} ${(transform.x * nook.width) / 2}`)
     }
   }
 
-  private addInset(path: string[], inset: Inset, transform: Point) {
+  private drawInset(path: string[], inset: Inset & { position: Point }, transform: Point) {
     if (transform.x != 1 && transform.y != 1) {
       console.error("Insets currently only support (+,-) transforms")
       return
     }
     path.push(`L ${inset.position.x} ${inset.position.y}`)
-    path.push(`l ${transform.x * -inset.depth} 0`)
-    path.push(`l 0 ${transform.y * -inset.width}`)
-    path.push(`l ${transform.x * inset.depth} 0`)
+    let position1 = { x: inset.position.x + transform.x * -inset.depth, y: inset.position.y }
+    this.drawEdge(path, inset.position, position1)
+    const position2 = { x: position1.x, y: position1.y + transform.y * inset.width }
+    this.drawEdge(path, position1, position2)
+    const position3 = { x: position2.x + transform.x * inset.depth, y: position2.y }
+    this.drawEdge(path, position2, position3)
+  }
+
+  private consumeOnLine(from: Point, to: Point) {
+    const onLine: ((Nook | Inset) & { position: Point })[] = []
+    ;[...this.features].forEach((feature, index) => {
+      if (this.isPointOnLine(from, to, feature.position)) {
+        onLine.push(feature)
+        this.features.splice(index, 1)
+      }
+    })
+    return onLine.sort((a, b) => {
+      // all points share a line, sort along line
+      return this.getDistance(from, a.position) - this.getDistance(from, b.position)
+    })
   }
 
   private isPointOnLine(start: Point, end: Point, point: Point): boolean {

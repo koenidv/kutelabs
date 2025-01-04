@@ -32,44 +32,19 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       width: size.fullWidth,
       height: size.fullHeight,
       cornerRadius: 10,
-      nooks: [
-        // {
-        //   position: { x: size.fullWidth, y: size.fullHeight / 3 },
-        //   width: 10,
-        //   height: 5,
-        //   mode: "inward",
-        //   pointing: "horizontal",
-        // },
-        {
-          position: { x: 0, y: (size.fullHeight / 3) * 2 },
-          width: 10,
-          length: 5,
-          mode: "outward",
-          pointing: "horizontal",
-        },
-        {
-          position: { x: size.fullWidth / 2, y: 0 },
-          width: 10,
-          length: 5,
-          mode: "inward",
-          pointing: "vertical",
-        },
-        {
-          position: { x: size.fullWidth / 2, y: size.fullHeight },
-          width: 10,
-          length: 5,
-          mode: "outward",
-          pointing: "vertical",
-        },
-      ],
-      insets: [
-        {
-          position: { x: size.fullWidth, y: size.fullHeight / 4 },
-          width: size.fullHeight / 2,
-          depth: 10,
-        },
-      ],
+      // insets: [
+      //   {
+      //     position: { x: size.fullWidth, y: size.fullHeight / 4 },
+      //     width: size.fullHeight / 2,
+      //     depth: 10,
+      //   },
+      // ],
     })
+    .addToTop({ width: 10, length: 5, mode: "inward", pointing: "vertical" }, size.fullWidth / 5)
+    .addToRight({ width: size.fullHeight / 3, depth: 60 }, size.fullHeight / 3)
+    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical" }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
+    .addToBottom({ width: 10, length: 5, mode: "outward", pointing: "vertical" }, size.fullWidth / 5)
+    .addToLeft({ width: 10, length: 5, mode: "outward", pointing: "horizontal" }, size.fullHeight / 3)
 
     const path = rectangle.generatePath()
 
