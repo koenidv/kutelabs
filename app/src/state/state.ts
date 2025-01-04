@@ -18,6 +18,8 @@ export function addLog(log: any[], type: LogType) {
 
 /* Stores a reference to the DOM element of the current editor  */
 export const editorRef = atom<null | EditorMixed>(null)
+/** Stores the editor loading ui state */
+export const editorLoadingState = atom(false)
 
 /** Stores the snackbar display queue */
 export const snackbarState = atom<

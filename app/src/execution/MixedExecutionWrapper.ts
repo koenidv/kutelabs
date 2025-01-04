@@ -1,5 +1,5 @@
 import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
-import { addLog, clearMessages, displayMessage, editorRef, setTestResult } from "../state/state"
+import { addLog, clearMessages, displayMessage, editorLoadingState, editorRef, setTestResult } from "../state/state"
 import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
 import type { Challenge } from "../schema/challenge"
 import { persistentAtom } from "@nanostores/persistent"
@@ -118,8 +118,12 @@ export class ExecutionWrapper {
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
     displayMessage("Processing", "info", { duration: -1, single: true })
+    editorLoadingState.set(true)
 
     const transpiled = await transpileKtJs(compiled.code)
+    editorLoadingState.set(false)
+    clearMessages()
+    
     if (
       transpiled === null ||
       transpiled.status != TranspilationStatus.Success ||
@@ -128,7 +132,6 @@ export class ExecutionWrapper {
       displayMessage("Transpilation failed", "error", { single: true })
       throw new Error("Transpilation failed")
     }
-    clearMessages()
 
     this.testRunner
       .execute(transpiled.transpiledCode, {
