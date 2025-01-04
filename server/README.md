@@ -63,3 +63,8 @@ or use the provided compose file.
 | `POSTHOG_API_KEY`          | PostHog API key for analytics.                                                       | _undefined_                |
 | `POSTHOG_HOST`             | PostHog host URL.                                                                    | `https://eu.i.posthog.com` |
 | `POSTHOG_IDENTIFIER`       | Server identifier for PostHog.                                                       | `local`                    |
+| `SENTRY_DSN`               | Sentry DSN for error tracking.                                                       | _undefined_                |
+
+## Observability
+
+The server captures transpilation events in PostHog to track usage, performance, and correlate this with app behavior. Errors are reported to Sentry for debugging.

@@ -19,7 +19,7 @@
     "@kutelabs/server": "workspace:*",
     "@kutelabs/shared": "workspace:*",
     "@nanostores/persistent": "^0.10.2",
-    "@sentry/astro": "^8.44.0",
+    "@sentry/astro": "^8.47.0",
     "@spotlightjs/astro": "^2.2.2",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "astro": "5.1.1",

@@ -1,17 +1,21 @@
 // @ts-check
-import { defineConfig, envField } from "astro/config"
-import netlify from "@astrojs/netlify"
-import tailwind from "@astrojs/tailwind"
+import netlify from "@astrojs/netlify";
+import svelte from "@astrojs/svelte";
+import tailwind from "@astrojs/tailwind";
+import sentry from "@sentry/astro";
 import compress from "astro-compress";
 import icon from "astro-icon";
-import svelte from "@astrojs/svelte";
-
-// import sentry from "@sentry/astro";
-// import spotlightjs from "@spotlightjs/astro"; removed for now because they break the dev server with SSG
+import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), icon(), svelte(), compress()],
+  integrations: [sentry({
+    dsn: process.env["SENTRY_DSN"],
+    sourceMapsUploadOptions: {
+      project: "kutelabs-astro",
+      authToken: process.env["SENTRY_AUTH_TOKEN"],
+    },
+  }), tailwind(), icon(), svelte(), compress()],
   output: "static",
   adapter: netlify(),
   env: {

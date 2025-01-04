@@ -174,8 +174,9 @@ export class ExecutionWrapper {
       if (!causingBlockId) throw new Error("No block id found")
       this.onBlockError(
         causingBlockId,
-        "Error during code processing: " + transpiled.message.split("error: ")[1] ??
-          transpiled.message,
+        "Error during code processing: " + transpiled.message.includes("error: ")
+          ? transpiled.message.split("error: ")[1]
+          : transpiled.message,
         "Processing failed. Please check highlighted block."
       )
     } catch {

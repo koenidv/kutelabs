@@ -4,6 +4,7 @@ import { cors } from "hono/cors"
 import { env } from "./env"
 
 import "@kutelabs/shared"
+import "./analytics/Sentry"
 
 const app = new Hono()
 

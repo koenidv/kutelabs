@@ -5,6 +5,7 @@
   },
   "dependencies": {
     "@kutelabs/shared": "workspace:*",
+    "@sentry/bun": "^8.47.0",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "hono": "^4.6.12",

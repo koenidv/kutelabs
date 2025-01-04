@@ -17,4 +17,5 @@ export const env = cleanEnv(process.env, {
   POSTHOG_API_KEY: str({ default: undefined }),
   POSTHOG_HOST: str({ default: "https://eu.i.posthog.com" }),
   POSTHOG_IDENTIFIER: str({ default: "local" }),
+  SENTRY_DSN: str({ default: undefined }),
 })
