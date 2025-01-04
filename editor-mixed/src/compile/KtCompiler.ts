@@ -77,11 +77,11 @@ export class KtCompiler extends BaseCompiler {
           return block.data.value == true ? "true" : "false"
         case DataType.IntArray:
         case DataType.FloatArray:
-          return `[${(block.data.value as number[]).map(it => Number(it)).join(", ")}]`
+          return `listOf(${(block.data.value as number[]).map(it => Number(it)).join(", ")})`
         case DataType.StringArray:
-          return `["${(block.data.value as string[]).join('", "')}"]`
+          return `listOf("${(block.data.value as string[]).join('", "')}")`
         case DataType.BooleanArray:
-          return `[${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")}]`
+          return `listOf(${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")})`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }

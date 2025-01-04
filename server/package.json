@@ -8,7 +8,8 @@
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "hono": "^4.6.12",
-    "kotlin": "^1.9.25"
+    "kotlin": "^1.9.25",
+    "posthog-node": "^4.3.2"
   },
   "devDependencies": {
     "@types/bun": "latest"

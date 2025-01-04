@@ -14,4 +14,7 @@ export const env = cleanEnv(process.env, {
   TRANSPILER_TIMEOUT: num({ default: 60000 }),
   TRANSPILER_COROUTINE_LIB: bool({ default: true }),
   TRANSPILER_GVISOR: bool({ default: true }),
+  POSTHOG_API_KEY: str({ default: undefined }),
+  POSTHOG_HOST: str({ default: "https://eu.i.posthog.com" }),
+  POSTHOG_IDENTIFIER: str({ default: "local" }),
 })
