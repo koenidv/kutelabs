@@ -28,7 +28,7 @@ app.post("/kt/js", async c => {
     )
 
   const dto = ResultDTO.fromTranspilationResult(await transpile(code))
-  if (shouldCache(dto.status)) writeTranspiledCache(code, dto) // async, not blocking response
+  if (shouldCache(dto.status)) await writeTranspiledCache(code, dto) // async, not blocking response
 
   dto.postProcess(code => restoreBlockIds(code, standardizedBlockIds))
   return c.json(dto)
