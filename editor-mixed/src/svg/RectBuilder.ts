@@ -8,24 +8,28 @@ export interface Nook {
   length: number
   mode: "inward" | "outward"
   pointing: "horizontal" | "vertical"
+  pointQuadratic?: number
+  baseRadius?: number
 }
 
 export interface Inset {
   width: number
   depth: number
+  openRadius?: number
+  innerRadius?: number
 }
 
-export interface RectangleConfig {
+export interface Rectangle {
   width: number
   height: number
-  cornerRadius: number
+  radius: number
 }
 
 export class RectBuilder {
-  private config: RectangleConfig
+  private config: Rectangle
   private features: ((Nook | Inset) & { position: Point })[] = []
 
-  constructor(config: RectangleConfig) {
+  constructor(config: Rectangle) {
     this.config = config
   }
 
@@ -57,24 +61,48 @@ export class RectBuilder {
 
   generatePath(): string {
     const path: string[] = []
-    const { width, height, cornerRadius } = this.config
+    const { width, height, radius: cornerRadius } = this.config
 
     path.push(`M ${cornerRadius} 0`)
     // top
     this.drawEdge(path, { x: cornerRadius, y: 0 }, { x: width - cornerRadius, y: 0 })
-    path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${width} ${cornerRadius}`)
+    this.drawCorner(path, { x: width, y: cornerRadius }, cornerRadius)
     // right
     this.drawEdge(path, { x: width, y: cornerRadius }, { x: width, y: height - cornerRadius })
-    path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${width - cornerRadius} ${height}`)
+    this.drawCorner(path, { x: width - cornerRadius, y: height }, cornerRadius)
     // bottom
     this.drawEdge(path, { x: width - cornerRadius, y: height }, { x: cornerRadius, y: height })
-    path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 0 ${height - cornerRadius}`)
+    this.drawCorner(path, { x: 0, y: height - cornerRadius }, cornerRadius)
     // left
     this.drawEdge(path, { x: 0, y: height - cornerRadius }, { x: 0, y: cornerRadius })
-    path.push(`A ${cornerRadius} ${cornerRadius} 0 0 1 ${cornerRadius} 0`)
+    this.drawCorner(path, { x: cornerRadius, y: 0 }, cornerRadius)
 
     path.push("Z")
+    if (this.features.length > 0) console.warn("RectBuilder: not all features were placed")
     return path.join(" ")
+  }
+
+  private drawCorner(
+    path: string[],
+    point: Point,
+    radius: number | undefined,
+    overrideProps: { relative?: boolean; sweep?: boolean } = {}
+  ) {
+    const props = { relative: false, sweep: true, ...overrideProps }
+    if (!radius) return path.push(`${props.relative ? "l" : "L"} ${point.x} ${point.y}`)
+    path.push(
+      `${props.relative ? "a" : "A"} ${radius} ${radius} 0 0 ${props.sweep ? "1" : "0"} ${point.x} ${point.y}`
+    )
+  }
+
+  private drawQuadratic(
+    path: string[],
+    to: Point,
+    control: Point,
+    overrideProps: { relative?: boolean } = {}
+  ) {
+    const props = { relative: false, ...overrideProps }
+    path.push(`${props.relative ? "q" : "Q"} ${control.x} ${control.y} ${to.x} ${to.y}`)
   }
 
   private drawEdge(path: string[], from: Point, to: Point) {
@@ -94,14 +122,56 @@ export class RectBuilder {
 
   private drawNook(path: string[], nook: Nook & { position: Point }, transform: Point) {
     const modeFactor = nook.mode === "outward" ? -1 : 1
+    const baseRadius = nook.baseRadius ?? 0
+    const pointRadius = nook.pointQuadratic ?? 0
     if (nook.pointing === "vertical") {
+      //base start
       path.push(`L ${nook.position.x - (transform.y * nook.width) / 2} ${nook.position.y}`)
-      path.push(`l ${(transform.y * nook.width) / 2} ${transform.x * modeFactor * nook.length}`)
-      path.push(`l ${(transform.y * nook.width) / 2} ${transform.x * modeFactor * -nook.length}`)
+
+      //point
+      path.push(
+        `l ${transform.x * (nook.width / 2 - pointRadius)} ${transform.y * modeFactor * (nook.length - pointRadius)}`
+      )
+      if (pointRadius) {
+        this.drawQuadratic(
+          path,
+          {
+            x: 2 * pointRadius * transform.x,
+            y: 0,
+          },
+          { x: pointRadius * transform.x, y: pointRadius * transform.y * modeFactor },
+          { relative: true }
+        )
+      }
+
+      //base end
+      path.push(
+        `l ${transform.y * (nook.width / 2 - pointRadius)} ${transform.x * modeFactor * -(nook.length - pointRadius)}`
+      )
     } else {
+      //base start
       path.push(`L ${nook.position.x} ${nook.position.y - (transform.x * nook.length) / 2}`)
-      path.push(`l ${transform.y * modeFactor * -nook.length} ${(transform.x * nook.width) / 2}`)
-      path.push(`l ${transform.y * modeFactor * nook.length} ${(transform.x * nook.width) / 2}`)
+
+      //point
+      path.push(
+        `l ${transform.y * modeFactor * -(nook.length - pointRadius)} ${transform.x * (nook.width / 2 - pointRadius)}`
+      )
+      if (pointRadius) {
+        this.drawQuadratic(
+          path,
+          {
+            x: 0,
+            y: 2 * pointRadius * transform.x,
+          },
+          { x: -pointRadius * transform.y * modeFactor, y: pointRadius * transform.x },
+          { relative: true }
+        )
+      }
+
+      //base
+      path.push(
+        `l ${transform.y * modeFactor * (nook.length - pointRadius)} ${transform.x * (nook.width / 2 - pointRadius)}`
+      )
     }
   }
 
