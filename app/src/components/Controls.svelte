@@ -23,7 +23,7 @@
 <div class="flex flex-col gap-4 py-4 justify-between">
   <div class="flex flex-row lg:flex-col gap-4 items-center">
     <button
-      onclick={execution.run}
+      onclick={execution.run.bind(execution)}
       class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button>
     <button
       onclick={() => execution.setSpeed("fast")}
@@ -43,19 +43,19 @@
   </div>
   <div class="flex flex-row lg:flex-col gap-4">
     <button
-      onclick={execution.printJs}
+      onclick={execution.printJs.bind(execution)}
       class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
       >print JS</button>
     <button
-      onclick={execution.printKt}
+      onclick={execution.printKt.bind(execution)}
       class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
       >print Kt</button>
     <button
-      onclick={execution.runJs}
+      onclick={execution.runJs.bind(execution)}
       class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
       >run Js</button>
     <button
-      onclick={execution.runKt}
+      onclick={execution.runKt.bind(execution)}
       class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
       >run Kt</button>
   </div>

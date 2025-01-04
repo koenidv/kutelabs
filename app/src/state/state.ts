@@ -24,6 +24,7 @@ export const snackbarState = atom<
   { id: string; message: string; type: SnackbarType; duration: number }[]
 >([])
 export type SnackbarType = "success" | "error" | "info" | "warning"
+export type SnackbarMessage = { id: string; message: string; type: SnackbarType; duration: number }
 export function displayMessage(
   message: string,
   type: SnackbarType,
