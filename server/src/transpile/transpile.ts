@@ -74,7 +74,7 @@ async function transpileKtJs(
         "--rm",
         `${env.TRANSPILER_NAME}:latest`,
       ].filter(Boolean),
-      { stdout: "inherit", stderr: "inherit" }
+      { stdout: "pipe", stderr: "pipe" }
     )
 
     const killTimeout = setTimeout(() => {

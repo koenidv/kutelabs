@@ -38,6 +38,6 @@ export async function readOutputFile(path: string): Promise<string> {
 export function trimErrorMessage(error: string | undefined): string | undefined {
   if (!error) return error
   const internalIndex = error.indexOf("info: produce executable: /data/js/")
-  if (internalIndex === -1) return error
+  if (internalIndex === -1) return error.substring(0, error.indexOf("\n"))
   return error.substring(0, internalIndex)
 }

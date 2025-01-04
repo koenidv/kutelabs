@@ -31,7 +31,7 @@ export class ResultDTO implements ResultDtoInterface {
         return new ResultDTO(TranspilationStatus.Success, result.transpiled)
       case TranspilationStatus.CompilationError:
       case TranspilationStatus.Timeout:
-        console.error("Compilation error", result.message)
+        console.error("Compilation error", result, result.message)
         return ResultDTO.error(result.status, trimErrorMessage(result.message))
       default:
         console.error("Unknown error", result.message)

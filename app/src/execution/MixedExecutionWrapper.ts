@@ -1,11 +1,20 @@
 import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
-import { addLog, clearMessages, displayMessage, editorLoadingState, editorRef, setTestResult } from "../state/state"
+import {
+  addLog,
+  clearMessages,
+  displayMessage,
+  editorLoadingState,
+  editorRef,
+  setTestResult,
+} from "../state/state"
 import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
 import type { Challenge } from "../schema/challenge"
 import { persistentAtom } from "@nanostores/persistent"
 import { transpileKtJs } from "./transpile"
 import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
+import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
+import { findBlockByLine } from "@kutelabs/shared/src"
 
 const executionDelay = {
   fast: 250,
@@ -26,12 +35,7 @@ export class ExecutionWrapper {
         addLog([message], "error")
         console.error("General error from test runner", type, message)
       },
-      (id, message) => {
-        addLog([message], "error")
-        console.error("Error from test runner for block", id, message)
-        if (!editorRef.get()) throw new Error("Editor not found")
-        editorRef.get()!.getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
-      }
+      this.onBlockError.bind(this)
     )
     this.environment = environment
   }
@@ -123,14 +127,13 @@ export class ExecutionWrapper {
     const transpiled = await transpileKtJs(compiled.code)
     editorLoadingState.set(false)
     clearMessages()
-    
+
     if (
       transpiled === null ||
       transpiled.status != TranspilationStatus.Success ||
       !transpiled.transpiledCode
     ) {
-      displayMessage("Transpilation failed", "error", { single: true })
-      throw new Error("Transpilation failed")
+      return this.onTranspilationError(transpiled, compiled.code)
     }
 
     this.testRunner
@@ -158,5 +161,40 @@ export class ExecutionWrapper {
     if (!editor) throw new Error("Editor not found")
     const compiled = editor.compile(KtCompiler, this.getCallbacks(editor))
     console.log(compiled.code)
+  }
+
+  private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
+    try {
+      if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
+      const editor = editorRef.get()
+      if (!editor) throw new Error("Editor not found")
+
+      const line = this.matchLineInTranspilationError(transpiled.message)
+      const causingBlockId = findBlockByLine(originalCode.split("\n"), line!)
+      if (!causingBlockId) throw new Error("No block id found")
+      this.onBlockError(
+        causingBlockId,
+        "Error during code processing: " + transpiled.message.split("error: ")[1] ??
+          transpiled.message,
+        "Processing failed. Please check highlighted block."
+      )
+    } catch {
+      displayMessage("Transpilation failed", "error", { single: true })
+      console.error("Transpilation failed", transpiled)
+    }
+  }
+
+  private matchLineInTranspilationError(error: string): number | null {
+    const match = error.match(/code\.kt:(\d+)/)
+    if (!match) return null
+    return parseInt(match[1])
+  }
+
+  private onBlockError(id: string, message: string, display: string | undefined = message) {
+    addLog([message], "error")
+    if (display) displayMessage(display, "error")
+    console.error("Error from test runner for block", id, message)
+    if (!editorRef.get()) throw new Error("Editor not found")
+    editorRef.get()!.getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
   }
 }

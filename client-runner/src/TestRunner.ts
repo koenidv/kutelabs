@@ -1,6 +1,7 @@
 import type { Callbacks } from "./Callbacks"
 import { ErrorType, Executor, type LoggedError, type LogType } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
+import { findBlockByLine } from "@kutelabs/shared"
 
 type Args = any[]
 export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
@@ -245,7 +246,7 @@ export class TestRunner {
       console.error("Could not find line in stack:", (error as LoggedError).stack)
       return
     }
-    const blockId = this.findBlockByLine(line)
+    const blockId = findBlockByLine(this.matchUserFunctionLines(), line)
     if (!blockId) {
       console.error("Could not find block by line:", line)
       return
@@ -263,27 +264,6 @@ export class TestRunner {
     const line = stack.match(/<anonymous>:(\d+):/)?.pop()
     if (!line) return undefined
     return Number(line)
-  }
-
-  /**
-   * Finds the most recent markBlock call before the user code line that caused an error
-   * @param line line number in the user code that caused the error
-   * @returns block id of the block that caused the error, or undefined if not found
-   */
-  private findBlockByLine(line: number): string | undefined {
-    if (this.currentScript == null) {
-      console.error("Tried to find block in null code")
-      return
-    }
-    const lines = this.matchUserFunctionLines()
-
-    let blockId: string | undefined = undefined
-    let currentLine = line - 1
-    while (!blockId && currentLine > 0 && line - currentLine < 5) {
-      blockId = lines[currentLine].match(/markBlock\("([^"]+)"\)/)?.pop()
-      currentLine--
-    }
-    return blockId
   }
 
   /**
