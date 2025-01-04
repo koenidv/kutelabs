@@ -11,7 +11,7 @@
   import MediumIcon from "../icons/speed-medium.svelte"
   import SlowIcon from "../icons/speed-slow.svelte"
   import type { Challenge } from "../schema/challenge"
-  import { addLog, editorRef, setTestResult } from "../state/state"
+  import { addLog, clearMessages, displayMessage, editorRef, setTestResult, snackbarState } from "../state/state"
   import { onMount } from "svelte"
 
   const {
@@ -55,6 +55,7 @@
 
   // todo
   const usernameCallback = (username: string) => {
+    displayMessage(`Welcome ${username}!`, "success")
     console.log("Username will be set to '", username, "' once implemented")
   }
 
@@ -128,14 +129,18 @@
 
     const callbacks = getCallbacks()
     const compiled = $editorRef.compile(KtCompiler, callbacks)
+    displayMessage("Processing", "info", { duration: -1, single: true })
 
     const transpiled = await transpileKtJs(compiled.code)
     if (
       transpiled === null ||
       transpiled.status != TranspilationStatus.Success ||
       !transpiled.transpiledCode
-    )
+    ) {
+      displayMessage("Transpilation failed", "error", { single: true })
       throw new Error("Transpilation failed")
+    }
+    clearMessages()
 
     testRunner
       .execute(transpiled.transpiledCode, {
