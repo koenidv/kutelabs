@@ -1,5 +1,6 @@
 import type { BlockRendererConstructorType } from "../render/BlockRenderers/BaseBlockRenderer"
 import { DebugBlockRenderer } from "../render/BlockRenderers/DebugBlockRenderer"
+import { KuteBlockRenderer } from "../render/BlockRenderers/KuteBlockRenderer"
 import type { DragRendererConstructorType } from "../render/DragRenderers/BaseDragRenderer"
 import { DebugDragRenderer } from "../render/DragRenderers/DebugDragRenderer"
 import type { DrawerRendererConstructorType } from "../render/DrawerRenderers/BaseDrawerRenderer"
@@ -23,6 +24,15 @@ export type MixedEditorConfig = {
 export const DebugMixedEditorConfig: MixedEditorConfig = {
   layouter: DebugLayouter,
   blockRenderer: DebugBlockRenderer,
+  drawerRenderer: DebugDrawerRenderer,
+  widgetRenderer: DebugWidgetRenderer,
+  dragRenderer: DebugDragRenderer,
+  extrasRenderer: ExtrasRenderer,
+}
+
+export const DefaultMixedEditorConfig: MixedEditorConfig = {
+  layouter: DebugLayouter,
+  blockRenderer: KuteBlockRenderer,
   drawerRenderer: DebugDrawerRenderer,
   widgetRenderer: DebugWidgetRenderer,
   dragRenderer: DebugDragRenderer,

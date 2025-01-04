@@ -16,7 +16,11 @@ import type { BaseWidgetRenderer } from "./render/WidgetRenderers/BaseWidgetRend
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { isSafari } from "./util/browserCheck"
-import { DebugMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
+import {
+  DebugMixedEditorConfig,
+  DefaultMixedEditorConfig,
+  type MixedEditorConfig,
+} from "./util/MixedEditorConfig"
 import { VariableHelper } from "./variables/VariableHelper"
 import type { VariableHInterface } from "./variables/VariableHInterface"
 
@@ -175,7 +179,7 @@ export class EditorMixed extends LitElement {
     }
 
     if (changedProperties.has("useDefaultConfig") && this.useDefaultConfig) {
-      this.setConfig(DebugMixedEditorConfig)
+      this.setConfig(DefaultMixedEditorConfig)
     } else if (changedProperties.has("config") && this.config && this.config.layouter != null) {
       try {
         this.setConfig(this.config)
