@@ -27,7 +27,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     })
 
     this.addContainerInsets(rectangle, size)
-    this.addContainerNooks(rectangle, size, globalPosition, block.connectors.all)
+    this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
 
     const path = rectangle.generatePath()
     const stroke = this.determineContainerStroke(marking)
@@ -47,9 +47,9 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
           rectangle.addToRight(
             {
               width: propHeight,
-              depth: (size.fullWidth / 4) * 3 /* todo left/right width in layouter */,
+              depth: size.rightWidth,
               openRadius: 8,
-              innerRadius: 8,
+              innerRadius: 10,
             },
             currentHeight
           )
@@ -64,19 +64,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   private addContainerNooks(
     rectangle: RectBuilder,
-    size: SizeProps,
-    blockPosition: Coordinates,
-    connectors: Connector[]
+    connectors: Connector[],
+    {
+      size,
+      block,
+      globalPosition: blockPosition,
+    }: AnyRegisteredBlock | { size: SizeProps; block: AnyBlock; globalPosition: Coordinates }
   ): void {
     if (connectors.length == 0) return
 
     connectors.forEach(connector => {
       if (connector.type == ConnectorType.Internal) return
-      let xOffset = 0
-      if ([ConnectorType.Before, ConnectorType.After, ConnectorType.Inner].includes(connector.type))
-        if (!(ConnectorType.Before == connector.type && ConnectorRole.Input == connector.role))
-          xOffset = 14 /* todo move connector in layouter*/
-
       const inward =
         (connector.type == ConnectorType.Before && connector.role != ConnectorRole.Input) ||
         connector.role == ConnectorRole.Output ||
@@ -93,15 +91,36 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
           length: 5,
           mode: inward ? "inward" : "outward",
           pointing: horizontal ? "horizontal" : "vertical",
-          pointRadius: 3,
+          pointRadius: inward ? 4 : 3,
           baseRadius: 2,
         },
         {
-          x: connector.globalPosition.x - blockPosition.x + xOffset,
+          x: connector.globalPosition.x - blockPosition.x,
           y: connector.globalPosition.y - blockPosition.y,
         }
       )
     })
+
+    if (block.type == BlockType.Function) {
+      rectangle.add(
+        {
+          width: 10,
+          length: 5,
+          mode: "inward",
+          pointing: "vertical",
+          pointRadius: 4,
+          baseRadius: 2,
+        },
+        {
+          x:
+            connectors.find(it => it.type == ConnectorType.Inner)!.globalPosition.x -
+            blockPosition.x,
+          y:
+            size.fullHeadHeight +
+            size.bodiesAndIntermediates.reduce((acc, cur) => acc + cur.value, 0),
+        }
+      )
+    }
   }
 
   private determineContainerFill(block: AnyBlock): string {

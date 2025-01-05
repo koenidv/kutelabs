@@ -9,6 +9,7 @@ import { ExtrasRenderer } from "../render/ExtrasRenderers.ts/DefaultExtrasRender
 import type { ExtrasRendererInterface } from "../render/ExtrasRenderers.ts/ExtrasRendererInterface"
 import type { LayouterConstructorType } from "../render/Layouters/BaseLayouter"
 import { DebugLayouter } from "../render/Layouters/DebugLayouter"
+import { KuteLayouter } from "../render/Layouters/KuteLayouter"
 import type { WidgetRendererConstructorType } from "../render/WidgetRenderers/BaseWidgetRenderer"
 import { DebugWidgetRenderer } from "../render/WidgetRenderers/DebugWidgetRenderer"
 import { KuteWidgetRenderer } from "../render/WidgetRenderers/KuteWidgetRenderer"
@@ -32,7 +33,7 @@ export const DebugMixedEditorConfig: MixedEditorConfig = {
 }
 
 export const DefaultMixedEditorConfig: MixedEditorConfig = {
-  layouter: DebugLayouter,
+  layouter: KuteLayouter,
   blockRenderer: KuteBlockRenderer,
   drawerRenderer: DebugDrawerRenderer,
   widgetRenderer: KuteWidgetRenderer,

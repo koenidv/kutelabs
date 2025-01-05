@@ -37,7 +37,7 @@ export class SizeProps {
     )
   }
 
-  static get zero() {
+  static get zero() {
     return new SizeProps([], [])
   }
 
@@ -49,10 +49,7 @@ export class SizeProps {
     this.widths.push({ prop, value })
   }
 
-  byProp<T extends HeightProp | WidthProp>(
-    list: { prop: T; value: number }[],
-    prop: T
-  ) {
+  byProp<T extends HeightProp | WidthProp>(list: { prop: T; value: number }[], prop: T) {
     return list.filter(h => h.prop == prop).map(h => h.value)
   }
 
@@ -67,9 +64,7 @@ export class SizeProps {
     return this.heads.reduce((acc, h) => acc + h, 0)
   }
   get bodiesAndIntermediates(): { prop: HeightProp; value: number }[] {
-    return this.heights.filter(
-      h => h.prop == HeightProp.Body || h.prop == HeightProp.Intermediate
-    )
+    return this.heights.filter(h => h.prop == HeightProp.Body || h.prop == HeightProp.Intermediate)
   }
   get tails(): number[] {
     return this.byProp(this.heights, HeightProp.Tail)
@@ -77,5 +72,12 @@ export class SizeProps {
 
   get fullWidth() {
     return this.widths.reduce((acc, w) => acc + w.value, 0)
+  }
+
+  get leftWidth() {
+    return this.byProp(this.widths, WidthProp.Left).reduce((acc, w) => acc + w, 0)
+  }
+  get rightWidth() {
+    return this.byProp(this.widths, WidthProp.Right).reduce((acc, w) => acc + w, 0)
   }
 }
