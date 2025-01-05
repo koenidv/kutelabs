@@ -1,6 +1,7 @@
 import { Block, type AnyBlock } from "../blocks/Block"
 import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
+import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { Connector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
@@ -122,6 +123,9 @@ function normalizeBlockData(
       ;(data as BlockDataByType<BlockType.VarInit>).mutable =
         (data as BlockDataByType<BlockType.VarInit>).mutable ?? true
       break
+    case BlockType.LogicNot:
+      // set type to boolean for compatibility with values
+      (data as any).type = DataType.Boolean
   }
   return data
 }

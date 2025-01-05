@@ -39,7 +39,7 @@ export abstract class BaseCompiler {
     props?: InternalCompilationProps
   ): string {
     if (block == null) return ""
-    if (![BlockType.Value, BlockType.Variable, BlockType.Function].includes(block.type)) {
+    if (![BlockType.Value, BlockType.Variable, BlockType.Function, BlockType.LogicNot].includes(block.type)) {
       return this.applyBlockMeta(
         block as Block<BlockType>,
         (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
@@ -87,6 +87,8 @@ export abstract class BaseCompiler {
         return this.compileLoop(block as Block<BlockType.Loop>, compileNext, props)
       case BlockType.Conditional:
         return this.compileConditional(block as Block<BlockType.Conditional>, compileNext, props)
+      case BlockType.LogicNot:
+        return this.compileLogicNot(block as Block<BlockType.LogicNot>, compileNext, props)
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -166,6 +168,12 @@ export abstract class BaseCompiler {
   /** Compiles a **conditional** block @param block Conditional block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileConditional(
     block: Block<BlockType.Conditional>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **logic not** block @param block Logic Not block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileLogicNot(
+    block: Block<BlockType.LogicNot>,
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string

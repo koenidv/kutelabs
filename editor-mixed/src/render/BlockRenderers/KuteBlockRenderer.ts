@@ -138,6 +138,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         return "#DBC0FF"
       case BlockType.Variable:
         return "#FFA1BF"
+      case BlockType.LogicNot:
+        return "#1B79DD"
       default:
         return "#ffffff"
     }
@@ -214,6 +216,12 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       )
     else
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
+  }
+
+  protected override renderContentLogicNot(_: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
+    return svg`
+      <text x="5" y="20" fill="white" style="user-select: none;">not</text>
+    `
   }
 
   protected renderEditableCode(

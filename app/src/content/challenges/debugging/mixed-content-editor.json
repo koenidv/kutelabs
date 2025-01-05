@@ -200,6 +200,9 @@
       },
       {
         "type": "loop"
+      },
+      {
+        "type": "logic_not"
       }
     ]
   }

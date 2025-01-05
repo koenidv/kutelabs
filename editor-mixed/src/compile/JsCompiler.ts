@@ -112,6 +112,10 @@ export class JsCompiler extends BaseCompiler {
     return compiled + `\n${next(block.after)}`
   }
 
+  compileLogicNot(block: Block<BlockType.LogicNot>, next: typeof this.compile): string {
+    return `!(${next(block.conditional)})`
+  }
+
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }

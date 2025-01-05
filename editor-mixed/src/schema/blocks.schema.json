@@ -45,6 +45,9 @@
         },
         {
           "$ref": "#/$defs/LoopBlock"
+        },
+        {
+          "$ref": "#/$defs/LogicNotBlock"
         }
       ]
     },
@@ -604,6 +607,33 @@
                 "enum": [
                   "inner",
                   "input"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicNotBlock": {
+      "type": "object",
+      "description": "\"Not\" Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Not block",
+          "type": "string",
+          "const": "logic_not"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditional"
                 ]
               }
             }

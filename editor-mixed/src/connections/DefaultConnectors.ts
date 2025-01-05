@@ -41,6 +41,8 @@ export class DefaultConnectors {
       case BlockType.Value:
       case BlockType.Variable:
         return [DefaultConnectors.extender()]
+      case BlockType.LogicNot: 
+        return [DefaultConnectors.extender(), DefaultConnectors.conditionalExtension()]
       default:
         return []
     }

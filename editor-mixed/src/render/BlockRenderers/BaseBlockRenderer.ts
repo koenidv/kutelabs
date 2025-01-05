@@ -159,6 +159,8 @@ export abstract class BaseBlockRenderer {
         return this.renderContentConditional(
           registered as RegisteredBlock<BlockType.Conditional, any>
         )
+      case BlockType.LogicNot:
+        return this.renderContentLogicNot(registered as RegisteredBlock<BlockType.LogicNot, any>)
       default:
         console.error("No content renderer for block type", registered.block.type)
         return this.renderDefaultContent(registered)
@@ -295,6 +297,10 @@ export abstract class BaseBlockRenderer {
   protected renderContentConditional(
     registered: RegisteredBlock<BlockType.Conditional, any>
   ): SvgResult {
+    return this.renderDefaultContent(registered)
+  }
+
+  protected renderContentLogicNot(registered: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
     return this.renderDefaultContent(registered)
   }
 
