@@ -165,7 +165,7 @@ export class RectBuilder {
 
     //base start
     path.push(
-      `L ${nook.position.x - base.x / 2 - baseRadius.x * 2} ${nook.position.y - base.y / 2 - baseRadius.y * 2}`
+      `L ${nook.position.x - base.x / 2 - baseRadius.x} ${nook.position.y - base.y / 2 - baseRadius.y}`
     )
     if (baseRadius) {
       this.drawQuadratic(

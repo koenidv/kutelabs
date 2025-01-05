@@ -1,6 +1,6 @@
 import { html, svg, type TemplateResult } from "lit"
 import { BlockType } from "../../blocks/configuration/BlockType"
-import type { Connector } from "../../connections/Connector"
+import { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockRenderer, BlockMarking, type SvgResult } from "./BaseBlockRenderer"
@@ -9,6 +9,9 @@ import { ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 import { RectBuilder } from "../../svg/RectBuilder"
+import { HeightProp, type SizeProps } from "../SizeProps"
+import type { AnyBlock } from "../../blocks/Block"
+import { ConnectorRole } from "../../connections/ConnectorRole"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected renderContainer({
@@ -17,35 +20,119 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     globalPosition,
     marking,
   }: AnyRegisteredBlock): SvgResult {
-    let heightOffset = 0
-
-    const strokeColor =
-      marking == BlockMarking.Executing
-        ? "#ae78fe"
-        : marking == BlockMarking.Error
-          ? "#FA003F"
-          : "#303030"
-    const strokeWidth = marking != null ? 3 : 1
-
     const rectangle = new RectBuilder({
       width: size.fullWidth,
       height: size.fullHeight,
       radius: 8,
     })
-    .addToTop({ width: 10, length: 5, mode: "inward", pointing: "vertical", pointRadius: 3, baseRadius: 2 }, size.fullWidth / 5)
-    .addToRight({ width: size.fullHeight / 3, depth: 60, openRadius: 6, innerRadius: 4 }, size.fullHeight / 3)
-    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 3, baseRadius: 2 }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
-    .addToBottom({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 2, baseRadius: 2 }, size.fullWidth / 5)
-    .addToLeft({ width: 10, length: 6, mode: "outward", pointing: "horizontal", pointRadius: 4, baseRadius: 4 }, size.fullHeight / 3)
-    .addToLeft({ width: 10, length: 5, mode: "inward", pointing: "horizontal", pointRadius: 2, baseRadius: 2 }, size.fullHeight / 3 * 2)
+
+    this.addContainerInsets(rectangle, size)
+    this.addContainerNooks(rectangle, size, globalPosition, block.connectors.all)
 
     const path = rectangle.generatePath()
+    const stroke = this.determineContainerStroke(marking)
 
     return svg`
-      <path fill="#40ff4040" stroke=${strokeColor} stroke-width=${strokeWidth} d=${path}></path>
+      <path fill=${this.determineContainerFill(block)} stroke=${stroke.color} stroke-width=${stroke.width} d=${path}></path>
     `
+  }
 
-    return []
+  private addContainerInsets(rectangle: RectBuilder, size: SizeProps): void {
+    const innerHeights = size.bodiesAndIntermediates
+    if (innerHeights.length == 0) return
+    let currentHeight = size.fullHeadHeight
+    innerHeights.forEach(({ prop, value: propHeight }) => {
+      switch (prop) {
+        case HeightProp.Body:
+          rectangle.addToRight(
+            {
+              width: propHeight,
+              depth: (size.fullWidth / 4) * 3 /* todo left/right width in layouter */,
+              openRadius: 8,
+              innerRadius: 8,
+            },
+            currentHeight
+          )
+          currentHeight += propHeight
+          break
+        case HeightProp.Intermediate:
+          currentHeight += propHeight
+          break
+      }
+    })
+  }
+
+  private addContainerNooks(
+    rectangle: RectBuilder,
+    size: SizeProps,
+    blockPosition: Coordinates,
+    connectors: Connector[]
+  ): void {
+    if (connectors.length == 0) return
+
+    connectors.forEach(connector => {
+      if (connector.type == ConnectorType.Internal) return
+      let xOffset = 0
+      if ([ConnectorType.Before, ConnectorType.After, ConnectorType.Inner].includes(connector.type))
+        if (!(ConnectorType.Before == connector.type && ConnectorRole.Input == connector.role))
+          xOffset = 14 /* todo move connector in layouter*/
+
+      const inward =
+        (connector.type == ConnectorType.Before && connector.role != ConnectorRole.Input) ||
+        connector.role == ConnectorRole.Output ||
+        connector.type == ConnectorType.Extension
+
+      const horizontal =
+        [ConnectorRole.Input, ConnectorRole.Output, ConnectorRole.Conditional].includes(
+          connector.role
+        ) && ConnectorType.Inner != connector.type
+
+      rectangle.add(
+        {
+          width: 10,
+          length: 5,
+          mode: inward ? "inward" : "outward",
+          pointing: horizontal ? "horizontal" : "vertical",
+          pointRadius: 3,
+          baseRadius: 2,
+        },
+        {
+          x: connector.globalPosition.x - blockPosition.x + xOffset,
+          y: connector.globalPosition.y - blockPosition.y,
+        }
+      )
+    })
+  }
+
+  private determineContainerFill(block: AnyBlock): string {
+    switch (block.type) {
+      case BlockType.Function:
+        return "#FFD166"
+      case BlockType.Expression:
+      case BlockType.VarInit:
+      case BlockType.VarSet:
+        return "#1AD9FF"
+      case BlockType.Conditional:
+      case BlockType.Loop:
+        return "#06D6A0"
+      case BlockType.Value:
+        return "#DBC0FF"
+      case BlockType.Variable:
+        return "#FFA1BF"
+      default:
+        return "#ffffff"
+    }
+  }
+
+  private determineContainerStroke(marking: BlockMarking | null): { color: string; width: number } {
+    switch (marking) {
+      case BlockMarking.Executing:
+        return { color: "#355F3B", width: 3 }
+      case BlockMarking.Error:
+        return { color: "#FA003F", width: 3 }
+      default:
+        return { color: "#303030", width: 1 }
+    }
   }
 
   protected renderDefaultContent({ block, size }: AnyRegisteredBlock): SvgResult {
