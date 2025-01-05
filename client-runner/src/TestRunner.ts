@@ -43,6 +43,7 @@ export class TestRunner {
     message: string
   ) => void = console.error
   private readonly onBlockError: (blockId: string, message: string) => void = console.error
+  private readonly onFinished: (() => void) | undefined
 
   private readonly executor: Executor
 
@@ -56,13 +57,15 @@ export class TestRunner {
     onResult: typeof this.onFinalTestResult,
     onLog?: typeof this.onLog,
     onGeneralError?: typeof this.onGeneralError,
-    onBlockError?: typeof this.onBlockError
+    onBlockError?: typeof this.onBlockError,
+    onFinished?: () => void
   ) {
     this.testSuite = testSuite
     this.onFinalTestResult = onResult
     if (onLog) this.onLog = onLog
     if (onGeneralError) this.onGeneralError = onGeneralError
     if (onBlockError) this.onBlockError = onBlockError
+    if (onFinished) this.onFinished = onFinished
 
     this.executor = new Executor(
       this.onResult.bind(this),
@@ -153,6 +156,7 @@ export class TestRunner {
   private onResult(args: Args, result: any): void {
     this.firstCallFinished = true
     this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
+    if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
   }
 
   /**
@@ -198,6 +202,7 @@ export class TestRunner {
     Object.entries(this.pivotTests).forEach(([testId, _]) => {
       this.onFinalTestResult(testId, TestResult.Failed, message)
     })
+    this.onFinished?.()
   }
 
   /**
@@ -216,6 +221,7 @@ export class TestRunner {
     if (this.pivotTests[id].args.length === 0) {
       delete this.pivotTests[id]
       this.onFinalTestResult(id, passed, message)
+      if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
     } else {
       console.log(`test ${id}(${args}): ${this.pivotTests[id].args.length} argsets remaining`)
     }

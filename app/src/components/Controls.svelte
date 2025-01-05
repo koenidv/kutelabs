@@ -13,6 +13,7 @@
 
   const execution = new ExecutionWrapper(tests, environment)
   const speed = execution.speed
+  const executionRunning = execution.running
 
   onMount(() => {
     // set default on client only to prevent ssr flash
@@ -22,12 +23,18 @@
 
 <div class="flex flex-col gap-4 py-4 justify-between">
   <div class="flex flex-row lg:flex-col gap-4 items-center">
+    {#if !$executionRunning}
     <button
-      onclick={execution.run.bind(execution)}
-      class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button>
+    onclick={execution.run.bind(execution)}
+    class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button>
+    {:else}
+    <button
+    onclick={execution.stop.bind(execution)}
+    class="bg-rose-400 rounded-full w-20 h-20 hover:bg-red-500 transition-colors">Stop</button>
+    {/if}
     <button
       onclick={() => execution.setSpeed("fast")}
-      class={`grouspeedunded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$speed == "fast" ? "border-black" : "border-transparent"}`}>
+      class={`grou w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$speed == "fast" ? "border-black" : "border-transparent"}`}>
       <FastIcon />
     </button>
     <button

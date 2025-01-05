@@ -15,6 +15,7 @@ import { TranspilationStatus } from "@kutelabs/server/src/transpile/Transpilatio
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { findBlockByLine } from "@kutelabs/shared/src"
+import { atom } from "nanostores"
 
 const executionDelay = {
   fast: 250,
@@ -23,8 +24,10 @@ const executionDelay = {
 }
 
 export class ExecutionWrapper {
-  testRunner: SandboxTestRunner
-  environment: Challenge["environment"]
+  private testRunner: SandboxTestRunner
+  private environment: Challenge["environment"]
+
+  public running = atom(false)
 
   constructor(tests: Challenge["tests"], environment: Challenge["environment"]) {
     this.testRunner = new SandboxTestRunner(
@@ -32,10 +35,14 @@ export class ExecutionWrapper {
       setTestResult,
       addLog,
       (type, message) => {
+        this.running.set(false)
         addLog([message], "error")
         console.error("General error from test runner", type, message)
       },
-      this.onBlockError.bind(this)
+      this.onBlockError.bind(this),
+      () => {
+        this.running.set(false)
+      }
     )
     this.environment = environment
   }
@@ -104,11 +111,12 @@ export class ExecutionWrapper {
         entrypoint: compiled.entrypoint,
         callbacks: callbacks,
         executionDelay: executionDelay[this.speed.get()],
-        timeout: 5000,
+        timeout: 1000,
       })
       ?.then(_result => {
         editor.onExecutionFinished()
       })
+    this.running.set(true)
   }
 
   /**
@@ -142,11 +150,12 @@ export class ExecutionWrapper {
         entrypoint: `transpiled.${compiled.entrypoint}`,
         callbacks: callbacks,
         executionDelay: executionDelay[this.speed.get()],
-        timeout: 5000,
+        timeout: 1000,
       })
       ?.then(_result => {
         editor.onExecutionFinished()
       })
+    this.running.set(true)
   }
 
   public printJs() {
@@ -163,8 +172,14 @@ export class ExecutionWrapper {
     console.log(compiled.code)
   }
 
+  public stop() {
+    // todo stop executor
+    console.error("Stopping execution is not yet implemented")
+  }
+
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
     try {
+      this.running.set(false)
       if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
       const editor = editorRef.get()
       if (!editor) throw new Error("Editor not found")
