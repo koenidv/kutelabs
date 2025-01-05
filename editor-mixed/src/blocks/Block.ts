@@ -10,7 +10,7 @@ import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
-import { clone1d } from "../util/ObjectUtils"
+import { clone1d, deepClone } from "../util/ObjectUtils"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
@@ -254,7 +254,7 @@ export class Block<T extends BlockType, S = never>
     // new blocks register themselves
     return new Block(
       this.type,
-      structuredClone(this._data),
+      deepClone(this._data),
       this.connectors.all.map(connector => ({
         connector: new Connector(
           connector.type,
