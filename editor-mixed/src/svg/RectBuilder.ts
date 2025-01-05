@@ -8,7 +8,7 @@ export interface Nook {
   length: number
   mode: "inward" | "outward"
   pointing: "horizontal" | "vertical"
-  pointQuadratic?: number
+  pointRadius?: number
   baseRadius?: number
 }
 
@@ -78,7 +78,8 @@ export class RectBuilder {
     this.drawCorner(path, { x: cornerRadius, y: 0 }, cornerRadius)
 
     path.push("Z")
-    if (this.features.length > 0) console.warn("RectBuilder: not all features were placed")
+    if (this.features.length > 0)
+      console.warn("RectBuilder: not all features were placed", this.features)
     return path.join(" ")
   }
 
@@ -120,57 +121,92 @@ export class RectBuilder {
     path.push(`L ${to.x} ${to.y}`)
   }
 
+  /**
+   * Add a nook to the path, inward or outward, vertical or horizontal
+   * @param path svg path elements to append nook to
+   * @param nook nook to draw
+   * @param transform transform matrix of the edge (1,1 for →↓, -1,-1 for ←↑, etc)
+   */
   private drawNook(path: string[], nook: Nook & { position: Point }, transform: Point) {
+    if ((nook.pointRadius ?? 0) > nook.width)
+      console.warn("Nook point radius should not be larger than its width")
+
     const modeFactor = nook.mode === "outward" ? -1 : 1
-    const baseRadius = nook.baseRadius ?? 0
-    const pointRadius = nook.pointQuadratic ?? 0
-    if (nook.pointing === "vertical") {
-      //base start
-      path.push(`L ${nook.position.x - (transform.y * nook.width) / 2} ${nook.position.y}`)
+    const vertical = nook.pointing === "vertical"
 
-      //point
-      path.push(
-        `l ${transform.x * (nook.width / 2 - pointRadius)} ${transform.y * modeFactor * (nook.length - pointRadius)}`
+    const baseRadius = {
+      x: vertical && nook.baseRadius ? nook.baseRadius * transform.x : 0,
+      y: !vertical && nook.baseRadius ? nook.baseRadius * transform.y : 0,
+    }
+
+    const pointRadius = {
+      x: vertical && nook.pointRadius ? nook.pointRadius * transform.x : 0,
+      y: !vertical && nook.pointRadius ? nook.pointRadius * transform.y : 0,
+    }
+
+    const hypo = {
+      x: (vertical ? nook.width / 2 : nook.length * -modeFactor) * transform.x,
+      y: (vertical ? nook.length * modeFactor : nook.width / 2) * transform.y,
+    }
+    const hypoLength = Math.sqrt(hypo.x ** 2 + hypo.y ** 2)
+    const hypoReverseMatrix = { x: vertical ? 1 : -1, y: vertical ? -1 : 1 }
+
+    const base = {
+      x: (vertical ? nook.width : 0) * transform.x,
+      y: (vertical ? 0 : nook.width) * transform.y,
+    }
+
+    const baseHeightFactor = Math.abs((baseRadius.x || baseRadius.y) / hypoLength)
+    const pointHeightFactor = Math.abs((pointRadius.x || pointRadius.y) / hypoLength)
+
+    //base start
+    path.push(
+      `L ${nook.position.x - base.x / 2 - baseRadius.x * 2} ${nook.position.y - base.y / 2 - baseRadius.y * 2}`
+    )
+    if (baseRadius) {
+      this.drawQuadratic(
+        path,
+        {
+          x: baseRadius.x + baseHeightFactor * hypo.x,
+          y: baseRadius.y + baseHeightFactor * hypo.y,
+        },
+        { x: baseRadius.x, y: baseRadius.y },
+        { relative: true }
       )
-      if (pointRadius) {
-        this.drawQuadratic(
-          path,
-          {
-            x: 2 * pointRadius * transform.x,
-            y: 0,
-          },
-          { x: pointRadius * transform.x, y: pointRadius * transform.y * modeFactor },
-          { relative: true }
-        )
-      }
+    }
 
-      //base end
-      path.push(
-        `l ${transform.y * (nook.width / 2 - pointRadius)} ${transform.x * modeFactor * -(nook.length - pointRadius)}`
+    //point
+    path.push(
+      `l ${hypo.x - (baseHeightFactor + pointHeightFactor) * hypo.x} ${hypo.y - (baseHeightFactor + pointHeightFactor) * hypo.y}`
+    )
+    if (pointRadius) {
+      this.drawQuadratic(
+        path,
+        {
+          x: pointHeightFactor * (hypo.x + hypo.x * hypoReverseMatrix.x),
+          y: pointHeightFactor * (hypo.y + hypo.y * hypoReverseMatrix.y),
+        },
+        { x: pointHeightFactor * hypo.x, y: pointHeightFactor * hypo.y },
+        { relative: true }
       )
-    } else {
-      //base start
-      path.push(`L ${nook.position.x} ${nook.position.y - (transform.x * nook.length) / 2}`)
+    }
 
-      //point
-      path.push(
-        `l ${transform.y * modeFactor * -(nook.length - pointRadius)} ${transform.x * (nook.width / 2 - pointRadius)}`
-      )
-      if (pointRadius) {
-        this.drawQuadratic(
-          path,
-          {
-            x: 0,
-            y: 2 * pointRadius * transform.x,
-          },
-          { x: -pointRadius * transform.y * modeFactor, y: pointRadius * transform.x },
-          { relative: true }
-        )
-      }
-
-      //base
-      path.push(
-        `l ${transform.y * modeFactor * (nook.length - pointRadius)} ${transform.x * (nook.width / 2 - pointRadius)}`
+    //base end
+    path.push(
+      `l ${(hypo.x - (baseHeightFactor + pointHeightFactor) * hypo.x) * hypoReverseMatrix.x} ${(hypo.y - (baseHeightFactor + pointHeightFactor) * hypo.y) * hypoReverseMatrix.y}`
+    )
+    if (baseRadius) {
+      this.drawQuadratic(
+        path,
+        {
+          x: (baseRadius.x + baseHeightFactor * hypo.x) * hypoReverseMatrix.x,
+          y: (baseRadius.y + baseHeightFactor * hypo.y) * hypoReverseMatrix.y,
+        },
+        {
+          x: baseHeightFactor * hypo.x * hypoReverseMatrix.x,
+          y: baseHeightFactor * hypo.y * hypoReverseMatrix.y,
+        },
+        { relative: true }
       )
     }
   }
@@ -189,14 +225,9 @@ export class RectBuilder {
     this.drawEdge(path, position2, position3)
   }
 
-  private consumeOnLine(from: Point, to: Point) {
-    const onLine: ((Nook | Inset) & { position: Point })[] = []
-    ;[...this.features].forEach((feature, index) => {
-      if (this.isPointOnLine(from, to, feature.position)) {
-        onLine.push(feature)
-        this.features.splice(index, 1)
-      }
-    })
+  private consumeOnLine(from: Point, to: Point): ((Nook | Inset) & { position: Point })[] {
+    const onLine = this.features.filter(feature => this.isPointOnLine(from, to, feature.position))
+    this.features = this.features.filter(feature => !onLine.includes(feature))
     return onLine.sort((a, b) => {
       // all points share a line, sort along line
       return this.getDistance(from, a.position) - this.getDistance(from, b.position)

@@ -3,7 +3,6 @@ import { BlockType } from "../../blocks/configuration/BlockType"
 import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
-import { HeightProp } from "../SizeProps"
 import { BaseBlockRenderer, BlockMarking, type SvgResult } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
@@ -31,20 +30,14 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     const rectangle = new RectBuilder({
       width: size.fullWidth,
       height: size.fullHeight,
-      radius: 10,
-      // insets: [
-      //   {
-      //     position: { x: size.fullWidth, y: size.fullHeight / 4 },
-      //     width: size.fullHeight / 2,
-      //     depth: 10,
-      //   },
-      // ],
+      radius: 8,
     })
-    .addToTop({ width: 10, length: 5, mode: "inward", pointing: "vertical", pointQuadratic: 3 }, size.fullWidth / 5)
+    .addToTop({ width: 10, length: 5, mode: "inward", pointing: "vertical", pointRadius: 3, baseRadius: 2 }, size.fullWidth / 5)
     .addToRight({ width: size.fullHeight / 3, depth: 60 }, size.fullHeight / 3)
-    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointQuadratic: 3 }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
-    .addToBottom({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointQuadratic: 4 }, size.fullWidth / 5)
-    .addToLeft({ width: 10, length: 5, mode: "outward", pointing: "horizontal", pointQuadratic: 2 }, size.fullHeight / 3)
+    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 3 }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
+    .addToBottom({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 2, baseRadius: 2 }, size.fullWidth / 5)
+    .addToLeft({ width: 10, length: 6, mode: "outward", pointing: "horizontal", pointRadius: 4, baseRadius: 4 }, size.fullHeight / 3)
+    .addToLeft({ width: 10, length: 5, mode: "inward", pointing: "horizontal", pointRadius: 2, baseRadius: 2 }, size.fullHeight / 3 * 2)
 
     const path = rectangle.generatePath()
 
