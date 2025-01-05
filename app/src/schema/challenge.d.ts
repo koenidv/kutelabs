@@ -82,6 +82,7 @@ export type AnyBlock =
   | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
+  | LoopBlock
 /**
  * Connector on this block
  */
@@ -119,6 +120,7 @@ export type AnyBlockSingle =
   | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
+  | LoopBlock
 
 /**
  * A challenge along the kutelabs learning journey
@@ -372,6 +374,20 @@ export interface ConditionalBlock {
   elsebranch?: boolean
   connectedBlocks?: {
     on: "conditional" | "ifTrue" | "ifFalse" | "after"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Loop Block
+ */
+export interface LoopBlock {
+  /**
+   * Defines this block as a loop block
+   */
+  type: "loop"
+  connectedBlocks?: {
+    on?: "inner" | "input"
     [k: string]: unknown
   }[]
   [k: string]: unknown

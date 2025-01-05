@@ -42,6 +42,9 @@
         },
         {
           "$ref": "#/$defs/ConditionalBlock"
+        },
+        {
+          "$ref": "#/$defs/LoopBlock"
         }
       ]
     },
@@ -576,6 +579,34 @@
               "on",
               "type"
             ]
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LoopBlock": {
+      "type": "object",
+      "description": "Loop Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a loop block",
+          "type": "string",
+          "const": "loop"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "inner",
+                  "input"
+                ]
+              }
+            }
           }
         }
       },

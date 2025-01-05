@@ -36,7 +36,8 @@ export class KtCompiler extends BaseCompiler {
     props = {
       ...props,
       resolveFunction:
-        block.output?.let(it => this.markBlock(it.id) + this.wrapDelay(`resolve(${next(it)});`)) ?? "resolve(Unit);",
+        block.output?.let(it => this.markBlock(it.id) + this.wrapDelay(`resolve(${next(it)});`)) ??
+        "resolve(Unit);",
     }
     const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
 
@@ -104,7 +105,8 @@ export class KtCompiler extends BaseCompiler {
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
     return `while (${next(block.conditional)}) {
-      ${next(block.inners[0])}
+      ${this.markBlock(block.id)}
+      ${this.wrapDelay(next(block.inners[0]))}
     }`
   }
 

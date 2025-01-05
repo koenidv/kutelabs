@@ -89,7 +89,8 @@ export class JsCompiler extends BaseCompiler {
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
     return `while (${next(block.conditional)}) {
-      ${next(block.inners[0])}
+    ${this.markBlock(block.id)}
+    ${this.wrapDelay(next(block.inners[0]))}
     }`
   }
 

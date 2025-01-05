@@ -157,7 +157,7 @@ export abstract class BaseCompiler {
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string
-  /** Compiles a **loop** block @param block Loop block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  /** Compiles a **loop** block. Function blocks must handle their own block meta. @param block Loop block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileLoop(
     block: Block<BlockType.Loop>,
     next: typeof this.compile,

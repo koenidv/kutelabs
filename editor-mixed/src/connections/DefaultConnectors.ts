@@ -32,6 +32,12 @@ export class DefaultConnectors {
           DefaultConnectors.conditionalExtension(),
           DefaultConnectors.conditionalTrue(),
         ]
+      case BlockType.Loop:
+        return [
+          ...this.beforeAfter(),
+          DefaultConnectors.inner(),
+          DefaultConnectors.conditionalExtension(),
+        ]
       case BlockType.Value:
       case BlockType.Variable:
         return [DefaultConnectors.extender()]
@@ -117,11 +123,15 @@ export class DefaultConnectors {
 
   static conditionalExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Conditional, [
-      remote =>
-        remote.type === ConnectorType.Before &&
-        remote.parentBlock?.data != null &&
-        "type" in remote.parentBlock?.data &&
-        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
+      remote => {
+        const allowed =
+          remote.type === ConnectorType.Before &&
+          remote.parentBlock?.data != null &&
+          "type" in remote.parentBlock?.data &&
+          (remote.parentBlock?.data.type as unknown) === DataType.Boolean
+        console.log("conditional", allowed)
+        return allowed
+      },
     ])
   }
 
@@ -146,6 +156,12 @@ export class DefaultConnectors {
   static extender() {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
       remote => remote.role === ConnectorRole.Input && remote.type !== ConnectorType.Before,
+      (remote, local) =>
+        local.parentBlock?.data != null &&
+        "type" in local.parentBlock.data &&
+        local.parentBlock.data.type == DataType.Boolean &&
+        remote.role === ConnectorRole.Conditional &&
+        remote.type !== ConnectorType.Before,
     ])
   }
 

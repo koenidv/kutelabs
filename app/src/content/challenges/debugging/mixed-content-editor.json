@@ -197,6 +197,9 @@
           },
           "expression": "Custom"
         }
+      },
+      {
+        "type": "loop"
       }
     ]
   }
