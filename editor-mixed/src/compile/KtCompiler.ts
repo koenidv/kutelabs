@@ -5,6 +5,7 @@ import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
+import { LogicJunctionMode } from "../blocks/configuration/BlockData"
 
 export class KtCompiler extends BaseCompiler {
   declareImports(callbacks: SandboxCallbacks): string {
@@ -130,6 +131,12 @@ export class KtCompiler extends BaseCompiler {
 
   compileLogicNot(block: Block<BlockType.LogicNot>, next: typeof this.compile): string {
     return `!(${next(block.conditional)})`
+  }
+
+  compileLogicJunction(block: Block<BlockType.LogicJunction>, next: typeof this.compile): string {
+    const operator = block.data.mode == LogicJunctionMode.And ? "&&" : "||"
+    const inputs = block.inputs.map(it => it == null ? "false" : next(it)).join(` ${operator} `)
+    return `(${inputs})`
   }
 
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {

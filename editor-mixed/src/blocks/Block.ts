@@ -175,6 +175,7 @@ export class Block<T extends BlockType, S = never>
   get inputs() {
     return this.connectors
       .byRole(ConnectorRole.Input)
+      .filter(connector => connector.isDownstram)
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 

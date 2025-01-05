@@ -39,7 +39,7 @@ export abstract class BaseCompiler {
     props?: InternalCompilationProps
   ): string {
     if (block == null) return ""
-    if (![BlockType.Value, BlockType.Variable, BlockType.Function, BlockType.LogicNot].includes(block.type)) {
+    if (![BlockType.Value, BlockType.Variable, BlockType.Function, BlockType.LogicNot, BlockType.LogicJunction].includes(block.type)) {
       return this.applyBlockMeta(
         block as Block<BlockType>,
         (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
@@ -89,6 +89,8 @@ export abstract class BaseCompiler {
         return this.compileConditional(block as Block<BlockType.Conditional>, compileNext, props)
       case BlockType.LogicNot:
         return this.compileLogicNot(block as Block<BlockType.LogicNot>, compileNext, props)
+      case BlockType.LogicJunction:
+        return this.compileLogicJunction(block as Block<BlockType.LogicJunction>, compileNext, props)
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -174,6 +176,12 @@ export abstract class BaseCompiler {
   /** Compiles a **logic not** block @param block Logic Not block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileLogicNot(
     block: Block<BlockType.LogicNot>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **logic junction** block @param block Logic Junction block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileLogicJunction(
+    block: Block<BlockType.LogicJunction>,
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string

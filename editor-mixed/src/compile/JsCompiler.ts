@@ -1,4 +1,5 @@
 import type { Block } from "../blocks/Block"
+import { LogicJunctionMode } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
@@ -114,6 +115,12 @@ export class JsCompiler extends BaseCompiler {
 
   compileLogicNot(block: Block<BlockType.LogicNot>, next: typeof this.compile): string {
     return `!(${next(block.conditional)})`
+  }
+
+  compileLogicJunction(block: Block<BlockType.LogicJunction>, next: typeof this.compile): string {
+    const operator = block.data.mode == LogicJunctionMode.And ? "&&" : "||"
+    const inputs = block.inputs.map(it => it == null ? "false" : next(it)).join(` ${operator} `)
+    return `(${inputs})`
   }
 
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {

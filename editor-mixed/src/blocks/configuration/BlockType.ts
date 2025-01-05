@@ -9,4 +9,5 @@ export enum BlockType {
   Loop = "loop",
   Conditional = "conditional",
   LogicNot = "logic_not",
+  LogicJunction = "logic_junction",
 }

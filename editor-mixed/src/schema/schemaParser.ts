@@ -1,5 +1,9 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
+import {
+  LogicJunctionMode,
+  type BlockDataByType,
+  type BlockDataExpression,
+} from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
@@ -124,8 +128,14 @@ function normalizeBlockData(
         (data as BlockDataByType<BlockType.VarInit>).mutable ?? true
       break
     case BlockType.LogicNot:
+    case BlockType.LogicJunction:
       // set type to boolean for compatibility with values
-      (data as any).type = DataType.Boolean
+      ;(data as any).type = DataType.Boolean
+      if (type == BlockType.LogicJunction) {
+        // default mode for junction
+        ;(data as BlockDataByType<BlockType.LogicJunction>).mode =
+          (data as any).mode ?? LogicJunctionMode.And
+      }
   }
   return data
 }
@@ -171,23 +181,25 @@ function mergeConnectors(
   incoming: { connector: Connector; connected?: AnyBlock | undefined }[],
   existing: Connector[]
 ): { connector: Connector; connected?: AnyBlock | undefined }[] {
+  const combined = [...incoming]
   existing.forEach(connector => {
-    if (
-      !incoming.find(
-        it => it.connector.type === connector.type && it.connector.role === connector.role
-      )
-    ) {
-      incoming.unshift({ connector, connected: undefined })
+    const matchingIncomingIndex = incoming.findIndex(
+      it => it.connector.type === connector.type && it.connector.role === connector.role
+    )
+    if (matchingIncomingIndex == -1) {
+      combined.unshift({ connector, connected: undefined })
+    } else {
+      incoming.splice(matchingIncomingIndex, 1)
     }
   })
 
   const typeOrder = Object.values(ConnectorType)
   const roleOrder = Object.values(ConnectorRole)
-  incoming.sort((a, b) => {
+  combined.sort((a, b) => {
     const typeComparison = typeOrder.indexOf(a.connector.type) - typeOrder.indexOf(b.connector.type)
     if (typeComparison !== 0) return typeComparison
     return roleOrder.indexOf(a.connector.role) - roleOrder.indexOf(b.connector.role)
   })
 
-  return incoming
+  return combined
 }

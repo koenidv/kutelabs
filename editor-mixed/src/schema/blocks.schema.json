@@ -48,6 +48,9 @@
         },
         {
           "$ref": "#/$defs/LogicNotBlock"
+        },
+        {
+          "$ref": "#/$defs/LogicJunctionBlock"
         }
       ]
     },
@@ -625,6 +628,50 @@
           "description": "Defines this block as a Logic Not block",
           "type": "string",
           "const": "logic_not"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditional"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicJunctionBlock": {
+      "type": "object",
+      "description": "Junction Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Junction block",
+          "type": "string",
+          "const": "logic_junction"
+        },
+        "data": {
+          "description": "Junction Logic Block Data",
+          "type": "object",
+          "properties": {
+            "type": {
+              "description": "Mode of junction",
+              "type": "string",
+              "enum": [
+                "and",
+                "or"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
         },
         "connectedBlocks": {
           "type": "array",

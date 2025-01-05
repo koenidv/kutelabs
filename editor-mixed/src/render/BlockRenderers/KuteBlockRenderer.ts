@@ -12,6 +12,7 @@ import { RectBuilder } from "../../svg/RectBuilder"
 import { HeightProp, type SizeProps } from "../SizeProps"
 import type { AnyBlock } from "../../blocks/Block"
 import { ConnectorRole } from "../../connections/ConnectorRole"
+import { LogicJunctionMode } from "../../blocks/configuration/BlockData"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected renderContainer({
@@ -139,6 +140,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       case BlockType.Variable:
         return "#FFA1BF"
       case BlockType.LogicNot:
+      case BlockType.LogicJunction:
         return "#1B79DD"
       default:
         return "#ffffff"
@@ -221,6 +223,23 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   protected override renderContentLogicNot(_: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
     return svg`
       <text x="5" y="20" fill="white" style="user-select: none;">not</text>
+    `
+  }
+
+  protected override renderContentLogicJunction(
+    registered: RegisteredBlock<BlockType.LogicJunction, any>
+  ): SvgResult {
+    const { size, block, globalPosition } = registered
+    return svg`
+      ${this.renderSelector(
+        registered,
+        new Coordinates(5, 5),
+        new Coordinates(size.fullWidth - 15, 28),
+        globalPosition.plus(0, size.fullHeight),
+        Object.entries(LogicJunctionMode).map(([display, id]) => ({ id, display })),
+        block.data.mode,
+        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode }))
+      )}
     `
   }
 

@@ -161,6 +161,10 @@ export abstract class BaseBlockRenderer {
         )
       case BlockType.LogicNot:
         return this.renderContentLogicNot(registered as RegisteredBlock<BlockType.LogicNot, any>)
+      case BlockType.LogicJunction:
+        return this.renderContentLogicJunction(
+          registered as RegisteredBlock<BlockType.LogicJunction, any>
+        )
       default:
         console.error("No content renderer for block type", registered.block.type)
         return this.renderDefaultContent(registered)
@@ -300,7 +304,15 @@ export abstract class BaseBlockRenderer {
     return this.renderDefaultContent(registered)
   }
 
+  /** Override this to customize how the content of **logic not** blocks is rendered */
   protected renderContentLogicNot(registered: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
+    return this.renderDefaultContent(registered)
+  }
+
+  /** Override this to customize how the content of **logic junction** blocks is rendered */
+  protected renderContentLogicJunction(
+    registered: RegisteredBlock<BlockType.LogicJunction, any>
+  ): SvgResult {
     return this.renderDefaultContent(registered)
   }
 

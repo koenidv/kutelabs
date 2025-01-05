@@ -41,8 +41,14 @@ export class DefaultConnectors {
       case BlockType.Value:
       case BlockType.Variable:
         return [DefaultConnectors.extender()]
-      case BlockType.LogicNot: 
+      case BlockType.LogicNot:
         return [DefaultConnectors.extender(), DefaultConnectors.conditionalExtension()]
+      case BlockType.LogicJunction:
+        return [
+          DefaultConnectors.extender(),
+          DefaultConnectors.conditionalInput(),
+          DefaultConnectors.conditionalInput(),
+        ]
       default:
         return []
     }
@@ -125,15 +131,22 @@ export class DefaultConnectors {
 
   static conditionalExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Conditional, [
-      remote => {
-        const allowed =
-          remote.type === ConnectorType.Before &&
-          remote.parentBlock?.data != null &&
-          "type" in remote.parentBlock?.data &&
-          (remote.parentBlock?.data.type as unknown) === DataType.Boolean
-        console.log("conditional", allowed)
-        return allowed
-      },
+      remote =>
+        remote.type === ConnectorType.Before &&
+        remote.parentBlock?.data != null &&
+        "type" in remote.parentBlock?.data &&
+        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
+    ])
+  }
+
+  /** This input has the same functionality as @see conditionalExtension, but functions as input instead of Conditional role */
+  static conditionalInput() {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
+      remote =>
+        remote.type === ConnectorType.Before &&
+        remote.parentBlock?.data != null &&
+        "type" in remote.parentBlock?.data &&
+        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
     ])
   }
 

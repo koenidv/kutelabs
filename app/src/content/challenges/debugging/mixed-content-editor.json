@@ -203,6 +203,12 @@
       },
       {
         "type": "logic_not"
+      },
+      {
+        "type": "logic_junction",
+        "data": {
+          "type": "and"
+        }
       }
     ]
   }
