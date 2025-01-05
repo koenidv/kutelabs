@@ -25,6 +25,7 @@ export interface Rectangle {
   width: number
   height: number
   radius: number
+  offset?: Point
 }
 
 type AddFeatureType = Omit<Nook, "position"> | Omit<Inset, "position">
@@ -38,19 +39,37 @@ export class RectBuilder {
   }
 
   public addToTop(feature: AddFeatureType, x: number): this {
-    this.features.push({ ...feature, position: { x, y: 0 } })
+    this.features.push({
+      ...feature,
+      position: { x: x + (this.container.offset?.x ?? 0), y: this.container.offset?.y ?? 0 },
+    })
     return this
   }
   public addToRight(feature: AddFeatureType, y: number): this {
-    this.features.push({ ...feature, position: { x: this.container.width, y } })
+    this.features.push({
+      ...feature,
+      position: {
+        x: this.container.width + (this.container.offset?.x ?? 0),
+        y: y + (this.container.offset?.y ?? 0),
+      },
+    })
     return this
   }
   public addToBottom(feature: AddFeatureType, x: number): this {
-    this.features.push({ ...feature, position: { x, y: this.container.height } })
+    this.features.push({
+      ...feature,
+      position: {
+        x: x + (this.container.offset?.x ?? 0),
+        y: this.container.height + (this.container.offset?.y ?? 0),
+      },
+    })
     return this
   }
   public addToLeft(feature: AddFeatureType, y: number): this {
-    this.features.push({ ...feature, position: { x: 0, y } })
+    this.features.push({
+      ...feature,
+      position: { x: this.container.offset?.x ?? 0, y: y + (this.container.offset?.y ?? 0) },
+    })
     return this
   }
   /**
@@ -65,21 +84,38 @@ export class RectBuilder {
 
   generatePath(): string {
     const path: string[] = []
-    const { width, height, radius} = this.container
+    const { width, height, radius } = this.container
+    const offset = this.container.offset ?? { x: 0, y: 0 }
 
-    path.push(`M ${radius} 0`)
+    path.push(`M ${radius + offset.x} ${offset.y}`)
     // top
-    this.drawEdge(path, { x: radius, y: 0 }, { x: width - radius, y: 0 })
-    this.drawCorner(path, { x: width, y: radius }, radius)
+    this.drawEdge(
+      path,
+      { x: radius + offset.x, y: offset.y },
+      { x: width - radius + offset.x, y: offset.y }
+    )
+    this.drawCorner(path, { x: width + offset.x, y: radius + offset.y }, radius)
     // right
-    this.drawEdge(path, { x: width, y: radius }, { x: width, y: height - radius })
-    this.drawCorner(path, { x: width - radius, y: height }, radius)
+    this.drawEdge(
+      path,
+      { x: width + offset.x, y: radius + offset.y },
+      { x: width + offset.x, y: height - radius + offset.y }
+    )
+    this.drawCorner(path, { x: width - radius + offset.x, y: height + offset.y }, radius)
     // bottom
-    this.drawEdge(path, { x: width - radius, y: height }, { x: radius, y: height })
-    this.drawCorner(path, { x: 0, y: height - radius }, radius)
+    this.drawEdge(
+      path,
+      { x: width - radius + offset.x, y: height + offset.y },
+      { x: radius + offset.x, y: height + offset.y }
+    )
+    this.drawCorner(path, { x: offset.x, y: height - radius + offset.y }, radius)
     // left
-    this.drawEdge(path, { x: 0, y: height - radius }, { x: 0, y: radius })
-    this.drawCorner(path, { x: radius, y: 0 }, radius)
+    this.drawEdge(
+      path,
+      { x: offset.x, y: height - radius + offset.y },
+      { x: offset.x, y: radius + offset.y }
+    )
+    this.drawCorner(path, { x: radius + offset.x, y: offset.y }, radius)
 
     path.push("Z")
     if (this.features.length > 0)
@@ -226,13 +262,29 @@ export class RectBuilder {
     path.push(`L ${inset.position.x} ${inset.position.y - openRadius}`)
     this.drawCorner(path, { x: inset.position.x - openRadius, y: inset.position.y }, openRadius)
     let position1 = { x: inset.position.x + transform.x * -inset.depth, y: inset.position.y }
-    this.drawEdge(path, { x: inset.position.x - openRadius, y: inset.position.y }, { x: position1.x + innerRadius, y: inset.position.y })
-    this.drawCorner(path, { x: position1.x, y: position1.y + innerRadius }, innerRadius, { sweep: false })
+    this.drawEdge(
+      path,
+      { x: inset.position.x - openRadius, y: inset.position.y },
+      { x: position1.x + innerRadius, y: inset.position.y }
+    )
+    this.drawCorner(path, { x: position1.x, y: position1.y + innerRadius }, innerRadius, {
+      sweep: false,
+    })
     const position2 = { x: position1.x, y: position1.y + transform.y * inset.width }
-    this.drawEdge(path, {x: position1.x, y: position1.y+innerRadius}, {x: position2.x, y: position2.y - innerRadius})
-    this.drawCorner(path, { x: position2.x + innerRadius, y: position2.y }, innerRadius, { sweep: false })
+    this.drawEdge(
+      path,
+      { x: position1.x, y: position1.y + innerRadius },
+      { x: position2.x, y: position2.y - innerRadius }
+    )
+    this.drawCorner(path, { x: position2.x + innerRadius, y: position2.y }, innerRadius, {
+      sweep: false,
+    })
     const position3 = { x: position2.x + transform.x * inset.depth, y: position2.y }
-    this.drawEdge(path, {x: position2.x + innerRadius, y: position2.y}, {x: position3.x - openRadius, y: position3.y})
+    this.drawEdge(
+      path,
+      { x: position2.x + innerRadius, y: position2.y },
+      { x: position3.x - openRadius, y: position3.y }
+    )
     this.drawCorner(path, { x: position3.x, y: position3.y + openRadius }, openRadius)
   }
 

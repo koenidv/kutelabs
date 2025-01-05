@@ -188,16 +188,11 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.Expression, any>
   ): SvgResult {
     if (registered.block.data.editable)
-      return [
-        this.editableCode(
-          registered,
-          new Coordinates(30, 10),
-          new Coordinates(registered.size.fullWidth - 40, registered.size.fullHeight - 20)
-        ),
-        svg`
-      <text fill="white" x=${registered.size.fullWidth - 15} y=${registered.size.fullHeight - 15} text-anchor="end">${registered.block.data.editable?.lang ?? "unset (kt)"}</text>
-      `,
-      ]
+      return this.editableCode(
+        registered,
+        new Coordinates(30, 10),
+        new Coordinates(registered.size.fullWidth - 40, registered.size.fullHeight - 20)
+      )
     else
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
   }
@@ -210,7 +205,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     onChange: (value: string) => void
   ): TemplateResult<2> {
     return svg`
-        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} >
+        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
           ${this.tapOrDragLayer(
             reference => html`
               <prism-kotlin-editor
@@ -234,7 +229,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     onChange: (value: string) => void
   ): TemplateResult<2> {
     return svg`
-      <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y}>
+      <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
       ${this.tapOrDragLayer(
         reference => html`
           <value-input
@@ -286,36 +281,9 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         if (e.key === "Enter" || e.key === " ") showDropdown(e)
       }}"
       >
-      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" />
+      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
       <text x="5" y="${size.y / 2 + 6}">${selected}</text>
       </g>
     `
-  }
-
-  private renderConnector(connector: Connector, blockPosition: Coordinates): TemplateResult<2> {
-    let color
-    switch (connector.type) {
-      case ConnectorType.Inner:
-        color = "lightpink"
-        break
-      case ConnectorType.Extension:
-        color = "lightblue"
-        break
-      case ConnectorType.Internal:
-        color = "transparent"
-        break
-      default:
-        color = "orange"
-    }
-    return svg`
-    			<rect
-				fill="${color}"
-				x=${connector.globalPosition.x - blockPosition.x - 4}
-				y=${connector.globalPosition.y - blockPosition.y - 4}
-				width="8"
-				height="8"
-				stroke="black"
-			/>
-  `
   }
 }

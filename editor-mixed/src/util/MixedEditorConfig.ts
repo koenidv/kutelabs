@@ -11,6 +11,7 @@ import type { LayouterConstructorType } from "../render/Layouters/BaseLayouter"
 import { DebugLayouter } from "../render/Layouters/DebugLayouter"
 import type { WidgetRendererConstructorType } from "../render/WidgetRenderers/BaseWidgetRenderer"
 import { DebugWidgetRenderer } from "../render/WidgetRenderers/DebugWidgetRenderer"
+import { KuteWidgetRenderer } from "../render/WidgetRenderers/KuteWidgetRenderer"
 
 export type MixedEditorConfig = {
   layouter: LayouterConstructorType
@@ -34,7 +35,7 @@ export const DefaultMixedEditorConfig: MixedEditorConfig = {
   layouter: DebugLayouter,
   blockRenderer: KuteBlockRenderer,
   drawerRenderer: DebugDrawerRenderer,
-  widgetRenderer: DebugWidgetRenderer,
+  widgetRenderer: KuteWidgetRenderer,
   dragRenderer: DebugDragRenderer,
   extrasRenderer: ExtrasRenderer,
 }
