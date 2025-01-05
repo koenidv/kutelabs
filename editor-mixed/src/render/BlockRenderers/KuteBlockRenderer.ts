@@ -33,8 +33,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       radius: 8,
     })
     .addToTop({ width: 10, length: 5, mode: "inward", pointing: "vertical", pointRadius: 3, baseRadius: 2 }, size.fullWidth / 5)
-    .addToRight({ width: size.fullHeight / 3, depth: 60 }, size.fullHeight / 3)
-    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 3 }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
+    .addToRight({ width: size.fullHeight / 3, depth: 60, openRadius: 6, innerRadius: 4 }, size.fullHeight / 3)
+    .add({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 3, baseRadius: 2 }, { x: size.fullWidth - 50, y: size.fullHeight / 3 })
     .addToBottom({ width: 10, length: 5, mode: "outward", pointing: "vertical", pointRadius: 2, baseRadius: 2 }, size.fullWidth / 5)
     .addToLeft({ width: 10, length: 6, mode: "outward", pointing: "horizontal", pointRadius: 4, baseRadius: 4 }, size.fullHeight / 3)
     .addToLeft({ width: 10, length: 5, mode: "inward", pointing: "horizontal", pointRadius: 2, baseRadius: 2 }, size.fullHeight / 3 * 2)
