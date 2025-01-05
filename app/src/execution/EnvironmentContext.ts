@@ -23,6 +23,8 @@ export const appFeatures = {
 }
 
 function setUsername(name: string) {
-  displayMessage(`Welcome ${name}!`, "success")
-  localStorage.setItem("username", name)
+  if (typeof name === "string" && name.trim().length > 0 && name !== "Your name here") {
+    displayMessage(`Welcome ${name.trim()}!`, "success")
+    localStorage.setItem("username", name.trim())
+  }
 }
