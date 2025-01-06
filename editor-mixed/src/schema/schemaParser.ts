@@ -1,5 +1,6 @@
 import { Block, type AnyBlock } from "../blocks/Block"
 import {
+  LogicComparisonOperator,
   LogicJunctionMode,
   type BlockDataByType,
   type BlockDataExpression,
@@ -129,12 +130,18 @@ function normalizeBlockData(
       break
     case BlockType.LogicNot:
     case BlockType.LogicJunction:
+    case BlockType.LogicComparison:
       // set type to boolean for compatibility with values
       ;(data as any).type = DataType.Boolean
       if (type == BlockType.LogicJunction) {
         // default mode for junction
-        ;((data as BlockDataByType<BlockType.LogicJunction>)).mode =
+        ;(data as BlockDataByType<BlockType.LogicJunction>).mode =
           (data as any)?.mode ?? LogicJunctionMode.And
+      }
+      if (type == BlockType.LogicComparison) {
+        // default mode for comparison
+        ;(data as BlockDataByType<BlockType.LogicComparison>).mode =
+          (data as any)?.mode ?? LogicComparisonOperator.Equal
       }
   }
   return data
@@ -155,6 +162,10 @@ function parseDefaultConnector(
       return DefaultConnectors.inputExtension()
     case "conditional":
       return DefaultConnectors.conditionalExtension()
+    case "conditionalInput":
+      return DefaultConnectors.conditionalInput()
+    case "comparisonInput":
+      return DefaultConnectors.comparisonInput()
     case "output":
       return DefaultConnectors.output()
     case "inner":

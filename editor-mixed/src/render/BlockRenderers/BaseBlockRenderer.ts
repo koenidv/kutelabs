@@ -165,6 +165,10 @@ export abstract class BaseBlockRenderer {
         return this.renderContentLogicJunction(
           registered as RegisteredBlock<BlockType.LogicJunction, any>
         )
+      case BlockType.LogicComparison:
+        return this.renderContentLogicComparison(
+          registered as RegisteredBlock<BlockType.LogicComparison, any>
+        )
       default:
         console.error("No content renderer for block type", registered.block.type)
         return this.renderDefaultContent(registered)
@@ -312,6 +316,13 @@ export abstract class BaseBlockRenderer {
   /** Override this to customize how the content of **logic junction** blocks is rendered */
   protected renderContentLogicJunction(
     registered: RegisteredBlock<BlockType.LogicJunction, any>
+  ): SvgResult {
+    return this.renderDefaultContent(registered)
+  }
+
+  /** Override this to customize how the content of **logic comparison** blocks is renderer */
+  protected renderContentLogicComparison(
+    registered: RegisteredBlock<BlockType.LogicComparison, any>
   ): SvgResult {
     return this.renderDefaultContent(registered)
   }

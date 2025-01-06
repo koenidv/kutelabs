@@ -83,6 +83,8 @@ export type AnyBlock =
   | VariableBlock
   | ConditionalBlock
   | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
 /**
  * Connector on this block
  */
@@ -91,6 +93,8 @@ export type MixedContentEditorConnector =
   | "after"
   | "input"
   | "conditional"
+  | "conditionalInput"
+  | "comparisonInput"
   | "output"
   | "extender"
   | "inner"
@@ -121,6 +125,8 @@ export type AnyBlockSingle =
   | VariableBlock
   | ConditionalBlock
   | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
 
 /**
  * Function Block
@@ -299,6 +305,44 @@ export interface LoopBlock {
   type: "loop"
   connectedBlocks?: {
     on?: "inner" | "input"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * "Not" Logic Block
+ */
+export interface LogicNotBlock {
+  /**
+   * Defines this block as a Logic Not block
+   */
+  type: "logic_not"
+  connectedBlocks?: {
+    on?: "conditional"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Junction Logic Block
+ */
+export interface LogicJunctionBlock {
+  /**
+   * Defines this block as a Logic Junction block
+   */
+  type: "logic_junction"
+  /**
+   * Junction Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of junction
+     */
+    mode: "and" | "or"
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "conditionalInput"
     [k: string]: unknown
   }[]
   [k: string]: unknown

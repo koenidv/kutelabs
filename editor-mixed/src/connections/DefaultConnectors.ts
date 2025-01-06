@@ -49,6 +49,12 @@ export class DefaultConnectors {
           DefaultConnectors.conditionalInput(),
           DefaultConnectors.conditionalInput(),
         ]
+      case BlockType.LogicComparison:
+        return [
+          DefaultConnectors.extender(),
+          DefaultConnectors.comparisonInput(),
+          DefaultConnectors.comparisonInput(),
+        ]
       default:
         return []
     }
@@ -147,6 +153,12 @@ export class DefaultConnectors {
         remote.parentBlock?.data != null &&
         "type" in remote.parentBlock?.data &&
         (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
+    ])
+  }
+
+  static comparisonInput() {
+    return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
+      (remote, local) => true, // todo check type against compatibility
     ])
   }
 

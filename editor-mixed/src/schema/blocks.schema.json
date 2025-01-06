@@ -51,6 +51,9 @@
         },
         {
           "$ref": "#/$defs/LogicJunctionBlock"
+        },
+        {
+          "$ref": "#/$defs/LogicComparisonBlock"
         }
       ]
     },
@@ -660,7 +663,7 @@
           "description": "Junction Logic Block Data",
           "type": "object",
           "properties": {
-            "type": {
+            "mode": {
               "description": "Mode of junction",
               "type": "string",
               "enum": [
@@ -670,7 +673,7 @@
             }
           },
           "required": [
-            "type"
+            "mode"
           ]
         },
         "connectedBlocks": {
@@ -680,7 +683,55 @@
             "properties": {
               "on": {
                 "enum": [
-                  "conditional"
+                  "conditionalInput"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicComparisonBlock": {
+      "type": "object",
+      "description": "Comparison Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Comparison block",
+          "type": "string",
+          "const": "logic_comparison"
+        },
+        "data": {
+          "description": "Comparison Logic Block Data",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "description": "Mode of comparison",
+              "type": "string",
+              "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">="
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "comparisonInput"
                 ]
               }
             }

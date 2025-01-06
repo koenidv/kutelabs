@@ -7,7 +7,7 @@
     "published": "2024-01-01T00:00:00Z",
     "color": "#63ADF2",
     "dialog": {
-      "static": ""
+      "static": "playground for logic blocks"
     }
   },
   "environment": {
@@ -69,6 +69,9 @@
       },
       {
         "type": "logic_junction"
+      },
+      {
+        "type": "logic_comparison"
       }
     ]
   }

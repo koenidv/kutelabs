@@ -13,6 +13,8 @@ export type MixedContentEditorConnector =
   | "after"
   | "input"
   | "conditional"
+  | "conditionalInput"
+  | "comparisonInput"
   | "output"
   | "extender"
   | "inner"

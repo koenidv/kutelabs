@@ -15,6 +15,8 @@ export type BlockDataByType<T extends BlockType, S = never> = T extends BlockTyp
           ? BlockDataVariable
           : T extends BlockType.LogicJunction
             ? BlockDataLogicJunction
+            : T extends BlockType.LogicComparison
+              ? BlockDataLogicComparison
             : BlockDataEmpty
 
 export type BlockDataEmpty = null
@@ -56,5 +58,26 @@ export enum LogicJunctionMode {
 }
 export type BlockDataLogicJunction = {
   mode: LogicJunctionMode
+  type: DataType.Boolean
+}
+
+export enum LogicComparisonOperator {
+  Equal = "==",
+  NotEqual = "!=",
+  Greater = ">",
+  GreaterOrEqual = ">=",
+  Less = "<",
+  LessOrEqual = "<=",
+}
+export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator, DataType[]> = {
+  [LogicComparisonOperator.Equal]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
+  [LogicComparisonOperator.NotEqual]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
+  [LogicComparisonOperator.Greater]: [DataType.Int, DataType.Float],
+  [LogicComparisonOperator.GreaterOrEqual]: [DataType.Int, DataType.Float],
+  [LogicComparisonOperator.Less]: [DataType.Int, DataType.Float],
+  [LogicComparisonOperator.LessOrEqual]: [DataType.Int, DataType.Float],
+}
+export type BlockDataLogicComparison = {
+  mode: LogicComparisonOperator
   type: DataType.Boolean
 }

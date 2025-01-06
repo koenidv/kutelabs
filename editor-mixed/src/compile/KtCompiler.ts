@@ -139,6 +139,13 @@ export class KtCompiler extends BaseCompiler {
     return `(${inputs})`
   }
 
+  compileLogicComparison(block: Block<BlockType.LogicComparison>, next: typeof this.compile, props?: InternalCompilationProps): string {
+    const operator = block.data.mode
+    const left = block.inputs[0] ? next(block.inputs[0]) : "false"
+    const right = block.inputs[1] ? next(block.inputs[1]) : "false"
+    return `(${left} ${operator} ${right})`
+  }
+
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }

@@ -12,6 +12,8 @@
         "after",
         "input",
         "conditional",
+        "conditionalInput",
+        "comparisonInput",
         "output",
         "extender",
         "inner",

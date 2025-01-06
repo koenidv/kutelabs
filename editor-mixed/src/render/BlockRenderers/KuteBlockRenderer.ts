@@ -12,7 +12,7 @@ import { RectBuilder } from "../../svg/RectBuilder"
 import { HeightProp, type SizeProps } from "../SizeProps"
 import type { AnyBlock } from "../../blocks/Block"
 import { ConnectorRole } from "../../connections/ConnectorRole"
-import { LogicJunctionMode } from "../../blocks/configuration/BlockData"
+import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected renderContainer({
@@ -141,6 +141,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         return "#FFA1BF"
       case BlockType.LogicNot:
       case BlockType.LogicJunction:
+      case BlockType.LogicComparison:
         return "#1B79DD"
       default:
         return "#ffffff"
@@ -239,6 +240,23 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         Object.entries(LogicJunctionMode).map(([display, id]) => ({ id, display })),
         block.data.mode,
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode }))
+      )}
+    `
+  }
+
+  protected override renderContentLogicComparison(
+    registered: RegisteredBlock<BlockType.LogicComparison, any>
+  ): SvgResult {
+    const { size, block, globalPosition } = registered
+    return svg`
+      ${this.renderSelector(
+        registered,
+        new Coordinates(5, 5),
+        new Coordinates(size.fullWidth - 15, 28),
+        globalPosition.plus(0, size.fullHeight),
+        Object.entries(LogicComparisonOperator).map(([display, id]) => ({ id, display })),
+        block.data.mode,
+        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator }))
       )}
     `
   }
