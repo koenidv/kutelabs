@@ -1,4 +1,8 @@
-import type { BlockDataVariable } from "../blocks/configuration/BlockData"
+import {
+  ComparisonOperatorTypeCompatibility,
+  LogicComparisonOperator,
+  type BlockDataVariable,
+} from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { Connector } from "./Connector"
@@ -137,28 +141,49 @@ export class DefaultConnectors {
 
   static conditionalExtension() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Conditional, [
-      remote =>
-        remote.type === ConnectorType.Before &&
-        remote.parentBlock?.data != null &&
-        "type" in remote.parentBlock?.data &&
-        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
+      remote => {
+        if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
+          return false
+        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
+        return remoteType === DataType.Boolean
+      },
     ])
   }
 
   /** This input has the same functionality as @see conditionalExtension, but functions as input instead of Conditional role */
   static conditionalInput() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
-      remote =>
-        remote.type === ConnectorType.Before &&
-        remote.parentBlock?.data != null &&
-        "type" in remote.parentBlock?.data &&
-        (remote.parentBlock?.data.type as unknown) === DataType.Boolean,
+      remote => {
+        if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
+          return false
+        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
+        return remoteType === DataType.Boolean
+      },
     ])
   }
 
   static comparisonInput() {
     return new Connector(ConnectorType.Extension, ConnectorRole.Input, [
-      (remote, local) => true, // todo check type against compatibility
+      (remote, local) => {
+        if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
+          return false
+
+        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
+        if (remoteType == null) return false
+
+        if (
+          !local.parentBlock?.data ||
+          !("mode" in local.parentBlock.data) ||
+          !local.parentBlock.data.mode
+        )
+          return false
+        const compat =
+          ComparisonOperatorTypeCompatibility[
+            local.parentBlock.data.mode as LogicComparisonOperator
+          ]
+        if (!compat) return true
+        return compat.includes(remoteType)
+      },
     ])
   }
 
@@ -212,5 +237,14 @@ export class DefaultConnectors {
   }
   static drawer() {
     return new Connector(ConnectorType.Internal, ConnectorRole.Drawer)
+  }
+
+  static getValueOrVariableType(data: any): DataType | null {
+    if (data == null) return null
+    if ("type" in data) return data.type
+    if ("variableHelper" in data) {
+      return data.variableHelper?.deref()?.getVariableType(data.name)
+    }
+    return null
   }
 }

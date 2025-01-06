@@ -1,5 +1,5 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type { BlockDataVariableInit } from "../blocks/configuration/BlockData"
+import type { BlockDataVariable, BlockDataVariableInit } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { DataType } from "../blocks/configuration/DataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
@@ -33,6 +33,7 @@ export class VariableHelper implements VariableHInterface {
   ) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
+    blockRegistry.on("registeredClone", ({ block }) => this.onRegisteredClone(block))
 
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
@@ -54,7 +55,7 @@ export class VariableHelper implements VariableHInterface {
    * d) applies any pending variable uses for this variable
    * e) applies the next available variable name if the name is already taken
    * side effect: requests a render update
-   * // todo: refactor this massive method 
+   * // todo: refactor this massive method
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
@@ -126,9 +127,7 @@ export class VariableHelper implements VariableHInterface {
       currentData.type = changedBlock.data.type
       currentData.usages.forEach(usage => {
         if (usage.reevaluateBlocks()) requestUpdate = true
-        if (usage.upstream?.type == BlockType.VarSet) {
-          if (usage.upstream.reevaluateBlocks()) requestUpdate = true
-        }
+        if (usage.upstream?.reevaluateBlocks()) requestUpdate = true
       })
     }
 
@@ -199,6 +198,18 @@ export class VariableHelper implements VariableHInterface {
       return
     }
     data.usages = data.usages.filter(usage => usage !== block)
+  }
+
+  /**
+   * Adds a reference to the VariableHelper to newly cloned blocks (when they are dragged from the drawer)
+   * This is required to check compatibility of variable types when connecting blocks on the first drag
+   * @param block cloned block
+   */
+  private onRegisteredClone = (block: AnyBlock) => {
+    if (block.type === BlockType.Variable)
+      block.updateData(
+        data => ({ ...data, variableHelper: new WeakRef(this) }) as BlockDataVariable
+      )
   }
 
   /**

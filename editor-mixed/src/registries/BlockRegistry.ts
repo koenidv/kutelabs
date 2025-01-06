@@ -8,7 +8,7 @@ import { BlockMarking } from "../render/BlockRenderers/BaseBlockRenderer"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
-import type { BlockREvents, BlockRInterface } from "./BlockRInterface"
+import type { BlockRegisterOptions, BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
@@ -46,10 +46,12 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
   public register<T extends BlockType, S>(
     block: Block<T, S>,
     position?: Coordinates,
-    size?: SizeProps
+    size?: SizeProps,
+    options: BlockRegisterOptions = {}
   ): void {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
     this._blocks.set(block, new RegisteredBlock(block, position, size))
+    if (options.cloned) this.emit("registeredClone", { block })
   }
 
   /**

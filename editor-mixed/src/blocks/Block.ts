@@ -5,7 +5,7 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
-import type { BlockRInterface } from "../registries/BlockRInterface"
+import type { BlockRegisterOptions, BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
@@ -39,7 +39,8 @@ export class Block<T extends BlockType, S = never>
     blockRegistry: BlockRInterface,
     connectorRegistry: ConnectorRInterface,
     position?: Coordinates,
-    size?: SizeProps
+    size?: SizeProps,
+    registerOptions?: BlockRegisterOptions
   ) {
     super()
     this.type = type
@@ -59,7 +60,7 @@ export class Block<T extends BlockType, S = never>
       }
     }
 
-    blockRegistry.register(this, position, size)
+    blockRegistry.register(this, position, size, registerOptions)
     this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
@@ -253,7 +254,7 @@ export class Block<T extends BlockType, S = never>
   ): Block<T, S> {
     const registered = blockRegistry.getRegistered(this)
     // new blocks register themselves
-    return new Block(
+    const clone = new Block(
       this.type,
       deepClone(this._data),
       this.connectors.all.map(connector => ({
@@ -268,10 +269,14 @@ export class Block<T extends BlockType, S = never>
       blockRegistry,
       connectorRegistry,
       registered?.globalPosition,
-      registered?.size ?? undefined
-    ).also(it => {
-      it.isInDrawer = this.isInDrawer
-    })
+      registered?.size ?? undefined,
+      {
+        cloned: true,
+      }
+    )
+    clone.isInDrawer = this.isInDrawer
+    this.emit("cloned", clone)
+    return clone
   }
 
   /**

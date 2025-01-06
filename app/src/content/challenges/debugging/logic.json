@@ -65,6 +65,14 @@
         }
       },
       {
+        "type": "conditional",
+        "elsebranch": true
+      },
+      {
+        "type": "conditional",
+        "elsebranch": false
+      },
+      {
         "type": "logic_not"
       },
       {
