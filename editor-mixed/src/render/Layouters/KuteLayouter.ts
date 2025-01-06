@@ -29,10 +29,14 @@ export class KuteLayouter extends BaseLayouter {
     const size = SizeProps.empty()
 
     if (block.connectors.inputExtensions.length > 0) {
-      block.connectors.inputExtensions.map(connector => {
+      block.connectors.inputExtensions.map((connector, index) => {
         const connected = block.connectedBlocks.byConnector(connector)
         if (connected != null) {
-          size.addHeight(HeightProp.Head, this.blockRegistry.getSize(connected).fullHeight)
+          size.addHeight(
+            HeightProp.Head,
+            this.blockRegistry.getSize(connected).fullHeight +
+              (index + 1 != block.connectors.inputExtensions.length ? PADDING_Y : 0)
+          )
         } else {
           size.addHeight(HeightProp.Head, DEFAULT_CONNECTOR_HEIGHT)
         }
@@ -182,7 +186,7 @@ export class KuteLayouter extends BaseLayouter {
           .reduce((acc, connector) => {
             const connected = block.connectedBlocks.byConnector(connector)
             if (connected != null) {
-              return acc + this.blockRegistry.getSize(connected).fullHeight
+              return acc + this.blockRegistry.getSize(connected).fullHeight + PADDING_Y
             } else {
               return acc + DEFAULT_CONNECTOR_HEIGHT
             }

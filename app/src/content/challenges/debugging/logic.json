@@ -1,0 +1,75 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 2,
+    "title": "logic init",
+    "description": "debugging the new logic blocks",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#63ADF2",
+    "dialog": {
+      "static": ""
+    }
+  },
+  "environment": {
+    "language": "js"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 400,
+          "y": 200
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "expression",
+              "data": {
+                "expression": "Println"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "test",
+          "type": "boolean"
+        }
+      },
+      {
+        "type": "variable_set"
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      {
+        "type": "logic_not"
+      },
+      {
+        "type": "logic_junction"
+      }
+    ]
+  }
+}

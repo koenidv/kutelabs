@@ -90,7 +90,7 @@ function parseBlockRecursive(
   }
 
   const type = parseBlockType(data.type)
-  const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type>)
+  const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type> | undefined)
 
   // add a false branch connector if elsebranch is set to true
   const defaultConnectors = DefaultConnectors.byBlockType(type)
@@ -110,9 +110,9 @@ function parseBlockRecursive(
 
 function normalizeBlockData(
   type: BlockType,
-  data: BlockDataByType<typeof type>
+  data: BlockDataByType<typeof type> | undefined
 ): BlockDataByType<typeof type> {
-  if (!data) return data
+  if (!data) data = {} as BlockDataByType<typeof type>
   switch (type) {
     case BlockType.Expression:
       if ((data as BlockDataExpression).expression == DefinedExpression.Custom) {
@@ -133,8 +133,8 @@ function normalizeBlockData(
       ;(data as any).type = DataType.Boolean
       if (type == BlockType.LogicJunction) {
         // default mode for junction
-        ;(data as BlockDataByType<BlockType.LogicJunction>).mode =
-          (data as any).mode ?? LogicJunctionMode.And
+        ;((data as BlockDataByType<BlockType.LogicJunction>)).mode =
+          (data as any)?.mode ?? LogicJunctionMode.And
       }
   }
   return data
