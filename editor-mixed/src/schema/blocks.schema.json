@@ -21,39 +21,52 @@
     },
     "AnyBlock": {
       "type": "object",
-      "oneOf": [
+      "allOf": [
         {
-          "$ref": "#/$defs/FunctionBlock"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/ExpressionBlock"
+            },
+            {
+              "$ref": "#/$defs/ValueBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableInitBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableSetBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableBlock"
+            },
+            {
+              "$ref": "#/$defs/ConditionalBlock"
+            },
+            {
+              "$ref": "#/$defs/LoopBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicNotBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicJunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicComparisonBlock"
+            }
+          ]
         },
         {
-          "$ref": "#/$defs/ExpressionBlock"
-        },
-        {
-          "$ref": "#/$defs/ValueBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableInitBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableSetBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableBlock"
-        },
-        {
-          "$ref": "#/$defs/ConditionalBlock"
-        },
-        {
-          "$ref": "#/$defs/LoopBlock"
-        },
-        {
-          "$ref": "#/$defs/LogicNotBlock"
-        },
-        {
-          "$ref": "#/$defs/LogicJunctionBlock"
-        },
-        {
-          "$ref": "#/$defs/LogicComparisonBlock"
+          "type": "object",
+          "properties": {
+            "draggable": {
+              "type": "boolean",
+              "description": "Set to false to disable dragging this block",
+            }
+          }
         }
       ]
     },

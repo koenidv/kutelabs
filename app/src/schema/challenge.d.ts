@@ -74,7 +74,7 @@ export type AnyBlockConnected = AnyBlock & {
   } & AnyBlockConnected1)[]
   [k: string]: unknown
 }
-export type AnyBlock =
+export type AnyBlock = (
   | FunctionBlock
   | ExpressionBlock
   | ValueBlock
@@ -85,6 +85,14 @@ export type AnyBlock =
   | LoopBlock
   | LogicNotBlock
   | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
+  /**
+   * Set to false to disable dragging this block
+   */
+  draggable?: boolean
+  [k: string]: unknown
+}
 /**
  * Connector on this block
  */
@@ -116,7 +124,7 @@ export type AnyBlockConnected1 = AnyBlock & {
 /**
  * A block without connected Blocks. Use "type" to determine the type of block
  */
-export type AnyBlockSingle =
+export type AnyBlockSingle = (
   | FunctionBlock
   | ExpressionBlock
   | ValueBlock
@@ -127,6 +135,14 @@ export type AnyBlockSingle =
   | LoopBlock
   | LogicNotBlock
   | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
+  /**
+   * Set to false to disable dragging this block
+   */
+  draggable?: boolean
+  [k: string]: unknown
+}
 
 /**
  * A challenge along the kutelabs learning journey
@@ -432,6 +448,30 @@ export interface LogicJunctionBlock {
   }
   connectedBlocks?: {
     on?: "conditionalInput"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Comparison Logic Block
+ */
+export interface LogicComparisonBlock {
+  /**
+   * Defines this block as a Logic Comparison block
+   */
+  type: "logic_comparison"
+  /**
+   * Comparison Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of comparison
+     */
+    mode: "==" | "!=" | "<" | "<=" | ">" | ">="
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "comparisonInput"
     [k: string]: unknown
   }[]
   [k: string]: unknown

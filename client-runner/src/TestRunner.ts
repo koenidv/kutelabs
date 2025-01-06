@@ -241,6 +241,7 @@ export class TestRunner {
    * @param error the error that occured
    */
   private onError(type: ErrorType, error: ErrorEvent | LoggedError) {
+    console.log("Error:", type, error)
     if (type == ErrorType.Worker || type == ErrorType.Timeout) {
       this.failRemainingTests()
       this.onGeneralError(type, error.message)

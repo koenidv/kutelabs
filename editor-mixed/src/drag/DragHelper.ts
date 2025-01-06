@@ -77,11 +77,6 @@ export class DragHelper {
 
     this.afterDrag(this.dragged, this.dragX, this.dragY, true)
     this.workspaceRef.value.style.cursor = "grabbing"
-
-    setTimeout(() => {
-      console.log("updating data")
-      // this.dragged!.block.data = this.blockRegistry.getRegistered(this.dragged!.block).block.data
-    }, 1)
   }
 
   /**

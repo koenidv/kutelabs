@@ -50,6 +50,7 @@
             {
               "on": "inner",
               "type": "variable_init",
+              "draggable": false,
               "data": {
                 "name": "name",
                 "type": "string"
@@ -58,6 +59,7 @@
                 {
                   "on": "after",
                   "type": "expression",
+                  "draggable": false,
                   "data": {
                     "expression": "Println"
                   },
@@ -65,6 +67,7 @@
                     {
                       "on": "input",
                       "type": "variable",
+                      "draggable": false,
                       "data": {
                         "name": "name"
                       }
@@ -76,6 +79,7 @@
             {
               "on": "output",
               "type": "variable",
+              "draggable": false,
               "data": {
                 "name": "name"
               }

@@ -37,7 +37,11 @@ export class ExecutionWrapper {
       (type, message) => {
         this.running.set(false)
         addLog([message], "error")
-        console.error("General error from test runner", type, message)
+        if (message.includes("SyntaxError")) {
+          displayMessage("Please make sure your blocks are correct", "error", { single: true })
+        } else {
+          displayMessage("An error occured", "info", { duration: -1, single: true })
+        }
       },
       this.onBlockError.bind(this),
       () => {
@@ -132,30 +136,37 @@ export class ExecutionWrapper {
     displayMessage("Processing", "info", { duration: -1, single: true })
     editorLoadingState.set(true)
 
-    const transpiled = await transpileKtJs(compiled.code)
-    editorLoadingState.set(false)
-    clearMessages()
+    transpileKtJs(compiled.code)
+      .then(transpiled => {
+        if (
+          transpiled === null ||
+          transpiled.status != TranspilationStatus.Success ||
+          !transpiled.transpiledCode
+        ) {
+          return this.onTranspilationError(transpiled, compiled.code)
+        }
+        editorLoadingState.set(false)
+        clearMessages()
 
-    if (
-      transpiled === null ||
-      transpiled.status != TranspilationStatus.Success ||
-      !transpiled.transpiledCode
-    ) {
-      return this.onTranspilationError(transpiled, compiled.code)
-    }
-
-    this.testRunner
-      .execute(transpiled.transpiledCode, {
-        argNames: compiled.argNames,
-        entrypoint: `transpiled.${compiled.entrypoint}`,
-        callbacks: callbacks,
-        executionDelay: executionDelay[this.speed.get()],
-        timeout: 1000,
+        this.testRunner
+          .execute(transpiled.transpiledCode, {
+            argNames: compiled.argNames,
+            entrypoint: `transpiled.${compiled.entrypoint}`,
+            callbacks: callbacks,
+            executionDelay: executionDelay[this.speed.get()],
+            timeout: 1000,
+          })
+          ?.then(_result => {
+            editor.onExecutionFinished()
+          })
+        this.running.set(true)
       })
-      ?.then(_result => {
-        editor.onExecutionFinished()
+      .catch(err => {
+        console.error("Transpilation: Fetch failed", err)
+        editorLoadingState.set(false)
+        displayMessage("Please check your connection", "error", { single: true })
+        return
       })
-    this.running.set(true)
   }
 
   public printJs() {
@@ -180,6 +191,7 @@ export class ExecutionWrapper {
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
     try {
       this.running.set(false)
+      editorLoadingState.set(false)
       if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
       const editor = editorRef.get()
       if (!editor) throw new Error("Editor not found")
@@ -192,7 +204,7 @@ export class ExecutionWrapper {
         "Error during code processing: " + transpiled.message.includes("error: ")
           ? transpiled.message.split("error: ")[1]
           : transpiled.message,
-        "Processing failed. Please check highlighted block."
+        "Please check the highlighted block."
       )
     } catch {
       displayMessage("Transpilation failed", "error", { single: true })
@@ -208,7 +220,7 @@ export class ExecutionWrapper {
 
   private onBlockError(id: string, message: string, display: string | undefined = message) {
     addLog([message], "error")
-    if (display) displayMessage(display, "error")
+    if (display) displayMessage(display, "error", { single: true })
     console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")
     editorRef.get()!.getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)

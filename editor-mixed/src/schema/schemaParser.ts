@@ -103,7 +103,7 @@ function parseBlockRecursive(
     type,
     blockData,
     mergeConnectors(connectedBlocks, defaultConnectors),
-    true,
+    data.draggable !== false,
     blockRegistry,
     connectorRegistry
   )
