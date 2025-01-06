@@ -16,6 +16,7 @@ import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { findBlockByLine } from "@kutelabs/shared/src"
 import { atom } from "nanostores"
+import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 
 const executionDelay = {
   fast: 250,
@@ -37,7 +38,9 @@ export class ExecutionWrapper {
       (type, message) => {
         this.running.set(false)
         addLog([message], "error")
-        if (message.includes("SyntaxError")) {
+        if (type == ErrorType.Timeout) {
+          displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
+        } else if (message.includes("SyntaxError")) {
           displayMessage("Please make sure your blocks are correct", "error", { single: true })
         } else {
           displayMessage("An error occured", "info", { duration: -1, single: true })

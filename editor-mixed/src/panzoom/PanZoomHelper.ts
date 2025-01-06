@@ -1,6 +1,15 @@
 import type { Ref } from "lit/directives/ref.js"
 import { ScrollInputHelper, ScrollInputType } from "./ScrollInputHelper"
 
+const MotionKeys: Record<string, true> = {
+  w: true,
+  a: true,
+  s: true,
+  d: true,
+  "+": true,
+  "-": true,
+}
+
 export class PanZoomHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly syncRefs: Ref<SVGSVGElement>[]
@@ -8,8 +17,10 @@ export class PanZoomHelper {
 
   private panSpeed = 1.3
   private panSpeedTouch = 1.15
+  private panSpeedKeyboard = 4
   private zoomSpeed = 1.2
   private zoomSpeedTouch = 0.6
+  private zoomSpeedKeyboard = 1.4
   private bounds = {
     minX: -1000,
     minY: -1000,
@@ -46,14 +57,8 @@ export class PanZoomHelper {
       console.error("Could not pan; Workspace not initialized")
       return
     }
-    const x = (viewBox.x + (deltaX * panFactor)).coerceIn(
-      this.bounds.minX,
-      this.bounds.maxX
-    )
-    const y = (viewBox.y + (deltaY * panFactor)).coerceIn(
-      this.bounds.minY,
-      this.bounds.maxY
-    )
+    const x = (viewBox.x + deltaX * panFactor).coerceIn(this.bounds.minX, this.bounds.maxX)
+    const y = (viewBox.y + deltaY * panFactor).coerceIn(this.bounds.minY, this.bounds.maxY)
 
     viewBox.x = x
     viewBox.y = y
@@ -67,7 +72,7 @@ export class PanZoomHelper {
     this.removeWidgets()
   }
 
-  private zoom(delta: number, cursorX: number, cursorY: number, zoomFactor = this.zoomSpeed) {
+  private zoom(delta: number, cursorX?: number, cursorY?: number, zoomFactor = this.zoomSpeed) {
     this.setInitialWorkspaceSize()
     const viewBox = this.workspaceRef?.value?.viewBox.baseVal
     const clientRect = this.workspaceRef?.value?.getBoundingClientRect()
@@ -90,8 +95,10 @@ export class PanZoomHelper {
       })
     })
 
-    const percentX = (cursorX - clientRect.x) / clientRect.width
-    const percentY = (cursorY - clientRect.y) / clientRect.height
+    let percentX = 0.5
+    let percentY = 0.5
+    if (cursorX) percentX = (cursorX - clientRect.x) / clientRect.width
+    if (cursorY) percentY = (cursorY - clientRect.y) / clientRect.height
 
     this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, 1)
 
@@ -222,5 +229,39 @@ export class PanZoomHelper {
   onTouchEnd(evt: TouchEvent) {
     this.setTouches(evt)
     if (this.lastTouches.length == 0) this.userInputActive = false
+  }
+
+  //#region Keyboard Interaction
+
+  pressedKeys = new Set<keyof typeof MotionKeys>()
+  keyMovementInterval: Timer | null = null
+
+  onKeydown(evt: KeyboardEvent) {
+    if (evt.defaultPrevented) return
+    if (!Object.keys(MotionKeys).includes(evt.key)) return
+    this.pressedKeys.add(evt.key)
+    this.startKeyMovement()
+  }
+
+  onKeyup(evt: KeyboardEvent) {
+    if (evt.defaultPrevented) return
+    if (!Object.keys(MotionKeys).includes(evt.key)) return
+    this.pressedKeys.delete(evt.key)
+    if (this.pressedKeys.size == 0 && this.keyMovementInterval) {
+      clearInterval(this.keyMovementInterval)
+      this.keyMovementInterval = null
+    }
+  }
+
+  startKeyMovement() {
+    if (this.keyMovementInterval) return
+    this.keyMovementInterval = setInterval(() => {
+      if (this.pressedKeys.has("w")) this.pan(0, -1, this.panSpeedKeyboard)
+      if (this.pressedKeys.has("a")) this.pan(-1, 0, this.panSpeedKeyboard)
+      if (this.pressedKeys.has("s")) this.pan(0, 1, this.panSpeedKeyboard)
+      if (this.pressedKeys.has("d")) this.pan(1, 0, this.panSpeedKeyboard)
+      if (this.pressedKeys.has("+")) this.zoom(-1, undefined, undefined, this.zoomSpeedKeyboard)
+      if (this.pressedKeys.has("-")) this.zoom(1, undefined, undefined, this.zoomSpeedKeyboard)
+    }, 5)
   }
 }

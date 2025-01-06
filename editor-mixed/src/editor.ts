@@ -129,7 +129,10 @@ export class EditorMixed extends LitElement {
           @mouseup="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @mouseleave="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @touchend="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
-          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}">
+          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
+          @keydown="${(e: KeyboardEvent) => this.panzoomHelper.onKeydown(e)}"
+          @keyup="${(e: KeyboardEvent) => this.panzoomHelper.onKeyup(e)}"
+          >
           <svg
             ${ref(this.workspaceRef)}
             width="100%"

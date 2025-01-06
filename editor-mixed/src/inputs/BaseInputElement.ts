@@ -11,9 +11,11 @@ export abstract class BaseInputElement extends LitElement {
   protected inputRef = createRef<HTMLInputElement | HTMLTextAreaElement>()
 
   declare input: string
+  declare inDrawer: boolean
 
   static properties = {
     input: { type: String },
+    inDrawer: { type: Boolean },
   }
 
   constructor() {
@@ -87,7 +89,7 @@ export abstract class BaseInputElement extends LitElement {
    * @param evt received mousedown or touchstart event
    */
   private handleStartFromTapDrag(evt: MouseEvent | TouchEvent) {
-    if (evt.isTrusted) return
+    if (evt.isTrusted || evt.defaultPrevented || this.inDrawer) return
     const selection = this.approximateCaretPosition(
       this.inputRef.value!,
       ...normalizePrimaryPointerPosition(evt)!.toArray()

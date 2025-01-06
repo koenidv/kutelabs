@@ -205,7 +205,7 @@ export abstract class BaseBlockRenderer {
     child: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="${draggable ? "dragable" : "nodrag"} block" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
+    <g class="${draggable ? "dragable" : "nodrag"} block" tabindex="0" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
       ${child()}
     </g>`
   }
@@ -375,6 +375,27 @@ export abstract class BaseBlockRenderer {
     value: string,
     onChange: (value: string) => void
   ): TemplateResult<2>
+
+  /**
+   * Renders a boolean input for a block
+   * Defaults to a string input with true/false values
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @param value current value of the input field
+   * @param onChange function to call when the value changes
+   */
+  protected renderBooleanInput(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    value: boolean,
+    onChange: (value: boolean) => void
+  ): TemplateResult<2> {
+    return this.renderInput(registered, position, size, value.toString(), value =>
+      onChange(value == "true" || value == "1")
+    )
+  }
 
   /**
    * Renders a selector input

@@ -199,6 +199,15 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.Value, any>
   ): SvgResult {
     const { block, size } = registered
+    if (block.data.type == DataType.Boolean) {
+      return this.renderBooleanInput(
+        registered,
+        new Coordinates(5, 5),
+        new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
+        block.data.value as boolean,
+        (value: boolean) => block.updateData(cur => ({ ...cur, value }))
+      )
+    }
     return this.renderInput(
       registered,
       new Coordinates(5, 5),
@@ -262,7 +271,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected renderEditableCode(
-    _registered: AnyRegisteredBlock,
+    { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: string,
@@ -277,6 +286,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
                 class="donotdrag"
                 style="width: 100%; height: 100%; ${this._safariTransform}"
                 .input=${value}
+                .inDrawer=${block.isInDrawer}
                 @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
               </prism-kotlin-editor>
             `
@@ -286,7 +296,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected renderInput(
-    _registered: AnyRegisteredBlock,
+    { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: string,
@@ -301,15 +311,42 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             class="donotdrag"
             style="width: 100%; height: 100%; ${this._safariTransform}"
             .input=${value}
-            @input-change=${(e: CustomEvent) => onChange(e.detail.input)}></value-input>
+            .inDrawer=${block.isInDrawer}
+            @input-change=${(e: CustomEvent) =>
+              !block.isInDrawer && onChange(e.detail.input)}></value-input>
         `
       )}
       </foreignObject>
     `
   }
 
+  protected override renderBooleanInput(
+    { block }: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    value: boolean,
+    onChange: (value: boolean) => void
+  ): TemplateResult<2> {
+    return svg`
+    <g 
+      transform="${`translate(${position.x}, ${position.y})`}"
+      role="button"
+      tabindex="0" 
+      style="cursor: pointer;"
+      @mousedown="${() => !block.isInDrawer && onChange(!value)}"
+      @touchstart="${() => !block.isInDrawer && onChange(!value)}"
+      @keydown="${(e: KeyboardEvent) => {
+        if ((e.key == "Enter" || e.key == " ") && !block.isInDrawer) onChange(!value) // fixme when blocks arent shortly dragged (they shouldnt be in general when interacting with their data), they're state isn't re-rendered
+      }}"
+      >
+      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
+      <text x="10" y="${size.y / 2 + 6}">${value ? "✅ Yes" : "❌ No"}</text>
+      </g>
+    `
+  }
+
   protected renderSelector(
-    _registered: AnyRegisteredBlock,
+    { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     widgetPosition: Coordinates,
@@ -339,8 +376,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       role="button"
       tabindex="0" 
       style="cursor: pointer;"
-      @mousedown="${(e: Event) => showDropdown(e)}"
-      @touchstart="${(e: Event) => showDropdown(e)}"
+      @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
+      @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
       @keydown="${(e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") showDropdown(e)
       }}"
