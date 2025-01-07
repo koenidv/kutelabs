@@ -10,6 +10,7 @@ import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 
 /* import custom elements - this is required but will not throw if it's removed */
+import { ConnectorType } from "../../connections/ConnectorType"
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import "../../inputs/SimpleInputElement"
@@ -24,6 +25,8 @@ export type SvgResult = TemplateResult<2> | TemplateResult<2>[]
 /** A set of options to be passed down the block tree to pass context to downstream blocks */
 export type InternalBlockRenderProps = {
   tabindex: number
+  level: number
+  indexInLevel?: number
 }
 
 /**
@@ -82,7 +85,7 @@ export abstract class BaseBlockRenderer {
    */
   protected renderFromRoot(): TemplateResult<2>[] {
     if (this.blockRegistry.root == null) throw new Error("Cannot render; root is not set")
-    const props: InternalBlockRenderProps = { tabindex: 1000 }
+    const props: InternalBlockRenderProps = { tabindex: 1000, level: 1 }
     return this.blockRegistry.root.blocks.map(({ block, position }) =>
       this.renderBlock(block, position, props)
     )
@@ -142,18 +145,62 @@ export abstract class BaseBlockRenderer {
    * @param registered registered block to render
    * @param renderConnected Function to render a connected block
    * @returns SVG template for block group
+   * 
+   * **aria attributes:**
+   * - role: treeitem as element within the workspace block tree, or listitem for the drawer list
+   * - aria-label: type of block
+   * - aria-describedby: description element with info about the connector
+   * - aria-level: level in the block tree (+1 for each inner/extension etc)
+   * - aria-posinset: index within the current level
+   * - aria-setsize: total number of blocks in the current level
+   * - tabindex: sequential tab index across all blocks for keyboard navigation
    */
   protected renderBlockElement(
     registered: AnyRegisteredBlock,
     props: InternalBlockRenderProps,
     renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2> {
+    const upstreamConnector = registered.block.upstreamConnectorInUse
+    const upstreamBlock = registered.block.upstream
+    props.indexInLevel = (props.indexInLevel ?? -1) + 1
+
     return svg`
-    <g class="block-${registered.block.type}">
+    <g class="block-container block-${registered.block.type}"
+      tabindex=${++props.tabindex} 
+      role=${upstreamBlock && "drawerConnector" in upstreamBlock ? "listitem" : "treeitem"}
+      aria-label="${registered.block.type} block"
+      aria-level=${props.level}
+      aria-describedby="block-${registered.block.id}-desc"
+      aria-posinset=${(props.indexInLevel ?? 0) + 1}
+      aria-setsize=${(props.indexInLevel ?? 0) + registered.block.countAfterRecursive}
+      >
       ${this.renderContainer(registered, props)}
       ${this.renderContent(registered, props)}
-      ${registered.block.downstreamWithConnectors.reverse().map(it => renderConnected(it.block))}
+      ${registered.block.downstreamWithConnectors.reverse().map(({ block, connector }) => {
+        // Only increase level for blocks that are not connected after, and do not propagate to after-connected blocks
+        let indexInLevel = props.indexInLevel ?? 0
+        if (connector.type != ConnectorType.After) {
+          ++props.level
+          props.indexInLevel = undefined
+        }
+        const rendered = renderConnected(block)
+        if (connector.type != ConnectorType.After) {
+          --props.level
+          props.indexInLevel = indexInLevel
+        }
+        return rendered
+      })}
+    
 	  </g>
+    <desc id="block-${registered.block.id}-desc">
+      ${
+        upstreamBlock && "drawerConnector" in upstreamBlock
+          ? `${registered.block.type} block in drawer`
+          : upstreamBlock && "rootConnector" in upstreamBlock
+            ? "First block in stack"
+            : `Connected to ${upstreamBlock?.type} block on ${upstreamConnector?.role} ${upstreamConnector?.type} connector`
+      }
+    </desc>
     `
   }
 

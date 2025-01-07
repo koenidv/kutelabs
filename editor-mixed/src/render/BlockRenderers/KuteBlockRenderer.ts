@@ -22,7 +22,7 @@ import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configu
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected renderContainer(
     { block, size, globalPosition, marking }: AnyRegisteredBlock,
-    props: InternalBlockRenderProps
+    _props: InternalBlockRenderProps
   ): SvgResult {
     const rectangle = new RectBuilder({
       width: size.fullWidth,
@@ -37,7 +37,13 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     const stroke = this.determineContainerStroke(marking)
 
     return svg`
-      <path tabindex=${++props.tabindex} fill=${this.determineContainerFill(block)} stroke=${stroke.color} stroke-width=${stroke.width} d=${path}></path>
+      <path
+        id="bg-${block.id}"
+        class="highlight-target"
+        fill=${this.determineContainerFill(block)}
+        stroke=${stroke.color}
+        stroke-width=${stroke.width}
+        d=${path}></path>
     `
   }
 
@@ -348,10 +354,10 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return svg`
-    <g 
+    <g
       transform="${`translate(${position.x}, ${position.y})`}"
       role="button"
-      tabindex=${++props.tabindex} 
+      tabindex=${++props.tabindex}
       style="cursor: pointer;"
       @mousedown="${() => !block.isInDrawer && onChange(!value)}"
       @touchstart="${() => !block.isInDrawer && onChange(!value)}"
@@ -392,10 +398,10 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     }
 
     return svg`
-    <g 
+    <g
       transform="${`translate(${position.x}, ${position.y})`}"
       role="button"
-      tabindex=${++props.tabindex} 
+      tabindex=${++props.tabindex}
       style="cursor: pointer;"
       @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
       @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"

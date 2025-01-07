@@ -35,18 +35,16 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
     renderBlock: typeof BaseBlockRenderer.prototype.renderBlock
   ): TemplateResult<2> {
     return svg`
-      <g>
         <rect width="${Math.max(contentWidth, this.minWidth)}" height="100%" fill="#efefef" stroke="black" stroke-width="0.5" />
 
         ${blocks.map(
           (it, index) => svg`
             <g transform="translate(${it.position.x}, ${it.position.y})">
-              ${renderBlock(it.block, Coordinates.zero, {tabindex: index})}
+              ${renderBlock(it.block, Coordinates.zero, { tabindex: index, level: 0 })}
               <text x="0", y="0" width="100" height="100" stroke="pink">${it.count}</text>
             </g>
           `
         )}
-      </g>
     `
   }
 }

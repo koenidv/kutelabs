@@ -103,6 +103,15 @@ export class EditorMixed extends LitElement {
     button {
       cursor: pointer;
     }
+
+    g[class^=block]:focus {
+      outline: none;
+    }
+
+    g.block-container:focus>[id^=bg] {
+      stroke: #0000ff;
+      stroke-width: 5;
+    }
   `
 
   protected render() {
@@ -112,6 +121,7 @@ export class EditorMixed extends LitElement {
       <noscript>Please enable JavaScript.</noscript>
       <div
         id="editor-container"
+        role="application"
         style="position: relative;"
         @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
         @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
@@ -131,14 +141,14 @@ export class EditorMixed extends LitElement {
           @touchend="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
           @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
           @keydown="${(e: KeyboardEvent) => this.panzoomHelper.onKeydown(e)}"
-          @keyup="${(e: KeyboardEvent) => this.panzoomHelper.onKeyup(e)}"
-          >
+          @keyup="${(e: KeyboardEvent) => this.panzoomHelper.onKeyup(e)}">
           <svg
             ${ref(this.workspaceRef)}
             width="100%"
             height="100%"
             viewBox="0 0 800 800"
-            style="position: absolute; top: 0; left: 0; pointer-events: all;">
+            style="position: absolute; top: 0; left: 0; pointer-events: all;"
+            role="tree">
             ${this.extrasRenderer.renderBackground()} ${this.blockRenderer.render()}
           </svg>
         </div>
@@ -156,6 +166,8 @@ export class EditorMixed extends LitElement {
           ${ref(this.dragLayerRef)}
           .dragRenderer=${this.dragRenderer}
           .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
+          
+        
       </div>
     `
     // console.timeEnd("editor | render time")

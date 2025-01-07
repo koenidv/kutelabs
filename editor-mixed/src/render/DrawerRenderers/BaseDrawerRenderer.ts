@@ -46,7 +46,8 @@ export abstract class BaseDrawerRenderer {
         id="drawer"
         width="${Math.max(layout.fullWidth, this.minWidth)}"
         height="${layout.fullHeight}"
-        style="min-height: 100%; display: block;">
+        style="min-height: 100%; display: block;"
+        role="list">
         ${this.renderDrawer(
           layout.positions,
           Math.max(layout.fullWidth, this.minWidth),

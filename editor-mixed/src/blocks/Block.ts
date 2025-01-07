@@ -200,6 +200,16 @@ export class Block<T extends BlockType, S = never>
     ]
   }
 
+  get countAfterRecursive(): number {
+    let count = 0
+    let block: AnyBlock | null = this
+    while (block) {
+      count++
+      block = block.after
+    }
+    return count
+  }
+
   //#region Connectors
 
   connectors = new BlockConnectors()
