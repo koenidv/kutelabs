@@ -3,7 +3,12 @@ import { BlockType } from "../../blocks/configuration/BlockType"
 import { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
-import { BaseBlockRenderer, BlockMarking, type SvgResult } from "./BaseBlockRenderer"
+import {
+  BaseBlockRenderer,
+  BlockMarking,
+  type InternalBlockRenderProps,
+  type SvgResult,
+} from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
@@ -15,12 +20,10 @@ import { ConnectorRole } from "../../connections/ConnectorRole"
 import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
-  protected renderContainer({
-    block,
-    size,
-    globalPosition,
-    marking,
-  }: AnyRegisteredBlock): SvgResult {
+  protected renderContainer(
+    { block, size, globalPosition, marking }: AnyRegisteredBlock,
+    props: InternalBlockRenderProps
+  ): SvgResult {
     const rectangle = new RectBuilder({
       width: size.fullWidth,
       height: size.fullHeight,
@@ -34,7 +37,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     const stroke = this.determineContainerStroke(marking)
 
     return svg`
-      <path fill=${this.determineContainerFill(block)} stroke=${stroke.color} stroke-width=${stroke.width} d=${path}></path>
+      <path tabindex=${++props.tabindex} fill=${this.determineContainerFill(block)} stroke=${stroke.color} stroke-width=${stroke.width} d=${path}></path>
     `
   }
 
@@ -170,7 +173,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected override renderContentVariableInit(
-    registered: RegisteredBlock<BlockType.VarInit, any>
+    registered: RegisteredBlock<BlockType.VarInit, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size, globalPosition: position } = registered
     return svg`
@@ -180,7 +184,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates(5, 20),
             new Coordinates(size.fullWidth - 10, 20),
             block.data.name?.toString(), // todo type
-            (value: string) => block.updateData(cur => ({ ...cur, name: value }))
+            (value: string) => block.updateData(cur => ({ ...cur, name: value })),
+            props
           )}
           <text x="5" y="55">as</text>
           ${this.renderSelector(
@@ -190,13 +195,15 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             position.plus(0, size.fullHeight),
             Object.entries(DataType).map(([display, id]) => ({ id, display })),
             block.data.type,
-            (id: string) => block.updateData(cur => ({ ...cur, type: id }))
+            (id: string) => block.updateData(cur => ({ ...cur, type: id })),
+            props
           )}
         `
   }
 
   protected override renderContentValue(
-    registered: RegisteredBlock<BlockType.Value, any>
+    registered: RegisteredBlock<BlockType.Value, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
     if (block.data.type == DataType.Boolean) {
@@ -205,7 +212,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
         block.data.value as boolean,
-        (value: boolean) => block.updateData(cur => ({ ...cur, value }))
+        (value: boolean) => block.updateData(cur => ({ ...cur, value })),
+        props
       )
     }
     return this.renderInput(
@@ -213,18 +221,21 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
       block.data.value?.toString(), // todo type
-      (value: string) => block.updateData(cur => ({ ...cur, value: value }))
+      (value: string) => block.updateData(cur => ({ ...cur, value: value })),
+      props
     )
   }
 
   protected override renderContentExpression(
-    registered: RegisteredBlock<BlockType.Expression, any>
+    registered: RegisteredBlock<BlockType.Expression, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
     if (registered.block.data.editable)
       return this.editableCode(
         registered,
         new Coordinates(30, 10),
-        new Coordinates(registered.size.fullWidth - 40, registered.size.fullHeight - 20)
+        new Coordinates(registered.size.fullWidth - 40, registered.size.fullHeight - 20),
+        props
       )
     else
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
@@ -237,7 +248,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected override renderContentLogicJunction(
-    registered: RegisteredBlock<BlockType.LogicJunction, any>
+    registered: RegisteredBlock<BlockType.LogicJunction, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
@@ -248,13 +260,15 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         globalPosition.plus(0, size.fullHeight),
         Object.entries(LogicJunctionMode).map(([display, id]) => ({ id, display })),
         block.data.mode,
-        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode }))
+        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode })),
+        props
       )}
     `
   }
 
   protected override renderContentLogicComparison(
-    registered: RegisteredBlock<BlockType.LogicComparison, any>
+    registered: RegisteredBlock<BlockType.LogicComparison, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
@@ -265,7 +279,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         globalPosition.plus(0, size.fullHeight),
         Object.entries(LogicComparisonOperator).map(([display, id]) => ({ id, display })),
         block.data.mode,
-        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator }))
+        (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator })),
+        props
       )}
     `
   }
@@ -275,7 +290,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     value: string,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return svg`
         <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
@@ -285,6 +301,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
                 ${ref(reference)}
                 class="donotdrag"
                 style="width: 100%; height: 100%; ${this._safariTransform}"
+                tabindex=${++props.tabindex}
                 .input=${value}
                 .inDrawer=${block.isInDrawer}
                 @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
@@ -300,7 +317,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     value: string,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return svg`
       <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
@@ -310,6 +328,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             ${ref(reference)}
             class="donotdrag"
             style="width: 100%; height: 100%; ${this._safariTransform}"
+            tabindex=${++props.tabindex}
             .input=${value}
             .inDrawer=${block.isInDrawer}
             @input-change=${(e: CustomEvent) =>
@@ -325,13 +344,14 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     value: boolean,
-    onChange: (value: boolean) => void
+    onChange: (value: boolean) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return svg`
     <g 
       transform="${`translate(${position.x}, ${position.y})`}"
       role="button"
-      tabindex="0" 
+      tabindex=${++props.tabindex} 
       style="cursor: pointer;"
       @mousedown="${() => !block.isInDrawer && onChange(!value)}"
       @touchstart="${() => !block.isInDrawer && onChange(!value)}"
@@ -352,7 +372,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     widgetPosition: Coordinates,
     values: { id: string; display: string }[],
     selected: string,
-    onSelect: (id: string) => void
+    onSelect: (id: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const showDropdown = (e: Event) => {
       e.preventDefault()
@@ -374,7 +395,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     <g 
       transform="${`translate(${position.x}, ${position.y})`}"
       role="button"
-      tabindex="0" 
+      tabindex=${++props.tabindex} 
       style="cursor: pointer;"
       @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
       @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"

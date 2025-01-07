@@ -41,7 +41,7 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
         ${blocks.map(
           (it, index) => svg`
             <g transform="translate(${it.position.x}, ${it.position.y})">
-              ${renderBlock(it.block, Coordinates.zero, {tabindex: 0})}
+              ${renderBlock(it.block, Coordinates.zero, {tabindex: index})}
               <text x="0", y="0" width="100" height="100" stroke="pink">${it.count}</text>
             </g>
           `

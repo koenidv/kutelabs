@@ -15,7 +15,7 @@ forward local port: socat TCP-LISTEN:8080,fork TCP:localhost:4321
 
 - [x] Moving around the workspace by keyboard
 - [ ] Moving blocks by keyboard
-- [ ] Logical tab order
+- [x] Logical tab order
 - [ ] Explicitly focus input fields
 - [ ] Useful screen reader announcements
 - [ ] On-screen zoom buttons

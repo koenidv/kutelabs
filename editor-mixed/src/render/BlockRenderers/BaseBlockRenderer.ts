@@ -82,16 +82,17 @@ export abstract class BaseBlockRenderer {
    */
   protected renderFromRoot(): TemplateResult<2>[] {
     if (this.blockRegistry.root == null) throw new Error("Cannot render; root is not set")
-    return this.blockRegistry.root.blocks.map(({ block, position }) => {
-      return this.renderBlock(block, position, { tabindex: 0 })
-    })
+    const props: InternalBlockRenderProps = { tabindex: 1000 }
+    return this.blockRegistry.root.blocks.map(({ block, position }) =>
+      this.renderBlock(block, position, props)
+    )
   }
 
   /**
    * Render a block at a position relative to an upstream connected block
    * @param block Block to render
    * @param previousBlock Upstream connected block
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template for block group
    */
   public renderBlock(
@@ -104,7 +105,7 @@ export abstract class BaseBlockRenderer {
    * Use this to render Blocks from the root
    * @param block Block to render
    * @param translatePosition Offset to upstream block, i.e. will render at this position for root upstream
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template for block group
    */
   public renderBlock(
@@ -116,7 +117,7 @@ export abstract class BaseBlockRenderer {
    * Renders a block with an offset to a reference block
    * @param block Block to render
    * @param ref Block or Coordinate Object to render the block relative to
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template for block group
    */
   public renderBlock(
@@ -151,7 +152,7 @@ export abstract class BaseBlockRenderer {
     <g class="block-${registered.block.type}">
       ${this.renderContainer(registered, props)}
       ${this.renderContent(registered, props)}
-      ${registered.block.downstreamWithConnectors.map(it => renderConnected(it.block))}
+      ${registered.block.downstreamWithConnectors.reverse().map(it => renderConnected(it.block))}
 	  </g>
     `
   }
@@ -159,7 +160,7 @@ export abstract class BaseBlockRenderer {
   /**
    * Renders the content of a block, depending on its type
    * @param registered registered block to render
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template for block content
    */
   protected renderContent(
@@ -239,6 +240,7 @@ export abstract class BaseBlockRenderer {
   /**
    * Wraps a block in a container that will be recognized as draggable by the DragHelper.
    * The container should also handle displaying block markings.
+   * This element is not tab-able; tab focus should be handled by the block container for better focus highlighting.
    * @param blockId id of the block
    * @param translate offset to the previous group
    * @param draggable whether the block should be draggable
@@ -249,11 +251,11 @@ export abstract class BaseBlockRenderer {
     blockId: string,
     translate: Coordinates,
     draggable: boolean = true,
-    props: InternalBlockRenderProps,
+    _props: InternalBlockRenderProps,
     child: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
-    <g class="${draggable ? "dragable" : "nodrag"} block" tabindex="0" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
+    <g class="${draggable ? "dragable" : "nodrag"} block" tabindex="-1" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
       ${child()}
     </g>`
   }
@@ -283,12 +285,14 @@ export abstract class BaseBlockRenderer {
    * @param registered registered block this input is for
    * @param position position of the input field, relative to the content group (in svg units)
    * @param size size of the input field (in svg units)
+   * @param props context properties to be passed down the block tree
    * @returns SVG template result for the editable code input
    */
   protected editableCode(
     registered: AnyRegisteredBlock,
     position: Coordinates,
-    size: Coordinates
+    size: Coordinates,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const block = registered.block as Block<BlockType.Expression>
     const language = block.data.editable ? block.data.editable.lang : "kotlin"
@@ -302,7 +306,8 @@ export abstract class BaseBlockRenderer {
           const expr = cur.customExpression?.set(language, value)
           return { ...cur, customExpression: expr }
         })
-      }
+      },
+      props
     )
   }
 
@@ -403,7 +408,7 @@ export abstract class BaseBlockRenderer {
    * The container is rendered behind the elements of the block and does not have children.
    * Container rendering is called before content rendering and changes to the context props will be applied there
    * @param registered registered block that is being rendered
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template or array for the container
    */
   protected abstract renderContainer(
@@ -414,7 +419,7 @@ export abstract class BaseBlockRenderer {
   /**
    * Renders the contents of a block when no specific content renderer is defined.
    * @param registered registered block to render contents for
-   * @param props optional properties to pass down the block tree
+   * @param props context properties to be passed down the block tree
    * @returns SVG template or array
    */
   protected abstract renderDefaultContent(
@@ -429,13 +434,15 @@ export abstract class BaseBlockRenderer {
    * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
+   * @param props context properties to be passed down the block tree
    */
   protected abstract renderEditableCode(
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: string,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2>
 
   /**
@@ -445,13 +452,15 @@ export abstract class BaseBlockRenderer {
    * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
+   * @param props context properties to be passed down the block tree
    */
   protected abstract renderInput(
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: string,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2>
 
   /**
@@ -462,16 +471,23 @@ export abstract class BaseBlockRenderer {
    * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
+   * @param props context properties to be passed down the block tree
    */
   protected renderBooleanInput(
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: boolean,
-    onChange: (value: boolean) => void
+    onChange: (value: boolean) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2> {
-    return this.renderInput(registered, position, size, value.toString(), value =>
-      onChange(value == "true" || value == "1")
+    return this.renderInput(
+      registered,
+      position,
+      size,
+      value.toString(),
+      value => onChange(value == "true" || value == "1"),
+      props
     )
   }
 
@@ -493,7 +509,8 @@ export abstract class BaseBlockRenderer {
     widgetPosition: Coordinates,
     values: { id: string; display: string }[],
     selected: string,
-    onSelect: (id: string) => void
+    onSelect: (id: string) => void,
+    props: InternalBlockRenderProps
   ): TemplateResult<2>
 }
 
