@@ -28,6 +28,7 @@ import "@kutelabs/shared"
 import "./drag/DragLayer"
 import { generateCallbacks } from "./environment/Environment"
 import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
+import { BlockType } from "./blocks/configuration/BlockType"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -103,14 +104,20 @@ export class EditorMixed extends LitElement {
     button {
       cursor: pointer;
     }
-
-    g[class^=block]:focus {
+    g[class^="block"]:focus {
       outline: none;
     }
-
-    g.block-container:focus>[id^=bg] {
+    g.block-container:focus > [id^="bg"] {
       stroke: #0000ff;
       stroke-width: 5;
+    }
+    .sr-only {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
     }
   `
 
@@ -122,6 +129,7 @@ export class EditorMixed extends LitElement {
       <div
         id="editor-container"
         role="application"
+        aria-details="sr-details"
         style="position: relative;"
         @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
         @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
@@ -166,9 +174,24 @@ export class EditorMixed extends LitElement {
           ${ref(this.dragLayerRef)}
           .dragRenderer=${this.dragRenderer}
           .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
-          
-        
       </div>
+      <ol id="sr-details" class="sr-only">
+        <li>
+          This is a block-based code editor. There's a drawer with available blocks and a workspace
+          to assemble code from blocks.
+        </li>
+        <li>
+          Once a block is selected, hold the arrow keys to move it around. Let go to drop the block
+          or connect it to the closest connector, if available.
+        </li>
+        <li>Use WASD to pan around the workspace, if needed, and plus / minus to zoom.</li>
+        <li>
+          These types of blocks are available:
+          <ol>
+            ${Object.values(BlockType).map(type => html`<li>${type}</li>`)}
+          </ol>
+        </li>
+      </ol>
     `
     // console.timeEnd("editor | render time")
     return result
