@@ -95,7 +95,7 @@ export abstract class BaseDrawerRenderer {
     blocks: BlockCoordinateCount[],
     contentWidth: number,
     contentHeight: number,
-    renderBlock: (block: AnyBlock, position: Coordinates) => TemplateResult<2>
+    renderBlock: typeof BaseBlockRenderer.prototype.renderBlock
   ): TemplateResult<2>
 }
 

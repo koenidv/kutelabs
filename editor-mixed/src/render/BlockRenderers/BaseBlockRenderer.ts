@@ -21,6 +21,11 @@ export enum BlockMarking {
 
 export type SvgResult = TemplateResult<2> | TemplateResult<2>[]
 
+/** A set of options to be passed down the block tree to pass context to downstream blocks */
+export type InternalBlockRenderProps = {
+  tabindex: number
+}
+
 /**
  * The BlockRenderer is responsible for rendering blocks in the workspace.
  * It will also be called from other renderers to render blocks in different contexts.
@@ -78,7 +83,7 @@ export abstract class BaseBlockRenderer {
   protected renderFromRoot(): TemplateResult<2>[] {
     if (this.blockRegistry.root == null) throw new Error("Cannot render; root is not set")
     return this.blockRegistry.root.blocks.map(({ block, position }) => {
-      return this.renderBlock(block, position)
+      return this.renderBlock(block, position, { tabindex: 0 })
     })
   }
 
@@ -86,29 +91,47 @@ export abstract class BaseBlockRenderer {
    * Render a block at a position relative to an upstream connected block
    * @param block Block to render
    * @param previousBlock Upstream connected block
+   * @param props optional properties to pass down the block tree
+   * @returns SVG template for block group
    */
-  public renderBlock(block: AnyBlock, previousBlock: AnyBlock): TemplateResult<2>
+  public renderBlock(
+    block: AnyBlock,
+    previousBlock: AnyBlock,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2>
   /**
    * Render a block with an offset to its upstream block.
    * Use this to render Blocks from the root
    * @param block Block to render
    * @param translatePosition Offset to upstream block, i.e. will render at this position for root upstream
+   * @param props optional properties to pass down the block tree
+   * @returns SVG template for block group
    */
-  public renderBlock(block: AnyBlock, translatePosition: Coordinates): TemplateResult<2>
+  public renderBlock(
+    block: AnyBlock,
+    translatePosition: Coordinates,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2>
   /**
    * Renders a block with an offset to a reference block
    * @param block Block to render
    * @param ref Block or Coordinate Object to render the block relative to
+   * @param props optional properties to pass down the block tree
    * @returns SVG template for block group
    */
-  public renderBlock(block: AnyBlock, ref: AnyBlock | Coordinates): TemplateResult<2> {
+  public renderBlock(
+    block: AnyBlock,
+    ref: AnyBlock | Coordinates,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
     return this.draggableContainer(
       block.id,
       this.determineRenderOffset(block, ref),
       block.draggable,
+      props,
       () =>
-        this.renderBlockElement(this.blockRegistry.getRegistered(block), (next: AnyBlock) =>
-          this.renderBlock(next, block)
+        this.renderBlockElement(this.blockRegistry.getRegistered(block), props, (next: AnyBlock) =>
+          this.renderBlock(next, block, props)
         )
     )
   }
@@ -121,12 +144,13 @@ export abstract class BaseBlockRenderer {
    */
   protected renderBlockElement(
     registered: AnyRegisteredBlock,
+    props: InternalBlockRenderProps,
     renderConnected: (block: AnyBlock) => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
     <g class="block-${registered.block.type}">
-      ${this.renderContainer(registered)}
-      ${this.renderContent(registered)}
+      ${this.renderContainer(registered, props)}
+      ${this.renderContent(registered, props)}
       ${registered.block.downstreamWithConnectors.map(it => renderConnected(it.block))}
 	  </g>
     `
@@ -135,43 +159,66 @@ export abstract class BaseBlockRenderer {
   /**
    * Renders the content of a block, depending on its type
    * @param registered registered block to render
+   * @param props optional properties to pass down the block tree
    * @returns SVG template for block content
    */
-  protected renderContent(registered: AnyRegisteredBlock): SvgResult {
+  protected renderContent(
+    registered: AnyRegisteredBlock,
+    props: InternalBlockRenderProps
+  ): SvgResult {
     switch (registered.block.type) {
       case BlockType.Function:
-        return this.renderContentFunction(registered as RegisteredBlock<BlockType.Function, any>)
+        return this.renderContentFunction(
+          registered as RegisteredBlock<BlockType.Function, any>,
+          props
+        )
       case BlockType.Expression:
         return this.renderContentExpression(
-          registered as RegisteredBlock<BlockType.Expression, any>
+          registered as RegisteredBlock<BlockType.Expression, any>,
+          props
         )
       case BlockType.Value:
-        return this.renderContentValue(registered as RegisteredBlock<BlockType.Value, any>)
+        return this.renderContentValue(registered as RegisteredBlock<BlockType.Value, any>, props)
       case BlockType.Variable:
-        return this.renderContentVariable(registered as RegisteredBlock<BlockType.Variable, any>)
+        return this.renderContentVariable(
+          registered as RegisteredBlock<BlockType.Variable, any>,
+          props
+        )
       case BlockType.VarInit:
-        return this.renderContentVariableInit(registered as RegisteredBlock<BlockType.VarInit, any>)
+        return this.renderContentVariableInit(
+          registered as RegisteredBlock<BlockType.VarInit, any>,
+          props
+        )
       case BlockType.VarSet:
-        return this.renderContentVariableSet(registered as RegisteredBlock<BlockType.VarSet, any>)
+        return this.renderContentVariableSet(
+          registered as RegisteredBlock<BlockType.VarSet, any>,
+          props
+        )
       case BlockType.Loop:
-        return this.renderContentLoop(registered as RegisteredBlock<BlockType.Loop, any>)
+        return this.renderContentLoop(registered as RegisteredBlock<BlockType.Loop, any>, props)
       case BlockType.Conditional:
         return this.renderContentConditional(
-          registered as RegisteredBlock<BlockType.Conditional, any>
+          registered as RegisteredBlock<BlockType.Conditional, any>,
+          props
         )
       case BlockType.LogicNot:
-        return this.renderContentLogicNot(registered as RegisteredBlock<BlockType.LogicNot, any>)
+        return this.renderContentLogicNot(
+          registered as RegisteredBlock<BlockType.LogicNot, any>,
+          props
+        )
       case BlockType.LogicJunction:
         return this.renderContentLogicJunction(
-          registered as RegisteredBlock<BlockType.LogicJunction, any>
+          registered as RegisteredBlock<BlockType.LogicJunction, any>,
+          props
         )
       case BlockType.LogicComparison:
         return this.renderContentLogicComparison(
-          registered as RegisteredBlock<BlockType.LogicComparison, any>
+          registered as RegisteredBlock<BlockType.LogicComparison, any>,
+          props
         )
       default:
         console.error("No content renderer for block type", registered.block.type)
-        return this.renderDefaultContent(registered)
+        return this.renderDefaultContent(registered, props)
     }
   }
 
@@ -202,6 +249,7 @@ export abstract class BaseBlockRenderer {
     blockId: string,
     translate: Coordinates,
     draggable: boolean = true,
+    props: InternalBlockRenderProps,
     child: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
@@ -261,70 +309,91 @@ export abstract class BaseBlockRenderer {
   //#region Block Contents
 
   /** Override this to customize how the content of **function** blocks is rendered */
-  protected renderContentFunction(registered: RegisteredBlock<BlockType.Function, any>): SvgResult {
-    return this.renderDefaultContent(registered)
+  protected renderContentFunction(
+    registered: RegisteredBlock<BlockType.Function, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **expression** blocks is rendered */
   protected renderContentExpression(
-    registered: RegisteredBlock<BlockType.Expression, any>
+    registered: RegisteredBlock<BlockType.Expression, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **value** blocks is rendered */
-  protected renderContentValue(registered: RegisteredBlock<BlockType.Value, any>): SvgResult {
-    return this.renderDefaultContent(registered)
+  protected renderContentValue(
+    registered: RegisteredBlock<BlockType.Value, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **variable** blocks is rendered */
-  protected renderContentVariable(registered: RegisteredBlock<BlockType.Variable, any>): SvgResult {
-    return this.renderDefaultContent(registered)
+  protected renderContentVariable(
+    registered: RegisteredBlock<BlockType.Variable, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **variable init** blocks is rendered */
   protected renderContentVariableInit(
-    registered: RegisteredBlock<BlockType.VarInit, any>
+    registered: RegisteredBlock<BlockType.VarInit, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **variable set** blocks is rendered */
   protected renderContentVariableSet(
-    registered: RegisteredBlock<BlockType.VarSet, any>
+    registered: RegisteredBlock<BlockType.VarSet, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **loop** blocks is rendered */
-  protected renderContentLoop(registered: RegisteredBlock<BlockType.Loop, any>): SvgResult {
-    return this.renderDefaultContent(registered)
+  protected renderContentLoop(
+    registered: RegisteredBlock<BlockType.Loop, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **conditional** blocks is rendered */
   protected renderContentConditional(
-    registered: RegisteredBlock<BlockType.Conditional, any>
+    registered: RegisteredBlock<BlockType.Conditional, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **logic not** blocks is rendered */
-  protected renderContentLogicNot(registered: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
-    return this.renderDefaultContent(registered)
+  protected renderContentLogicNot(
+    registered: RegisteredBlock<BlockType.LogicNot, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **logic junction** blocks is rendered */
   protected renderContentLogicJunction(
-    registered: RegisteredBlock<BlockType.LogicJunction, any>
+    registered: RegisteredBlock<BlockType.LogicJunction, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   /** Override this to customize how the content of **logic comparison** blocks is renderer */
   protected renderContentLogicComparison(
-    registered: RegisteredBlock<BlockType.LogicComparison, any>
+    registered: RegisteredBlock<BlockType.LogicComparison, any>,
+    props: InternalBlockRenderProps
   ): SvgResult {
-    return this.renderDefaultContent(registered)
+    return this.renderDefaultContent(registered, props)
   }
 
   //#region Abstract methods
@@ -332,17 +401,26 @@ export abstract class BaseBlockRenderer {
   /**
    * Renders the background container for a block.
    * The container is rendered behind the elements of the block and does not have children.
+   * Container rendering is called before content rendering and changes to the context props will be applied there
    * @param registered registered block that is being rendered
+   * @param props optional properties to pass down the block tree
    * @returns SVG template or array for the container
    */
-  protected abstract renderContainer(registered: AnyRegisteredBlock): SvgResult
+  protected abstract renderContainer(
+    registered: AnyRegisteredBlock,
+    props: InternalBlockRenderProps
+  ): SvgResult
 
   /**
    * Renders the contents of a block when no specific content renderer is defined.
    * @param registered registered block to render contents for
+   * @param props optional properties to pass down the block tree
    * @returns SVG template or array
    */
-  protected abstract renderDefaultContent(registered: AnyRegisteredBlock): SvgResult
+  protected abstract renderDefaultContent(
+    registered: AnyRegisteredBlock,
+    props: InternalBlockRenderProps
+  ): SvgResult
 
   /**
    * Renders an editable code input field
