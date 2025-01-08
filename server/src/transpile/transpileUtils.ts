@@ -3,7 +3,7 @@ import { joinAndCreate, writeFile } from "../fsUtils"
 import fs from "node:fs/promises"
 import { join } from "node:path"
 
-async function baseTempDir() {
+export async function baseTempDir() {
   const joined = await joinAndCreate(env.DATA_DIR, "temp", true)
   return { base: env.DATA_DIR, relative: "temp", joined }
 }
@@ -12,22 +12,24 @@ export async function withTempDir<T>(
   fn: (relative: string, absolute: string) => Promise<T>,
   errorReturn: T
 ): Promise<Awaited<T>> {
-  const tempBase = await baseTempDir()
-  const tempPath = await fs.mkdtemp(tempBase.joined + "/")
-  const relativePath = tempPath.substring(tempBase.base.length + 1)
-
+  let tempPath: string | null = null
   try {
+    const tempBase = await baseTempDir()
+    tempPath = await fs.mkdtemp(tempBase.joined + "/")
+    const relativePath = tempPath.substring(tempBase.base.length + 1)
+
     const result = await fn(relativePath, tempPath)
     return result
   } catch (e) {
-    console.error(e)
+    console.error("Error within temp directory:", e)
     return errorReturn as Awaited<T>
   } finally {
-    await fs.rm(tempPath, { recursive: true, force: true })
+    if (tempPath) await fs.rm(tempPath, { recursive: true, force: true })
   }
 }
 
 export async function writeInputFile(path: string, content: string) {
+  if (content.length > 5 * 1024 * 1024) throw new Error("Input file too large")
   return await writeFile(await joinAndCreate(path, "input"), "code.kt", content)
 }
 
