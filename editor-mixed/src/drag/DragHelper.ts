@@ -1,13 +1,12 @@
 import type { Ref } from "lit/directives/ref.js"
+import type { AnyBlock } from "../blocks/Block"
 import { Connection } from "../connections/Connection"
 import { BlockRegistry } from "../registries/BlockRegistry"
 import { ConnectorRegistry } from "../registries/ConnectorRegistry"
-import { RegisteredBlock, type AnyRegisteredBlock } from "../registries/RegisteredBlock"
+import { type AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 import { findShadowedActiveElement, focusBlockElement, srAnnounce } from "../util/DOMUtils"
-import type { AnyBlock } from "../blocks/Block"
-import type { Connector } from "../connections/Connector"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -346,22 +345,15 @@ export class DragHelper {
     if (evt.key != "j") this.resetIterableConnectors()
 
     switch (evt.key) {
-      case "j": {
-        this.handleKeyboardInteraction(
-          evt,
-          (block, _, cancel) => this.connectToNextFreeConnector(block, cancel),
-          true
-        )
+      case "j":
+        this.handleKeyboardInteraction(evt, this.connectToNextFreeConnector.bind(this), true)
         break
-      }
-      case "k": {
+      case "k":
         this.handleKeyboardInteraction(evt, this.connectToRoot.bind(this))
         break
-      }
-      case "l": {
+      case "l":
         this.handleKeyboardInteraction(evt, this.connectToDrawer.bind(this))
         break
-      }
     }
   }
 
@@ -370,7 +362,11 @@ export class DragHelper {
    * @param block block to connect
    * @param cancel function to cancel the drag operation
    */
-  private connectToNextFreeConnector(block: AnyBlock, cancel: () => void) {
+  private connectToNextFreeConnector(
+    block: AnyBlock,
+    upstream: AnyBlock | null,
+    cancel: () => void
+  ) {
     if (block.id != this.interableConnectionsForBlockId) {
       this.resetIterableConnectors()
       this.availableIterableConnectionsList =
@@ -379,8 +375,20 @@ export class DragHelper {
     }
 
     if (this.availableIterableConnectionsList.length == 0) {
-      console.warn("No available connectors found")
-      return cancel()
+      if (upstream && "drawerConnector" in upstream) {
+        this.blockRegistry.attachToRoot(block, pos => new Coordinates(400, 400))
+        setTimeout(() => focusBlockElement(this.workspaceRef, block.id))
+        srAnnounce(
+          this.workspaceRef,
+          "Block added to workspace" + block.connectors.before
+            ? ", no available unoccupied connectors for this block."
+            : "."
+        )
+        return
+      } else {
+        srAnnounce(this.workspaceRef, "No available unoccupied connectors for this block")
+        return cancel()
+      }
     }
     if (this.currentIterableConnectionIndex >= this.availableIterableConnectionsList.length)
       this.currentIterableConnectionIndex = 0

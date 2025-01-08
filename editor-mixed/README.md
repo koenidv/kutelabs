@@ -10,11 +10,12 @@ forward local port: socat TCP-LISTEN:8080,fork TCP:localhost:4321
 
 - [x] Touch support
 - [ ] Layout for narrow screens
+- [ ] Safari compatibility
 
 ## a11y
 
 - [x] Moving around the workspace by keyboard
-- [ ] Moving blocks by keyboard
+- [x] Moving blocks by keyboard
 - [x] Logical tab order
 - [ ] Explicitly focus input fields
 - [x] Useful screen reader announcements
