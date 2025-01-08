@@ -16,19 +16,15 @@ import type { BaseWidgetRenderer } from "./render/WidgetRenderers/BaseWidgetRend
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { isSafari } from "./util/browserCheck"
-import {
-  DebugMixedEditorConfig,
-  DefaultMixedEditorConfig,
-  type MixedEditorConfig,
-} from "./util/MixedEditorConfig"
+import { DefaultMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
 import { VariableHelper } from "./variables/VariableHelper"
 import type { VariableHInterface } from "./variables/VariableHInterface"
 
+import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 import "@kutelabs/shared"
+import { BlockType } from "./blocks/configuration/BlockType"
 import "./drag/DragLayer"
 import { generateCallbacks } from "./environment/Environment"
-import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
-import { BlockType } from "./blocks/configuration/BlockType"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -170,6 +166,10 @@ export class EditorMixed extends LitElement {
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
           ${this.drawerRenderer!.renderElement()}
+        </div>
+
+        <div id="editor-controls" style="position: absolute; bottom: 0; right: 0;">
+          ${this.extrasRenderer.renderZoomButtons(this.panzoomHelper)}
         </div>
 
         <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>

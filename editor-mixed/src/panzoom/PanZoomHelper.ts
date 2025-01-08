@@ -106,6 +106,14 @@ export class PanZoomHelper {
     this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
   }
 
+  /**
+   * Zoom a step
+   * @param stepModifier positive to zoom out, negative to zoom in
+   */
+  public zoomStep(stepModifier: number) {
+    this.zoom(stepModifier, undefined, undefined, this.zoomSpeedKeyboard)
+  }
+
   private setInitialWorkspaceSize() {
     if (this.initialWorkspaceSize != null) return
     this.initialWorkspaceSize = {
