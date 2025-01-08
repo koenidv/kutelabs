@@ -16,7 +16,7 @@ export class PanZoomHelper {
   private readonly scrollInputHelper: ScrollInputHelper
 
   private panSpeed = 1.3
-  private panSpeedTouch = 1.15
+  private panSpeedTouch = 1
   private panSpeedKeyboard = 4
   private zoomSpeed = 1.2
   private zoomSpeedTouch = 0.6
@@ -202,7 +202,7 @@ export class PanZoomHelper {
     this.pan(
       -(evt.touches[0].clientX - this.lastTouches[0].x),
       -(evt.touches[0].clientY - this.lastTouches[0].y),
-      this.panSpeedTouch
+      this.panSpeedTouch / ctm.a
     )
 
     this.setTouches(evt)

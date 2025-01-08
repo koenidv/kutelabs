@@ -331,7 +331,7 @@ export class DragHelper {
    * @param previousConnection previous upstream connection of the dragged block
    * @returns
    */
-  private cancelDrag(
+  public cancelDrag(
     dragged: AnyBlock | undefined = this.dragged?.block,
     previousUpstream: AnyBlock | null = this.previousUpstream,
     previousConnection: Connection | null = this.previousConnection
