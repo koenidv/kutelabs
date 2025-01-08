@@ -6,10 +6,10 @@ import { env } from "./env"
 import "@kutelabs/shared"
 import "./analytics/Sentry"
 
-const app = new Hono()
+export const app = new Hono()
 
 const routes = new Glob(__dirname + "/routes/**/index.ts")
-registerRoutes(routes)
+await registerRoutes(routes)
 
 async function registerRoutes(routes: Glob) {
   for await (const path of routes.scan(".")) {

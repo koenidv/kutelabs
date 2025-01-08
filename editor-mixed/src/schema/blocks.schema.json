@@ -64,7 +64,7 @@
           "properties": {
             "draggable": {
               "type": "boolean",
-              "description": "Set to false to disable dragging this block",
+              "description": "Set to false to disable dragging this block"
             }
           }
         }
