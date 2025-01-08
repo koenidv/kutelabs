@@ -19,6 +19,7 @@
   <div class="flex flex-col pt-4 kt-logs">
     {#each $logState as log}
       <p
+        role="log"
         class={`font-normal p-2, border-beige-200 border-t-2 last:border-b-2 ${colorByType(log.type)}`}>
         {log.log.map((it: any) => it.toString()).join(", ")}
       </p>

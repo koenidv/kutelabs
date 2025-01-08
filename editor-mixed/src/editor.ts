@@ -135,7 +135,8 @@ export class EditorMixed extends LitElement {
         @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
-        @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
+        @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
+        @keydown="${(e: KeyboardEvent) => this.dragHelper!.onKeydown(e)}">
         <div
           tabindex="0"
           class="panzoom"
@@ -156,9 +157,12 @@ export class EditorMixed extends LitElement {
             height="100%"
             viewBox="0 0 800 800"
             style="position: absolute; top: 0; left: 0; pointer-events: all;"
+            aria-label="Block workspace"
+            aria-describedby="sr-workspace-helper"
             role="tree">
             ${this.extrasRenderer.renderBackground()} ${this.blockRenderer.render()}
           </svg>
+          <p></p>
         </div>
 
         <div
@@ -175,6 +179,9 @@ export class EditorMixed extends LitElement {
           .dragRenderer=${this.dragRenderer}
           .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
       </div>
+
+      <p id="sr-announcement" class="sr-only" role="status"></p>
+
       <ol id="sr-details" class="sr-only">
         <li>
           This is a block-based code editor. There's a drawer with available blocks and a workspace
@@ -192,6 +199,8 @@ export class EditorMixed extends LitElement {
           </ol>
         </li>
       </ol>
+
+      <p id="sr-workspace-helper" class="sr-only">There are ${this.blockRegistry.root?.blocks.length} block stacks</p>
     `
     // console.timeEnd("editor | render time")
     return result

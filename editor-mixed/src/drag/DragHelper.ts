@@ -5,6 +5,8 @@ import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
+import { findShadowedActiveElement, focusBlockElement, srAnnounce } from "../util/DOMUtils"
+import type { AnyBlock } from "../blocks/Block"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -67,7 +69,7 @@ export class DragHelper {
       it => it.classList.contains("donotdrag")
     )
     if (draggedParent == null) return
-    this.dragged = this.getDraggedData(draggedParent)
+    this.dragged = this.getDraggedData(draggedParent)?.registered ?? null
     if (this.dragged == null) return
     evt.preventDefault()
 
@@ -106,18 +108,21 @@ export class DragHelper {
    * @param draggableParent target element of the drag start event
    * @returns dragged block or null if not found
    */
-  private getDraggedData(draggableParent: HTMLElement | null): AnyRegisteredBlock | null {
+  private getDraggedData(
+    draggableParent: HTMLElement | null
+  ): { registered: AnyRegisteredBlock; previousUpstream: AnyBlock | null } | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
-    const registeredBlock = this.blockRegistry.getRegisteredById(blockId)
-    if (registeredBlock == null) return null
+    const registered = this.blockRegistry.getRegisteredById(blockId)
+    if (registered == null) return null
 
-    const poppedBlock = registeredBlock.block.disconnectSelf(this.blockRegistry)
+    const previousUpstream = registered.block.upstream
+    const poppedBlock = registered.block.disconnectSelf(this.blockRegistry)
     this.blockRegistry.setDetached(poppedBlock)
-    if (poppedBlock != registeredBlock.block) {
-      return this.blockRegistry.getRegistered(poppedBlock)
+    if (poppedBlock != registered.block) {
+      return { registered: this.blockRegistry.getRegistered(poppedBlock), previousUpstream }
     }
-    return registeredBlock
+    return { registered, previousUpstream }
   }
 
   /**
@@ -297,5 +302,126 @@ export class DragHelper {
       return false
     }
     return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom
+  }
+
+  //#region Keyboard Interaction
+
+  /**
+   * Use the keyboard to dis/connect blocks.
+   * available keys:
+   * - j: connect to next free compatible connector (work in progress)
+   * - k: disconnect and attach to root
+   * - l: disconnect and attach to drawer
+   * @param evt Keyboard event on the editor (needs to include workspace and drawer)
+   * @returns
+   */
+  onKeydown(evt: KeyboardEvent) {
+    if (evt.defaultPrevented) return
+
+    switch (evt.key) {
+      // todo j for next free compatible connector
+      case "k": {
+        this.handleKeyboardInteraction(
+          evt,
+          (block, previousUpstream) => {
+            this.blockRegistry.attachToRoot(block, curr => {
+              return Coordinates.addPopOffset(curr)
+            })
+            focusBlockElement(this.workspaceRef, previousUpstream.id)
+            srAnnounce(
+              this.workspaceRef,
+              `Focus on previous block. ${block.type} block and connected blocks disconnected and remain in workspace.`
+            )
+          },
+          block => {
+            this.blockRegistry.attachToRoot(block, curr => {
+              return Coordinates.addPopOffset(curr)
+            })
+            focusBlockElement(this.workspaceRef, block.id)
+            this.workspaceRef.value?.focus()
+            srAnnounce(
+              this.workspaceRef,
+              `Focus on next workspace block stack. Previous stack is now disconnected and remains in workspace.`
+            )
+          }
+        )
+
+        break
+      }
+      case "l": {
+        this.handleKeyboardInteraction(
+          evt,
+          (block, previousUpstream) => {
+            this.blockRegistry.attachToDrawer(block)
+            focusBlockElement(this.workspaceRef, previousUpstream.id)
+            srAnnounce(
+              this.workspaceRef,
+              `Focus on previous block. ${block.type} block and connected blocks returned to drawer.`
+            )
+          },
+          block => {
+            this.blockRegistry.attachToDrawer(block)
+            this.workspaceRef.value?.focus()
+            srAnnounce(
+              this.workspaceRef,
+              `Focus on next workspace block stack. ${block.type} block and connected blocks returned to drawer.`
+            )
+          }
+        )
+        break
+      }
+    }
+  }
+
+  /**
+   * Gets the currently selected blocks and executes an action depending on if there was an upstream block before disconnecting.
+   * This also requests a full rerender of the workspace and drag layer to update the visuals.
+   * @param evt Keyboard event to prevent default
+   * @param withUpstream action to execute if there was an upstream block
+   * @param withoutUpstream action to execute if there was no upstream block
+   * @returns void
+   */
+  private handleKeyboardInteraction(
+    evt: KeyboardEvent,
+    withUpstream: ((block: AnyBlock, previousUpstream: AnyBlock) => void) | undefined,
+    withoutUpstream: (block: AnyBlock) => void
+  ) {
+    const it = this.popFocussedBlock()
+    if (!it || it.registered.block.isInDrawer) return
+    const {
+      registered: { block },
+      previousUpstream,
+    } = it
+    evt.preventDefault()
+
+    if (
+      !previousUpstream ||
+      "rootConnector" in previousUpstream ||
+      "drawerConnector" in previousUpstream ||
+      !withUpstream
+    )
+      withoutUpstream(block)
+    else withUpstream(block, previousUpstream)
+    this.requestRerender(true)
+  }
+
+  /**
+   * Finds the currently focussed element within the editor and pops the block if it is a block element.
+   * @returns block data and previous upstream block if found, null otherwise
+   */
+  private popFocussedBlock(): {
+    registered: AnyRegisteredBlock
+    previousUpstream: AnyBlock | null
+  } | null {
+    const focussedElement = findShadowedActiveElement(document)
+    if (!focussedElement) return null
+    if (!focussedElement?.classList.contains("block-container")) return null
+    return this.getDraggedData(
+      this.findParent(
+        focussedElement as HTMLElement,
+        it => it.classList.contains("dragable"),
+        it => it.classList.contains("donotdrag")
+      )
+    )
   }
 }

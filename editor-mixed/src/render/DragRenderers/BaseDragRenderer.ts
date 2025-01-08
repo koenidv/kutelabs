@@ -50,13 +50,13 @@ export abstract class BaseDragRenderer {
 
   /**
    * Render the dragged block and snap connection if available.
-   * @returns 
+   * @returns
    */
   render() {
     if (this.dragged == null) return nothing
     return [
       // pointer-events="none" is required to detect dropping on the drawer
-      svg`<g pointer-events="none">${this.blockRenderer.renderBlock(this.dragged.block, this.position)}</g>`,
+      svg`<g pointer-events="none">${this.blockRenderer.renderBlock(this.dragged.block, this.position, { level: 0, tabindex: -100000 })}</g>`,
       this.renderSnap(),
     ]
   }
@@ -64,7 +64,7 @@ export abstract class BaseDragRenderer {
   /**
    * Render a snap indicator if a connection available, depending on the type of snap.
    * Snap indicators will be rendered on top of the dragged block.
-   * @returns 
+   * @returns
    */
   protected renderSnap() {
     if (this.snap == null || this.dragged == null) return nothing
