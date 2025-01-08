@@ -188,8 +188,8 @@ export class EditorMixed extends LitElement {
           to assemble code from blocks.
         </li>
         <li>
-          Once a block is selected, hold the arrow keys to move it around. Let go to drop the block
-          or connect it to the closest connector, if available.
+          Once a block is selected, use "j" to connect it to the next unoccupied matching connector,
+          or "k" to disconnect it from its current connection, or "l" to return it to the drawer.
         </li>
         <li>Use WASD to pan around the workspace, if needed, and plus / minus to zoom.</li>
         <li>
@@ -200,7 +200,9 @@ export class EditorMixed extends LitElement {
         </li>
       </ol>
 
-      <p id="sr-workspace-helper" class="sr-only">There are ${this.blockRegistry.root?.blocks.length} block stacks</p>
+      <p id="sr-workspace-helper" class="sr-only">
+        There are ${this.blockRegistry.root?.blocks.length} block stacks
+      </p>
     `
     // console.timeEnd("editor | render time")
     return result

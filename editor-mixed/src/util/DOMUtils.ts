@@ -37,6 +37,5 @@ export function focusBlockElement(workspaceRef: Ref<SVGSVGElement>, id: string):
   const root = workspaceRef.value?.getRootNode() as SVGElement | null
   if (!root) return
   const element = root.querySelector(`#block-${id}>.block-container`) as SVGElement | null
-  console.log("focus on", element)
   if (element) element.focus()
 }

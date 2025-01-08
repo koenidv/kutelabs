@@ -1,5 +1,4 @@
 import type { AnyBlock } from "../blocks/Block"
-import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorRole } from "./ConnectorRole"

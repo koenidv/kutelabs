@@ -84,6 +84,15 @@ export class ConnectedBlocks {
   }
 
   /**
+   * Get the connector connected a given block is connected to
+   * @param block block to get the connected connector for
+   * @returns connected connector or null if the block is not connected
+   */
+  byBlock(block: AnyBlock): Connector | null {
+    return findKeyByValue(this.blocks, block) ?? null
+  }
+
+  /**
    * All downstream connected blocks including the connectors they are connected to
    */
   get downstream(): BlockAndConnector[] {

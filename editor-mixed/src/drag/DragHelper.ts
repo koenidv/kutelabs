@@ -7,6 +7,7 @@ import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 import { findShadowedActiveElement, focusBlockElement, srAnnounce } from "../util/DOMUtils"
 import type { AnyBlock } from "../blocks/Block"
+import type { Connector } from "../connections/Connector"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -108,21 +109,34 @@ export class DragHelper {
    * @param draggableParent target element of the drag start event
    * @returns dragged block or null if not found
    */
-  private getDraggedData(
-    draggableParent: HTMLElement | null
-  ): { registered: AnyRegisteredBlock; previousUpstream: AnyBlock | null } | null {
+  private getDraggedData(draggableParent: HTMLElement | null): {
+    registered: AnyRegisteredBlock
+    previousUpstream: AnyBlock | null
+    previousConnection: Connection | null
+  } | null {
     if (draggableParent == null) return null
     const blockId = draggableParent.id.replace("block-", "")
     const registered = this.blockRegistry.getRegisteredById(blockId)
     if (registered == null) return null
 
     const previousUpstream = registered.block.upstream
+    const previousUpstreamConnector = registered.block.upstreamConnectorInUse
+    const previousUpstreamConnectedTo = previousUpstream?.connectedBlocks.byBlock(registered.block)
+    const previousConnection =
+      previousUpstreamConnector && previousUpstreamConnectedTo
+        ? new Connection(previousUpstreamConnector, previousUpstreamConnectedTo)
+        : null
+
     const poppedBlock = registered.block.disconnectSelf(this.blockRegistry)
     this.blockRegistry.setDetached(poppedBlock)
     if (poppedBlock != registered.block) {
-      return { registered: this.blockRegistry.getRegistered(poppedBlock), previousUpstream }
+      return {
+        registered: this.blockRegistry.getRegistered(poppedBlock),
+        previousUpstream,
+        previousConnection,
+      }
     }
-    return { registered, previousUpstream }
+    return { registered, previousUpstream, previousConnection }
   }
 
   /**
@@ -273,6 +287,8 @@ export class DragHelper {
     this.currentTouchX = this.currentTouchY = 0
   }
 
+  //#region Utils
+
   /**
    * Finds the first parent of an element that matches a predicate and does not match a break condition.
    * This is used to find the block element that is being dragged or the drawer element.
@@ -306,10 +322,19 @@ export class DragHelper {
 
   //#region Keyboard Interaction
 
+  private availableIterableConnectionsList: Connection[] = []
+  private interableConnectionsForBlockId: string | null = null
+  private currentIterableConnectionIndex = 1
+  private resetIterableConnectors = () => {
+    this.availableIterableConnectionsList = []
+    this.interableConnectionsForBlockId = null
+    this.currentIterableConnectionIndex = 0 // starting at index 1; 0 is the previous connection
+  }
+
   /**
    * Use the keyboard to dis/connect blocks.
    * available keys:
-   * - j: connect to next free compatible connector (work in progress)
+   * - j: connect to next free compatible connector
    * - k: disconnect and attach to root
    * - l: disconnect and attach to drawer
    * @param evt Keyboard event on the editor (needs to include workspace and drawer)
@@ -318,90 +343,140 @@ export class DragHelper {
   onKeydown(evt: KeyboardEvent) {
     if (evt.defaultPrevented) return
 
+    if (evt.key != "j") this.resetIterableConnectors()
+
     switch (evt.key) {
-      // todo j for next free compatible connector
-      case "k": {
+      case "j": {
         this.handleKeyboardInteraction(
           evt,
-          (block, previousUpstream) => {
-            this.blockRegistry.attachToRoot(block, curr => {
-              return Coordinates.addPopOffset(curr)
-            })
-            focusBlockElement(this.workspaceRef, previousUpstream.id)
-            srAnnounce(
-              this.workspaceRef,
-              `Focus on previous block. ${block.type} block and connected blocks disconnected and remain in workspace.`
-            )
-          },
-          block => {
-            this.blockRegistry.attachToRoot(block, curr => {
-              return Coordinates.addPopOffset(curr)
-            })
-            focusBlockElement(this.workspaceRef, block.id)
-            this.workspaceRef.value?.focus()
-            srAnnounce(
-              this.workspaceRef,
-              `Focus on next workspace block stack. Previous stack is now disconnected and remains in workspace.`
-            )
-          }
+          (block, _, cancel) => this.connectToNextFreeConnector(block, cancel),
+          true
         )
-
+        break
+      }
+      case "k": {
+        this.handleKeyboardInteraction(evt, this.connectToRoot.bind(this))
         break
       }
       case "l": {
-        this.handleKeyboardInteraction(
-          evt,
-          (block, previousUpstream) => {
-            this.blockRegistry.attachToDrawer(block)
-            focusBlockElement(this.workspaceRef, previousUpstream.id)
-            srAnnounce(
-              this.workspaceRef,
-              `Focus on previous block. ${block.type} block and connected blocks returned to drawer.`
-            )
-          },
-          block => {
-            this.blockRegistry.attachToDrawer(block)
-            this.workspaceRef.value?.focus()
-            srAnnounce(
-              this.workspaceRef,
-              `Focus on next workspace block stack. ${block.type} block and connected blocks returned to drawer.`
-            )
-          }
-        )
+        this.handleKeyboardInteraction(evt, this.connectToDrawer.bind(this))
         break
       }
     }
   }
 
   /**
-   * Gets the currently selected blocks and executes an action depending on if there was an upstream block before disconnecting.
+   * Connects the block to the next free compatible connector
+   * @param block block to connect
+   * @param cancel function to cancel the drag operation
+   */
+  private connectToNextFreeConnector(block: AnyBlock, cancel: () => void) {
+    if (block.id != this.interableConnectionsForBlockId) {
+      this.resetIterableConnectors()
+      this.availableIterableConnectionsList =
+        this.connectorRegistry.listUpstreamFreeConnections(block)
+      this.interableConnectionsForBlockId = block.id
+    }
+
+    if (this.availableIterableConnectionsList.length == 0) {
+      console.warn("No available connectors found")
+      return cancel()
+    }
+    if (this.currentIterableConnectionIndex >= this.availableIterableConnectionsList.length)
+      this.currentIterableConnectionIndex = 0
+
+    const nextConnection =
+      this.availableIterableConnectionsList[this.currentIterableConnectionIndex++]
+
+    if (!nextConnection.to.parentBlock) {
+      console.error("Connection without parent block")
+      return cancel()
+    }
+    nextConnection.to.parentBlock.connect(this.blockRegistry, block, nextConnection)
+    setTimeout(() => focusBlockElement(this.workspaceRef, block.id))
+    srAnnounce(
+      this.workspaceRef,
+      `Connected to ${nextConnection.to.parentBlock.type} block on its ${nextConnection.to.type} ${nextConnection.to.role} connector. Focus remains.`
+    )
+  }
+
+  /**
+   * Connects the block to the workspace root
+   * @param block block to connect
+   * @param upstream previous upstream block
+   */
+  private connectToRoot(block: AnyBlock, upstream: AnyBlock | null) {
+    this.blockRegistry.attachToRoot(block, curr => {
+      return Coordinates.addPopOffset(curr)
+    })
+    focusBlockElement(this.workspaceRef, upstream?.id ?? block.id)
+    srAnnounce(
+      this.workspaceRef,
+      upstream
+        ? `Focus on previous block. ${block.type} block and connected blocks disconnected and remain in workspace.`
+        : `Focus on next workspace block stack. Previous stack is now disconnected and remains in workspace.`
+    )
+  }
+
+  /**
+   * Connects the block to the drawer
+   * @param block block to connect
+   * @param upstream previous upstream block
+   */
+  private connectToDrawer(block: AnyBlock, upstream: AnyBlock | null) {
+    this.blockRegistry.attachToDrawer(block)
+    if (upstream) {
+      focusBlockElement(this.workspaceRef, upstream.id)
+      srAnnounce(
+        this.workspaceRef,
+        `Focus on previous block. ${block.type} block and connected blocks returned to drawer.`
+      )
+    } else {
+      this.workspaceRef.value?.focus()
+      srAnnounce(
+        this.workspaceRef,
+        `Focus on next workspace block stack. ${block.type} block and connected blocks returned to drawer.`
+      )
+    }
+  }
+
+  /**
+   * Gets the currently selected blocks and executes an action on it.
    * This also requests a full rerender of the workspace and drag layer to update the visuals.
+   * Important: The action MUST attach the popped block somewhere or call cancel, floating nodes are not allowed.
    * @param evt Keyboard event to prevent default
-   * @param withUpstream action to execute if there was an upstream block
-   * @param withoutUpstream action to execute if there was no upstream block
+   * @param action action to execute on the block
    * @returns void
    */
   private handleKeyboardInteraction(
     evt: KeyboardEvent,
-    withUpstream: ((block: AnyBlock, previousUpstream: AnyBlock) => void) | undefined,
-    withoutUpstream: (block: AnyBlock) => void
+    action: (block: AnyBlock, previousUpstream: AnyBlock | null, cancel: () => void) => void,
+    allowDrawer = false
   ) {
     const it = this.popFocussedBlock()
-    if (!it || it.registered.block.isInDrawer) return
+    if (!it || (!allowDrawer && it.registered.block.isInDrawer)) return
     const {
       registered: { block },
       previousUpstream,
+      previousConnection,
     } = it
     evt.preventDefault()
 
-    if (
-      !previousUpstream ||
-      "rootConnector" in previousUpstream ||
-      "drawerConnector" in previousUpstream ||
-      !withUpstream
-    )
-      withoutUpstream(block)
-    else withUpstream(block, previousUpstream)
+    const reattach = () => {
+      if (!previousUpstream) return
+      if (previousConnection) {
+        previousUpstream.connect(this.blockRegistry, block, previousConnection)
+      } else if ("rootConnector" in previousUpstream) {
+        this.blockRegistry.attachToRoot(block, pos => pos)
+      } else if ("drawerConnector" in previousUpstream) {
+        this.blockRegistry.attachToDrawer(block)
+      } else {
+        console.error("Previous block could not be reattached")
+      }
+    }
+
+    action(block, previousUpstream, reattach.bind(this))
+
     this.requestRerender(true)
   }
 
@@ -412,6 +487,7 @@ export class DragHelper {
   private popFocussedBlock(): {
     registered: AnyRegisteredBlock
     previousUpstream: AnyBlock | null
+    previousConnection: Connection | null
   } | null {
     const focussedElement = findShadowedActiveElement(document)
     if (!focussedElement) return null
