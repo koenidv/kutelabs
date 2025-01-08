@@ -65,6 +65,14 @@ or use the provided compose file.
 | `POSTHOG_IDENTIFIER`       | Server identifier for PostHog.                                                       | `local`                    |
 | `SENTRY_DSN`               | Sentry DSN for error tracking.                                                       | _undefined_                |
 
+## Tests
+
+The server is tested with bun's test runner. Run the tests with:
+
+```sh
+bun test
+```
+
 ## Observability
 
 The server captures transpilation events in PostHog to track usage, performance, and correlate this with app behavior. Errors are reported to Sentry for debugging.
