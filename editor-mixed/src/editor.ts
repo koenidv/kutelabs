@@ -285,6 +285,26 @@ export class EditorMixed extends LitElement {
     super.firstUpdated(_changedProperties)
   }
 
+  //#region Lifecycle
+
+  /**
+   * The escape key must be listened on document-wide to enable drag cancelling without tabbing into the editor
+   * @param e keyboard event on the document
+   */
+  private documentKeydownListener = ((e: KeyboardEvent) => {
+    if (e.key == "Escape") this.dragHelper?.onKeydown(e)
+  }).bind(this)
+
+  connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener("keydown", this.documentKeydownListener)
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback()
+    document.removeEventListener("keydown", this.documentKeydownListener)
+  }
+
   //#region Public API
 
   public compile<T>(

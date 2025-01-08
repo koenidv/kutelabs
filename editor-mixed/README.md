@@ -20,4 +20,4 @@ forward local port: socat TCP-LISTEN:8080,fork TCP:localhost:4321
 - [ ] Explicitly focus input fields
 - [x] Useful screen reader announcements
 - [ ] On-screen zoom buttons
-- [ ] Cancel drag by pressing escape
+- [x] Cancel drag by pressing escape

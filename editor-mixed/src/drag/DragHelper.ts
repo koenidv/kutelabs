@@ -42,6 +42,8 @@ export class DragHelper {
     this.removeWidgets = removeWidgets
   }
   private dragged: AnyRegisteredBlock | null = null
+  private previousUpstream: AnyBlock | null = null
+  private previousConnection: Connection | null = null
   private startPos = Coordinates.zero
   private dragX = 0
   private dragY = 0
@@ -69,8 +71,11 @@ export class DragHelper {
       it => it.classList.contains("donotdrag")
     )
     if (draggedParent == null) return
-    this.dragged = this.getDraggedData(draggedParent)?.registered ?? null
-    if (this.dragged == null) return
+    const data = this.getDraggedData(draggedParent)
+    if (!data) return
+    this.dragged = data.registered
+    this.previousUpstream = data.previousUpstream
+    this.previousConnection = data.previousConnection
     evt.preventDefault()
 
     this.startPos = this.determineBlockStartPosition(this.dragged, draggedParent)
@@ -319,6 +324,32 @@ export class DragHelper {
     return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom
   }
 
+  /**
+   * Reset the drag process and reattach the dragged block to its previous position.
+   * @param dragged block to reattach, defaults to dragged block
+   * @param previousUpstream previous upstream of the dragged block
+   * @param previousConnection previous upstream connection of the dragged block
+   * @returns
+   */
+  private cancelDrag(
+    dragged: AnyBlock | undefined = this.dragged?.block,
+    previousUpstream: AnyBlock | null = this.previousUpstream,
+    previousConnection: Connection | null = this.previousConnection
+  ) {
+    console.log(dragged, previousUpstream, previousConnection)
+    if (!dragged || !previousUpstream) return
+    if (previousConnection) {
+      previousUpstream.connect(this.blockRegistry, dragged, previousConnection)
+    } else if ("rootConnector" in previousUpstream) {
+      this.blockRegistry.attachToRoot(dragged, pos => pos)
+    } else if ("drawerConnector" in previousUpstream) {
+      this.blockRegistry.attachToDrawer(dragged)
+    } else {
+      console.error("Previous block could not be reattached")
+    }
+    this.reset()
+  }
+
   //#region Keyboard Interaction
 
   private availableIterableConnectionsList: Connection[] = []
@@ -333,6 +364,7 @@ export class DragHelper {
   /**
    * Use the keyboard to dis/connect blocks.
    * available keys:
+   * - escape: cancel drag operation (during pointer drag)
    * - j: connect to next free compatible connector
    * - k: disconnect and attach to root
    * - l: disconnect and attach to drawer
@@ -343,8 +375,14 @@ export class DragHelper {
     if (evt.defaultPrevented) return
 
     if (evt.key != "j") this.resetIterableConnectors()
-
+    console.log(evt.key)
     switch (evt.key) {
+      case "Escape":
+        if (this.dragged) {
+          this.cancelDrag()
+          this.requestRerender(true)
+        }
+        break
       case "j":
         this.handleKeyboardInteraction(evt, this.connectToNextFreeConnector.bind(this), true)
         break
@@ -376,7 +414,7 @@ export class DragHelper {
 
     if (this.availableIterableConnectionsList.length == 0) {
       if (upstream && "drawerConnector" in upstream) {
-        this.blockRegistry.attachToRoot(block, pos => new Coordinates(400, 400))
+        this.blockRegistry.attachToRoot(block, pos => new Coordinates(400, pos.y))
         setTimeout(() => focusBlockElement(this.workspaceRef, block.id))
         srAnnounce(
           this.workspaceRef,
@@ -470,20 +508,9 @@ export class DragHelper {
     } = it
     evt.preventDefault()
 
-    const reattach = () => {
-      if (!previousUpstream) return
-      if (previousConnection) {
-        previousUpstream.connect(this.blockRegistry, block, previousConnection)
-      } else if ("rootConnector" in previousUpstream) {
-        this.blockRegistry.attachToRoot(block, pos => pos)
-      } else if ("drawerConnector" in previousUpstream) {
-        this.blockRegistry.attachToDrawer(block)
-      } else {
-        console.error("Previous block could not be reattached")
-      }
-    }
-
-    action(block, previousUpstream, reattach.bind(this))
+    action(block, previousUpstream, () =>
+      this.cancelDrag(block, previousUpstream, previousConnection)
+    )
 
     this.requestRerender(true)
   }
