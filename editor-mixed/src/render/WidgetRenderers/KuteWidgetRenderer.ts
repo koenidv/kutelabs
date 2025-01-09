@@ -1,11 +1,11 @@
 import { html, svg, type TemplateResult } from "lit"
-import { BaseWidgetRenderer, type Widget } from "./BaseWidgetRenderer"
+import { BaseWidgetRenderer, type OverlayWidget, type SelectorWidget, type Widget } from "./BaseWidgetRenderer"
 import { RectBuilder } from "../../svg/RectBuilder"
 
 export class KuteWidgetRenderer extends BaseWidgetRenderer {
   containerPadding = { top: 5.5, right: 0, bottom: 0, left: 0 }
 
-  renderSelectorWidget(widget: Widget): TemplateResult<1> {
+  renderSelectorWidget(widget: SelectorWidget): TemplateResult<1> {
     return html`
       <div
         style="display: flex; flex-direction: column; gap: 0.25rem; padding: 4%;"
@@ -43,6 +43,10 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
         }
       </style>
     `
+  }
+
+  protected renderOverlayWidegt(widget: OverlayWidget): TemplateResult<1> {
+    return widget.content
   }
 
   protected renderWidgetBackground(): TemplateResult<2> {

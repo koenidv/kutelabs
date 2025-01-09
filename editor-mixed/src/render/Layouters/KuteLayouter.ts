@@ -58,6 +58,9 @@ export class KuteLayouter extends BaseLayouter {
         if (index < inners.length - 1)
           size.addHeight(HeightProp.Intermediate, DEFAULT_INTERMEDIATE_HEIGHT)
       })
+    } else if (block.type == BlockType.Expression && (block.data as BlockDataExpression).editable) {
+      size.addWidth(WidthProp.Left, 200)
+
     }
 
     if (size.fullWidth < MIN_WIDTH) size.addWidth(WidthProp.Left, MIN_WIDTH - size.fullWidth)

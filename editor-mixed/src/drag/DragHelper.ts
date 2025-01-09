@@ -375,7 +375,7 @@ export class DragHelper {
     if (evt.defaultPrevented) return
 
     if (evt.key != "j") this.resetIterableConnectors()
-    console.log(evt.key)
+
     switch (evt.key) {
       case "Escape":
         if (this.dragged) {

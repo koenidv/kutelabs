@@ -10,7 +10,13 @@ export type SelectorWidget = {
   onSelected: (id: string) => boolean
 }
 
-export type Widget = SelectorWidget
+export type OverlayWidget = {
+  type: "overlay"
+  content: TemplateResult<1>
+  size: Coordinates
+}
+
+export type Widget = SelectorWidget | OverlayWidget
 
 export abstract class BaseWidgetRenderer {
   private readonly requestUpdate: () => void
@@ -30,7 +36,7 @@ export abstract class BaseWidgetRenderer {
     this.requestUpdate = requestUpdate
   }
 
-  public setWidget(widget: Widget , clientPosition: Coordinates) {
+  public setWidget(widget: Widget, clientPosition: Coordinates) {
     this.displayedWidget = widget
     this.position = clientPosition
     this.dirty = true
@@ -49,45 +55,65 @@ export abstract class BaseWidgetRenderer {
   public render(): TemplateResult<1> | typeof noChange | typeof nothing {
     if (!this.dirty) return noChange
     this.dirty = false
+
     if (this.displayedWidget) {
       const screenPos = this.position.toScreenCoordinates(this.workspaceRef.value!)
-      const widgetSize = new Coordinates(200, 200)
       return html`
         <div
           ${ref(this.widgetRef)}
           style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;"
           @mousedown="${(e: MouseEvent) => e.preventDefault()}"
           @touchstart="${(e: TouchEvent) => e.preventDefault()}">
-          <svg
-            style="position: absolute; top: 0; left: 0;"
-            width=${widgetSize.x}
-            height=${widgetSize.y}
-            viewBox="0 0 100 100">
-            ${this.renderWidgetBackground()}Ì
-          </svg>
-          <div
-            style="position: relative; padding: ${this.containerPadding.top}% ${this
-              .containerPadding.right}% ${this.containerPadding.bottom}% ${this.containerPadding
-              .left}%; box-sizing: border-box; width: ${widgetSize.x}px; height: ${widgetSize.y}px">
-            <div style="overflow-y: auto; overflow-x: hidden; width: 100%; height: 100%;">
-              ${this.renderWidget(this.displayedWidget)}
-            </div>
-          </div>
+          ${this.renderWidget(this.displayedWidget)}
         </div>
       `
     }
     return nothing
   }
 
+  private withBackground(content: TemplateResult<1>): TemplateResult<1> {
+    const widgetSize = new Coordinates(200, 200)
+    return html`
+      <svg
+        style="position: absolute; top: 0; left: 0;"
+        width=${widgetSize.x}
+        height=${widgetSize.y}
+        viewBox="0 0 100 100">
+        ${this.renderWidgetBackground()}Ì
+      </svg>
+      <div
+        style="position: relative; padding: ${this.containerPadding.top}% ${this.containerPadding
+          .right}% ${this.containerPadding.bottom}% ${this.containerPadding
+          .left}%; box-sizing: border-box; width: ${widgetSize.x}px; height: ${widgetSize.y}px">
+        <div style="overflow-y: auto; overflow-x: hidden; width: 100%; height: 100%;">
+          ${content}
+        </div>
+      </div>
+    `
+  }
+
+  private withoutBackground(content: TemplateResult<1>, size: Coordinates): TemplateResult<1> {
+    const ctm = this.workspaceRef.value!.getScreenCTM()!
+    return html`
+      <div
+        style="position: relative; box-sizing: border-box; width: ${size.x * ctm.a}px; height: ${size.y * ctm.a}px;">
+        ${content}
+      </div>
+    `
+  }
+
   private renderWidget(widget: Widget): TemplateResult<1> {
     switch (widget.type) {
       case "selector":
-        return this.renderSelectorWidget(widget)
+        return this.withBackground(this.renderSelectorWidget(widget))
+      case "overlay":
+        return this.withoutBackground(this.renderOverlayWidegt(widget), widget.size)
     }
   }
 
-  protected abstract renderSelectorWidget(widget: Widget): TemplateResult<1>
   protected abstract renderWidgetBackground(): TemplateResult<2>
+  protected abstract renderSelectorWidget(widget: Widget): TemplateResult<1>
+  protected abstract renderOverlayWidegt(widget: Widget): TemplateResult<1>
 }
 
 export type WidgetRendererConstructorType = {

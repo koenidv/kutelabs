@@ -173,7 +173,7 @@ export class EditorMixed extends LitElement {
           ${this.extrasRenderer.renderZoomButtons(this.panzoomHelper)}
         </div>
 
-        <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>
+        <div id="editor-widgets" style="position: absolute; top: 0; left: 0;">${this.widgetRenderer.render()}</div>
 
         <editor-mixed-drag
           ${ref(this.dragLayerRef)}

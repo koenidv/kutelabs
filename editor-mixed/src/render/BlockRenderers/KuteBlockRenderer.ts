@@ -10,7 +10,7 @@ import {
   type SvgResult,
 } from "./BaseBlockRenderer"
 
-import { ref } from "lit/directives/ref.js"
+import { ref, type Ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 import { RectBuilder } from "../../svg/RectBuilder"
@@ -185,16 +185,14 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     const { block, size, globalPosition: position } = registered
     return svg`
           <text x="5" y="15">create var</text>
-          ${this.renderInput(
+          ${this.inputString(
             registered,
             new Coordinates(5, 20),
             new Coordinates(size.fullWidth - 10, 20),
-            block.data.name?.toString(), // todo type
-            (value: string) => block.updateData(cur => ({ ...cur, name: value })),
             props
           )}
           <text x="5" y="55">as</text>
-          ${this.renderSelector(
+          ${this.renderInputSelector(
             registered,
             new Coordinates(5, 60),
             new Coordinates(size.fullWidth - 10, 28),
@@ -213,21 +211,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { block, size } = registered
     if (block.data.type == DataType.Boolean) {
-      return this.renderBooleanInput(
+      return this.inputBoolean(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
-        block.data.value as boolean,
-        (value: boolean) => block.updateData(cur => ({ ...cur, value })),
         props
       )
     }
-    return this.renderInput(
+    return this.inputString(
       registered,
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
-      block.data.value?.toString(), // todo type
-      (value: string) => block.updateData(cur => ({ ...cur, value: value })),
       props
     )
   }
@@ -239,8 +233,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     if (registered.block.data.editable)
       return this.editableCode(
         registered,
-        new Coordinates(30, 10),
-        new Coordinates(registered.size.fullWidth - 40, registered.size.fullHeight - 20),
+        new Coordinates(6, 6),
+        new Coordinates(registered.size.fullWidth - 12, registered.size.fullHeight - 12),
         props
       )
     else
@@ -259,7 +253,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
-      ${this.renderSelector(
+      ${this.renderInputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
@@ -278,7 +272,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
-      ${this.renderSelector(
+      ${this.renderInputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
@@ -291,66 +285,54 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     `
   }
 
-  protected renderEditableCode(
+  protected renderInputCode(
     { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: string,
     onChange: (value: string) => void,
+    reference: Ref<HTMLTextAreaElement> | undefined,
     props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    return svg`
-        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
-          ${this.tapOrDragLayer(
-            reference => html`
-              <prism-kotlin-editor
-                ${ref(reference)}
-                class="donotdrag"
-                style="width: 100%; height: 100%; ${this._safariTransform}"
-                tabindex=${++props.tabindex}
-                .input=${value}
-                .inDrawer=${block.isInDrawer}
-                @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
-              </prism-kotlin-editor>
-            `
-          )}
-        </foreignObject>
-        `
-  }
-
-  protected renderInput(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: string,
-    onChange: (value: string) => void,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    return svg`
-      <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
-      ${this.tapOrDragLayer(
-        reference => html`
-          <value-input
-            ${ref(reference)}
-            class="donotdrag"
-            style="width: 100%; height: 100%; ${this._safariTransform}"
-            tabindex=${++props.tabindex}
-            .input=${value}
-            .inDrawer=${block.isInDrawer}
-            @input-change=${(e: CustomEvent) =>
-              !block.isInDrawer && onChange(e.detail.input)}></value-input>
-        `
-      )}
-      </foreignObject>
+  ): TemplateResult<1> {
+    return html`
+      <prism-kotlin-editor
+        .value=${value}
+        .reference=${reference}
+        .inDrawer=${block.isInDrawer}
+        @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
+      </prism-kotlin-editor>
     `
   }
 
-  protected override renderBooleanInput(
+  protected renderInputString(
+    { block }: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    value: string,
+    onChange: (value: string) => void,
+    onKeydown: (e: KeyboardEvent) => void,
+    reference: Ref<HTMLInputElement> | undefined,
+    props: InternalBlockRenderProps
+  ): TemplateResult<1> {
+    return html`
+      <input
+        ${ref(reference)}
+        value=${value}
+        type="text"
+        tabindex="-1"
+        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
+        @input=${(e: InputEvent) => onChange((e.target as HTMLInputElement).value)}
+        @keydown=${onKeydown}
+        spellcheck="false" />
+    `
+  }
+
+  protected override renderInputBoolean(
     { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     value: boolean,
-    onChange: (value: boolean) => void,
+    onClick: () => void,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return svg`
@@ -359,10 +341,10 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       role="button"
       tabindex=${++props.tabindex}
       style="cursor: pointer;"
-      @mousedown="${() => !block.isInDrawer && onChange(!value)}"
-      @touchstart="${() => !block.isInDrawer && onChange(!value)}"
+      @mousedown="${onClick}"
+      @touchstart="${onClick}"
       @keydown="${(e: KeyboardEvent) => {
-        if ((e.key == "Enter" || e.key == " ") && !block.isInDrawer) onChange(!value) // fixme when blocks arent shortly dragged (they shouldnt be in general when interacting with their data), they're state isn't re-rendered
+        if (e.key == "Enter" || e.key == " ") onClick()
       }}"
       >
       <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
@@ -371,7 +353,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     `
   }
 
-  protected renderSelector(
+  protected renderInputSelector(
     { block }: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
