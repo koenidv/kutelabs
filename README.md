@@ -18,3 +18,15 @@ Run `bun install` to install dependencies, then refer to the package readmes:
 - [app](app/README.md) / `bun run dev`
 - [server](server/README.md) / `bun run dev`
 - [editor-mixed](editor-mixed/README.md)
+
+## Project Structure
+
+![Project Structure](./docs/project_structure.drawio.svg)
+
+## Workspace Structure
+
+![Workspace Structure](./docs/workspace_structure.drawio.svg)
+
+## Branching
+
+

@@ -12,8 +12,8 @@ export class Connection {
   }
 
   localConnector(block: AnyBlock): Connector | null { 
-    if (this.from.parentBlock === block) return this.from
-    else if (this.to.parentBlock === block) return this.to
+    if (this.from.parentBlock?.id === block.id) return this.from
+    else if (this.to.parentBlock?.id === block.id) return this.to
     else return null
   }
 }
