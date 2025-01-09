@@ -10,6 +10,7 @@ import { RootBlock } from "@kutelabs/editor-mixed/src/blocks/RootBlock"
 import { Connection } from "@kutelabs/editor-mixed/src/connections/Connection"
 import { DrawerBlock } from "@kutelabs/editor-mixed/src/blocks/DrawerBlock"
 import type { BlockDataByType } from "@kutelabs/editor-mixed/src/blocks/configuration/BlockData"
+import type { ConnectorRInterface } from "@kutelabs/editor-mixed/src/registries/ConnectorRInterface"
 
 export const mockConnectorBefore = () => new Connector(ConnectorType.Before)
 export const mockConnectorAfter = () => new Connector(ConnectorType.After)
@@ -25,7 +26,8 @@ export const mockBlock = (
     data?: BlockDataByType<BlockType, any>
     before?: { connector?: Connector; connected?: AnyBlock } | false
     after?: { connector?: Connector } | false
-    connectToRoot?: boolean
+    connectToRoot?: boolean,
+    connectorRegistry?: ConnectorRInterface,
   } = {}
 ) => {
   const block = new Block(
@@ -41,7 +43,7 @@ export const mockBlock = (
     ].filter(Boolean) as Array<{ connector: Connector }>,
     true,
     mockBlockRegistry(),
-    mockConnectorRegistry()
+    options.connectorRegistry ?? mockConnectorRegistry()
   )
   if (options.connectToRoot) {
     const root = mockRootBlock()
