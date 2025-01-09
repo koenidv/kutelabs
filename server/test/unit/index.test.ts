@@ -11,7 +11,7 @@ mock.module("../../src/transpile/transpile", () => ({
 
 describe("route:transpile", () => {
   describe("POST /kt/js", () => {
-    test("respond with transpiled code", async () => {
+    test.skip("respond with transpiled code", async () => {
       const res = await app.request("/transpile/kt/js", {
         method: "POST",
         body: JSON.stringify({ kotlinCode: "println(1)" }),

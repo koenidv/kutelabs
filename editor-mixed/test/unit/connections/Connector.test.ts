@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { ConnectorAfter } from "../mocks/basics.mock"
+import { mockConnectorAfter } from "../mocks/basics.mock"
 import { mockConnectorRegistry } from "../mocks/connectorRegistry.mock"
 import { ConnectorType } from "@kutelabs/editor-mixed/src/connections/ConnectorType"
 import { Connector } from "@kutelabs/editor-mixed/src/connections/Connector"
@@ -7,7 +7,7 @@ import { Connector } from "@kutelabs/editor-mixed/src/connections/Connector"
 describe("Connector", () => {
   describe("register", () => {
     test("calls registry", () => {
-      const connector = ConnectorAfter()
+      const connector = mockConnectorAfter()
       const registry = mockConnectorRegistry()
       registry.register.mockImplementationOnce(() => {})
 
@@ -17,7 +17,7 @@ describe("Connector", () => {
     })
 
     test("disallow parent change", () => {
-      const connector = ConnectorAfter()
+      const connector = mockConnectorAfter()
       const registry = mockConnectorRegistry()
       registry.register.mockImplementationOnce(() => {})
 
