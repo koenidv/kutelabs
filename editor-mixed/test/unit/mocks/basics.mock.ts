@@ -7,7 +7,6 @@ import { ConnectorType } from "@kutelabs/editor-mixed/src/connections/ConnectorT
 import { mockBlockRegistry } from "./blockregistry.mock"
 import { mockConnectorRegistry } from "./connectorRegistry.mock"
 
-
 export const RootConnector = new Connector(ConnectorType.Internal, ConnectorRole.Root)
 export const ConnectorBefore = () => new Connector(ConnectorType.Before)
 export const ConnectorAfter = () => new Connector(ConnectorType.After)
@@ -21,3 +20,6 @@ export const BlockExpression = (before = ConnectorBefore(), after = ConnectorAft
     mockBlockRegistry(),
     mockConnectorRegistry()
   )
+
+export const PredicateAlwaysAllow = () => () => true
+export const PredicateAlwaysDecline = () => () => false

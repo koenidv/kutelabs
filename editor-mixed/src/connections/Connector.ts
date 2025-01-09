@@ -37,7 +37,7 @@ export class Connector {
     return this._parentBlock
   }
 
-  get isDownstram() {
+  get isDownstream() {
     return (
       this.type === ConnectorType.After ||
       this.type === ConnectorType.Inner ||

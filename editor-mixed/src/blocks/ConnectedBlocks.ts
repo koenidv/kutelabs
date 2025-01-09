@@ -38,9 +38,9 @@ export class ConnectedBlocks {
     newBlock: AnyBlock,
     insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
   ) {
-    if (!connector.isDownstram) console.warn("Popping block on upstream connector", connector)
+    if (!connector.isDownstream) console.warn("Popping block on upstream connector", connector)
     const popped = (
-      connector.isDownstram ? this.byConnector(connector) : connector.parentBlock
+      connector.isDownstream ? this.byConnector(connector) : connector.parentBlock
     )?.disconnectSelf(null)
     if (!popped) return
 
@@ -97,7 +97,7 @@ export class ConnectedBlocks {
    */
   get downstream(): BlockAndConnector[] {
     return [...this.blocks]
-      .filter(([connector, _block]) => connector.isDownstram)
+      .filter(([connector, _block]) => connector.isDownstream)
       .map(([connector, block]) => ({ block, connector }))
   }
 

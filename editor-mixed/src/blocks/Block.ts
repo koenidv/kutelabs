@@ -86,7 +86,7 @@ export class Block<T extends BlockType, S = never>
 
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
-    if (!isOppositeAction && !localConnector?.isDownstram) {
+    if (!isOppositeAction && !localConnector?.isDownstream) {
       return this.handleConnectUpstream(block, connection, localConnector.type, atPosition)
     }
 
@@ -101,7 +101,7 @@ export class Block<T extends BlockType, S = never>
 
   private handleNoLocalConnector(block: AnyBlock, connection: Connection) {
     const lastLocalConnector = connection.localConnector(this.lastAfter)
-    if (lastLocalConnector && !lastLocalConnector.isDownstram) {
+    if (lastLocalConnector && !lastLocalConnector.isDownstream) {
       this.handleConnectUpstream(block, connection, lastLocalConnector.type)
       return
     }
@@ -176,7 +176,7 @@ export class Block<T extends BlockType, S = never>
   get inputs() {
     return this.connectors
       .byRole(ConnectorRole.Input)
-      .filter(connector => connector.isDownstram)
+      .filter(connector => connector.isDownstream)
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
