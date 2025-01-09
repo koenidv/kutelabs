@@ -40,6 +40,7 @@ export abstract class BaseBlockRenderer {
   private readonly layouter: BaseLayouter
 
   protected readonly setWidget: typeof BaseWidgetRenderer.prototype.setWidget
+  protected readonly requestUpdate: () => void
 
   /* Because Safari doesn't apply viewBox scaling to foreignObject elements, we need to apply a workaround*/
   protected _workspaceScaleFactor = 1
@@ -55,11 +56,13 @@ export abstract class BaseBlockRenderer {
   constructor(
     blockRegistry: BlockRegistry,
     layouter: BaseLayouter,
-    setWidget: typeof BaseWidgetRenderer.prototype.setWidget
+    setWidget: typeof BaseWidgetRenderer.prototype.setWidget,
+    requestUpdate: () => void
   ) {
     this.blockRegistry = blockRegistry
     this.layouter = layouter
     this.setWidget = setWidget
+    this.requestUpdate = requestUpdate
   }
 
   /**
@@ -343,7 +346,6 @@ export abstract class BaseBlockRenderer {
     size: Coordinates,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
-
     // TODO CLEANUP
     // TODO value and set value should be defined in renderer
 
@@ -364,16 +366,18 @@ export abstract class BaseBlockRenderer {
         {
           type: "overlay",
           content: html`
-          <div style="border-radius: ${6 / this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-            ${this.renderInputCode(
-              registered,
-              position,
-              size,
-              value,
-              onChange,
-              widgetInputRef,
-              props
-            )}
+            <div
+              style="border-radius: ${6 /
+              this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
+              ${this.renderInputCode(
+                registered,
+                position,
+                size,
+                value,
+                onChange,
+                widgetInputRef,
+                props
+              )}
             </div>
           `,
           size: size,
@@ -385,7 +389,6 @@ export abstract class BaseBlockRenderer {
         widgetInputRef.value?.setSelectionRange(focusPosition ?? 0, focusPosition ?? value.length)
       }, 0)
     }
-
 
     const onMouseOrTouch = (e: MouseEvent | TouchEvent) => {
       // only accept inputs from TapOrDragLayer, which will be untrusted
@@ -446,17 +449,19 @@ export abstract class BaseBlockRenderer {
         {
           type: "overlay",
           content: html`
-          <div style="border-radius: ${6 / this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-            ${this.renderInputString(
-              registered,
-              position,
-              size,
-              value,
-              onChange,
-              () => {},
-              widgetInputRef,
-              props
-            )}
+            <div
+              style="border-radius: ${6 /
+              this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
+              ${this.renderInputString(
+                registered,
+                position,
+                size,
+                value,
+                onChange,
+                () => {},
+                widgetInputRef,
+                props
+              )}
             </div>
           `,
           size: size,
@@ -529,12 +534,17 @@ export abstract class BaseBlockRenderer {
     const block = registered.block as Block<BlockType.Value, DataType.Boolean>
 
     const value = block.data.value
-    const onClick = () => {
+    const onClick = (e: MouseEvent | TouchEvent | KeyboardEvent) => {
+      if (
+        typeof KeyboardEvent !== "undefined" &&
+        ((!(e instanceof KeyboardEvent) && e.isTrusted) ||
+          (e instanceof KeyboardEvent && e.key != "Enter" && e.key != " "))
+      ) {
+        return
+      }
       block.updateData(cur => ({ ...cur, value: !(cur.value ?? false) }))
+      this.requestUpdate()
     }
-
-    // todo tapordraglayer for svg elements
-    return this.renderInputBoolean(registered, position, size, value, onClick, props)
 
     return svg`
         <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="">
@@ -543,10 +553,13 @@ export abstract class BaseBlockRenderer {
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: text; overflow: auto;"
-              tabindex=${++props.tabindex}>
+              style="width: 100%; height: 100%; cursor: pointer; overflow: auto;"
+              tabindex=${++props.tabindex}
+              @mousedown="${onClick}"
+              @touchstart="${onClick}"
+              @keydown="${onClick}">
               <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${this.renderInputBoolean(registered, position, size, value, onClick, props)}
+                ${this.renderInputBoolean(registered, position, size, value, props)}
               </div>
             </div>
           `
@@ -727,9 +740,8 @@ export abstract class BaseBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     value: boolean,
-    onClick: () => void,
     props: InternalBlockRenderProps
-  ): TemplateResult<2>
+  ): TemplateResult<1>
 
   /**
    * Renders a selector input

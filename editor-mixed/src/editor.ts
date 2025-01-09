@@ -253,7 +253,8 @@ export class EditorMixed extends LitElement {
     this.blockRenderer = new config.blockRenderer(
       this.blockRegistry,
       this.layouter,
-      this.widgetRenderer.setWidget.bind(this.widgetRenderer)
+      this.widgetRenderer.setWidget.bind(this.widgetRenderer),
+      this.requestUpdate.bind(this)
     )
     this.drawerRenderer = new config.drawerRenderer(
       this.blockRegistry,

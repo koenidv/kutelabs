@@ -320,7 +320,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         value=${value}
         type="text"
         tabindex="-1"
-        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
+        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
         @input=${(e: InputEvent) => onChange((e.target as HTMLInputElement).value)}
         @keydown=${onKeydown}
         spellcheck="false" />
@@ -332,24 +332,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     value: boolean,
-    onClick: () => void,
     props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    return svg`
-    <g
-      transform="${`translate(${position.x}, ${position.y})`}"
+  ): TemplateResult<1> {
+    return html`
+    <div
+      style="width: 100%; height: 100%; display: flex; padding: 0 8px; justify-content: start; align-items: center; background-color: white; border-radius: 6px;"
       role="button"
-      tabindex=${++props.tabindex}
-      style="cursor: pointer;"
-      @mousedown="${onClick}"
-      @touchstart="${onClick}"
-      @keydown="${(e: KeyboardEvent) => {
-        if (e.key == "Enter" || e.key == " ") onClick()
-      }}"
-      >
-      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
-      <text x="10" y="${size.y / 2 + 6}">${value ? "✅ Yes" : "❌ No"}</text>
-      </g>
+      tabindex="-1">
+      <p style="font-family: monospace; font-size: 14px; font-weight: normal;">
+        ${value ? "✅ Yes" : "❌ No"}
+      </p>
+    </div>
     `
   }
 
