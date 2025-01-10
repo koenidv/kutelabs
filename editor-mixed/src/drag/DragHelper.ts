@@ -16,7 +16,7 @@ export class DragHelper {
   private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
   private readonly workspaceRef: Ref<SVGSVGElement>
-  private readonly drawerRef: Ref<SVGSVGElement>
+  private readonly drawerRef: Ref<HTMLDivElement>
   private readonly requestRerender: (full: boolean) => void
   private readonly removeWidgets: () => void
 
@@ -25,7 +25,7 @@ export class DragHelper {
     connectorRegistry: ConnectorRegistry,
     renderer: BaseDragRenderer,
     workspaceRef: Ref<SVGSVGElement>,
-    drawerRef: Ref<SVGSVGElement>,
+    drawerRef: Ref<HTMLDivElement>,
     rerenderDrag: () => void,
     rerenderWorkspace: () => void,
     removeWidgets: () => void

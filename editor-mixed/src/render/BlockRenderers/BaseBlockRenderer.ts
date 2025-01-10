@@ -413,6 +413,7 @@ export type BlockRendererConstructorType = {
   new (
     blockRegistry: BlockRegistry,
     layouter: BaseLayouter,
-    setWidget: typeof BaseWidgetRenderer.prototype.setWidget
+    setWidget: typeof BaseWidgetRenderer.prototype.setWidget,
+    requestUpdate: () => void
   ): BaseBlockRenderer
 }

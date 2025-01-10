@@ -30,7 +30,7 @@ import { generateCallbacks } from "./environment/Environment"
 export class EditorMixed extends LitElement {
   //#region Properties
   workspaceRef = createRef<SVGSVGElement>()
-  drawerRef = createRef<SVGSVGElement>()
+  drawerRef = createRef<HTMLDivElement>()
   dragWorkspaceRef = createRef<SVGSVGElement>()
   dragLayerRef = createRef<DragLayer>()
 
@@ -162,18 +162,20 @@ export class EditorMixed extends LitElement {
           <p></p>
         </div>
 
+        ${this.drawerRenderer!.renderElement(this.drawerRef)}
         <div
           ${ref(this.drawerRef)}
           id="drawer-container"
           style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
-          ${this.drawerRenderer!.renderElement()}
         </div>
 
         <div id="editor-controls" style="position: absolute; bottom: 0; right: 0;">
           ${this.extrasRenderer.renderZoomButtons(this.panzoomHelper)}
         </div>
 
-        <div id="editor-widgets" style="position: absolute; top: 0; left: 0;">${this.widgetRenderer.render()}</div>
+        <div id="editor-widgets" style="position: absolute; top: 0; left: 0;">
+          ${this.widgetRenderer.render()}
+        </div>
 
         <editor-mixed-drag
           ${ref(this.dragLayerRef)}
@@ -260,6 +262,7 @@ export class EditorMixed extends LitElement {
       this.blockRegistry,
       this.layouter,
       this.blockRenderer,
+      this.requestUpdate.bind(this),
       this.data?.hideDrawer != true
     )
     this.dragRenderer = new config.dragRenderer(this.blockRegistry, this.blockRenderer)

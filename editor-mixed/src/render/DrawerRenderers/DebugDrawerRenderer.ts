@@ -1,4 +1,4 @@
-import { svg, type TemplateResult } from "lit"
+import { html, svg, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
 import {
   BaseDrawerRenderer,
@@ -46,5 +46,52 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
           `
         )}
     `
+  }
+
+  protected renderExpandButton(expanded: boolean, toggle: (evt: Event) => void): TemplateResult<1> {
+    if (expanded)
+      return html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        @mousedown=${toggle}
+        @touchstart=${toggle}
+        @keydown=${(evt: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") toggle(evt)
+        }}
+        role="button"
+        tabindex="0"
+        aria-label="Collapse Drawer">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="m14 5l-7 7l7 7" />
+      </svg>`
+    else
+      return html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        @mousedown=${toggle}
+        @touchstart=${toggle}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") toggle()
+        }}
+        role="button"
+        tabindex="0"
+        aria-label="Expand Drawer">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="m10 5l7 7l-7 7" />
+      </svg>`
   }
 }
