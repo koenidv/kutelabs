@@ -74,7 +74,7 @@ export type AnyBlockConnected = AnyBlock & {
   } & AnyBlockConnected1)[]
   [k: string]: unknown
 }
-export type AnyBlock =
+export type AnyBlock = (
   | FunctionBlock
   | ExpressionBlock
   | ValueBlock
@@ -82,6 +82,17 @@ export type AnyBlock =
   | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
+  | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
+  /**
+   * Set to false to disable dragging this block
+   */
+  draggable?: boolean
+  [k: string]: unknown
+}
 /**
  * Connector on this block
  */
@@ -90,6 +101,8 @@ export type MixedContentEditorConnector =
   | "after"
   | "input"
   | "conditional"
+  | "conditionalInput"
+  | "comparisonInput"
   | "output"
   | "extender"
   | "inner"
@@ -111,7 +124,7 @@ export type AnyBlockConnected1 = AnyBlock & {
 /**
  * A block without connected Blocks. Use "type" to determine the type of block
  */
-export type AnyBlockSingle =
+export type AnyBlockSingle = (
   | FunctionBlock
   | ExpressionBlock
   | ValueBlock
@@ -119,6 +132,17 @@ export type AnyBlockSingle =
   | VariableSetBlock
   | VariableBlock
   | ConditionalBlock
+  | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
+  /**
+   * Set to false to disable dragging this block
+   */
+  draggable?: boolean
+  [k: string]: unknown
+}
 
 /**
  * A challenge along the kutelabs learning journey
@@ -310,7 +334,16 @@ export interface VariableInitBlock {
     /**
      * Value type (from ValueDataType)
      */
-    type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
+    type:
+      | "int"
+      | "float"
+      | "string"
+      | "boolean"
+      | "array<int>"
+      | "array<float>"
+      | "array<string>"
+      | "array<boolean>"
+      | "dynamic"
     /**
      * If the variable is mutable, defaults to true
      */
@@ -372,6 +405,82 @@ export interface ConditionalBlock {
   elsebranch?: boolean
   connectedBlocks?: {
     on: "conditional" | "ifTrue" | "ifFalse" | "after"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Loop Block
+ */
+export interface LoopBlock {
+  /**
+   * Defines this block as a loop block
+   */
+  type: "loop"
+  connectedBlocks?: {
+    on?: "inner" | "input"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * "Not" Logic Block
+ */
+export interface LogicNotBlock {
+  /**
+   * Defines this block as a Logic Not block
+   */
+  type: "logic_not"
+  connectedBlocks?: {
+    on?: "conditional"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Junction Logic Block
+ */
+export interface LogicJunctionBlock {
+  /**
+   * Defines this block as a Logic Junction block
+   */
+  type: "logic_junction"
+  /**
+   * Junction Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of junction
+     */
+    mode: "and" | "or"
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "conditionalInput"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Comparison Logic Block
+ */
+export interface LogicComparisonBlock {
+  /**
+   * Defines this block as a Logic Comparison block
+   */
+  type: "logic_comparison"
+  /**
+   * Comparison Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of comparison
+     */
+    mode: "==" | "!=" | "<" | "<=" | ">" | ">="
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "comparisonInput"
     [k: string]: unknown
   }[]
   [k: string]: unknown

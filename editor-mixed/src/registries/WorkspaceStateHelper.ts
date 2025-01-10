@@ -31,9 +31,7 @@ export class WorkspaceStateHelper {
   }
 
   onDisconnecting(block: AnyBlock, from: AnyBlock): void {
-    if (from instanceof DrawerBlock || from.isInDrawer) {
-      return
-    }
+    if (from instanceof DrawerBlock || from.isInDrawer) return
     if (this.pendingInWorkspace)
       console.warn("Overwriting pending in-workspace block", this.pendingInWorkspace, "with", block)
     this.pendingInWorkspace = block

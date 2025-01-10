@@ -5,7 +5,6 @@ import { BlockRegistry } from "../registries/BlockRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { findKeyByValue } from "../util/MapUtils"
 import type { AnyBlock } from "./Block"
-import { BlockType } from "./configuration/BlockType"
 
 export class ConnectedBlocks {
   blocks: Map<Connector, AnyBlock> = new Map()
@@ -38,9 +37,9 @@ export class ConnectedBlocks {
     newBlock: AnyBlock,
     insertOnRoot: typeof BlockRegistry.prototype.attachToRoot
   ) {
-    if (!connector.isDownstram) console.warn("Popping block on upstream connector", connector)
+    if (!connector.isDownstream) console.warn("Popping block on upstream connector", connector)
     const popped = (
-      connector.isDownstram ? this.byConnector(connector) : connector.parentBlock
+      connector.isDownstream ? this.byConnector(connector) : connector.parentBlock
     )?.disconnectSelf(null)
     if (!popped) return
 
@@ -84,11 +83,20 @@ export class ConnectedBlocks {
   }
 
   /**
+   * Get the connector connected a given block is connected to
+   * @param block block to get the connected connector for
+   * @returns connected connector or null if the block is not connected
+   */
+  byBlock(block: AnyBlock): Connector | null {
+    return findKeyByValue(this.blocks, block) ?? null
+  }
+
+  /**
    * All downstream connected blocks including the connectors they are connected to
    */
   get downstream(): BlockAndConnector[] {
     return [...this.blocks]
-      .filter(([connector, _block]) => connector.isDownstram)
+      .filter(([connector, _block]) => connector.isDownstream)
       .map(([connector, block]) => ({ block, connector }))
   }
 

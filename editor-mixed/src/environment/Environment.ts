@@ -1,5 +1,5 @@
 import type { EditorMixed } from "../editor"
-import { BlockMarking } from "../render/BlockRenderers/BaseBlockRenderer"
+import { BlockMarking } from "@kutelabs/editor-mixed"
 
 export function generateCallbacks(editor: EditorMixed): { [name: string]: (...args: any) => any } {
   return {

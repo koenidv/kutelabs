@@ -8,6 +8,7 @@ import Controls from "../../components/Controls.svelte"
 import EditorMixed from "../../components/EditorMixedWrapper.svelte"
 import Logs from "../../components/Logs.svelte"
 import Tests from "../../components/Tests.svelte"
+import Snackbar from "../../components/Snackbar.svelte"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -58,6 +59,7 @@ const challenge = Astro.props.challenge as Challenge
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
         <EditorMixed data={challenge.editor} client:only="svelte"/>
+        <Snackbar client:idle />
       </ElevatedBox>
     </div>
   </div>

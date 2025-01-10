@@ -26,6 +26,8 @@ kotlinc-js \
   -ir-output-name transpiled \
   -ir-output-dir $output \
   -libraries $libraries \
-  -Xreport-all-warnings \
+  -module-kind plain \
+  -main noCall \
+  -nowarn \
   -Xir-produce-js \
   -Xir-dce

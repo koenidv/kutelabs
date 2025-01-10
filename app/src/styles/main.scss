@@ -46,6 +46,7 @@ html {
       text-align: center;
       background-color: theme("colors.beige.100");
       border-width: 1px;
+      user-select: none;
       transition: border 150ms ease-out, background-color 150ms ease-out;
 
       .tab {

@@ -4,11 +4,12 @@ import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
 import { HeightProp } from "../SizeProps"
-import { BaseBlockRenderer, BlockMarking, type SvgResult } from "./BaseBlockRenderer"
+import { BaseBlockRenderer } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
+import { BlockMarking, type SvgResult } from "./BlockRendererTypes"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderContainer({
@@ -79,7 +80,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     const { block, size, globalPosition: position } = registered
     return svg`
           <text x="5" y="15">create var</text>
-          ${this.renderInput(
+          ${this.renderInputString(
             registered,
             new Coordinates(5, 20),
             new Coordinates(size.fullWidth - 10, 20),
@@ -87,7 +88,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
             (value: string) => block.updateData(cur => ({ ...cur, name: value }))
           )}
           <text x="5" y="55">as</text>
-          ${this.renderSelector(
+          ${this.renderInputSelector(
             registered,
             new Coordinates(5, 60),
             new Coordinates(size.fullWidth - 10, 28),
@@ -103,7 +104,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.Value, any>
   ): SvgResult {
     const { block, size } = registered
-    return this.renderInput(
+    return this.renderInputString(
       registered,
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
@@ -129,7 +130,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
   }
 
-  protected renderEditableCode(
+  protected renderInputCode(
     _registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
@@ -153,7 +154,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
         `
   }
 
-  protected renderInput(
+  protected renderInputString(
     _registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
@@ -176,7 +177,7 @@ export class DebugBlockRenderer extends BaseBlockRenderer {
     `
   }
 
-  protected renderSelector(
+  protected renderInputSelector(
     _registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,

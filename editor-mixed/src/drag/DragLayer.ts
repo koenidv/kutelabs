@@ -9,7 +9,7 @@ export class DragLayer extends PerformanceLitElement {
   declare dragRenderer: BaseDragRenderer
   declare dragLayerRef: Ref<SVGSVGElement>
   static properties = {
-    dragRenderer: { type: BaseDragRenderer },
+    dragRenderer: { type: Object },
     dragLayerRef: { type: Object },
   }
 

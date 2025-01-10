@@ -16,32 +16,58 @@
         "array<int>",
         "array<float>",
         "array<string>",
-        "array<boolean>"
+        "array<boolean>",
+        "dynamic"
       ]
     },
     "AnyBlock": {
       "type": "object",
-      "oneOf": [
+      "allOf": [
         {
-          "$ref": "#/$defs/FunctionBlock"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/ExpressionBlock"
+            },
+            {
+              "$ref": "#/$defs/ValueBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableInitBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableSetBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableBlock"
+            },
+            {
+              "$ref": "#/$defs/ConditionalBlock"
+            },
+            {
+              "$ref": "#/$defs/LoopBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicNotBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicJunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicComparisonBlock"
+            }
+          ]
         },
         {
-          "$ref": "#/$defs/ExpressionBlock"
-        },
-        {
-          "$ref": "#/$defs/ValueBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableInitBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableSetBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableBlock"
-        },
-        {
-          "$ref": "#/$defs/ConditionalBlock"
+          "type": "object",
+          "properties": {
+            "draggable": {
+              "type": "boolean",
+              "description": "Set to false to disable dragging this block"
+            }
+          }
         }
       ]
     },
@@ -385,6 +411,22 @@
                   }
                 }
               }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "dynamic"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           ],
           "required": [
@@ -576,6 +618,153 @@
               "on",
               "type"
             ]
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LoopBlock": {
+      "type": "object",
+      "description": "Loop Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a loop block",
+          "type": "string",
+          "const": "loop"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "inner",
+                  "input"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicNotBlock": {
+      "type": "object",
+      "description": "\"Not\" Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Not block",
+          "type": "string",
+          "const": "logic_not"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditional"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicJunctionBlock": {
+      "type": "object",
+      "description": "Junction Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Junction block",
+          "type": "string",
+          "const": "logic_junction"
+        },
+        "data": {
+          "description": "Junction Logic Block Data",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "description": "Mode of junction",
+              "type": "string",
+              "enum": [
+                "and",
+                "or"
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditionalInput"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicComparisonBlock": {
+      "type": "object",
+      "description": "Comparison Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Comparison block",
+          "type": "string",
+          "const": "logic_comparison"
+        },
+        "data": {
+          "description": "Comparison Logic Block Data",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "description": "Mode of comparison",
+              "type": "string",
+              "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">="
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "comparisonInput"
+                ]
+              }
+            }
           }
         }
       },

@@ -11,6 +11,8 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       - TRANSPILER_NAME=koenidv/kutelabs-transpiler
+      - DATA_VOLUME_NAME=kutelabs_data
+      - ENV=development
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kutelabs.rule=Host(`test.api.kutelabs.koeni.dev`)"
@@ -27,8 +29,9 @@ services:
 
 volumes:
   kutelabs_data:
+    name: kutelabs_data
 
 networks:
   traefik:
     name: traefik_proxy
-    external: true
+    # external: true

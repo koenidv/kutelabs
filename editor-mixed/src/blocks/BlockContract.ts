@@ -6,6 +6,7 @@ import type { BlockType } from "./configuration/BlockType"
 
 export type BlockEvents<T extends BlockType, S> = {
   dataChanged: Block<T, S>
+  cloned: Block<T, S>
 }
 
 export interface BlockContract {

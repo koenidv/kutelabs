@@ -10,10 +10,15 @@ import type { AnyRegisteredBlock } from "./RegisteredBlock"
 export type BlockREvents = {
   workspaceAdded: { block: AnyBlock } // todo this should also fire when attaching to other blocks that are already in the workspace, but that would require a dis/connect refactor
   workspaceRemoved: { block: AnyBlock }
+  registeredClone: { block: AnyBlock }
+}
+
+export type BlockRegisterOptions = {
+  cloned?: boolean
 }
 
 export interface BlockRInterface extends Emitter<BlockREvents> {
-  register(block: AnyBlock, position?: Coordinates, size?: SizeProps): void
+  register(block: AnyBlock, position?: Coordinates, size?: SizeProps, options?: BlockRegisterOptions): void
   deregister(block: AnyBlock,): void
   getRegistered(block: AnyBlock): AnyRegisteredBlock
   getRegisteredById(id: string): AnyRegisteredBlock | undefined

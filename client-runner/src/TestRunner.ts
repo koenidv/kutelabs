@@ -1,6 +1,7 @@
 import type { Callbacks } from "./Callbacks"
 import { ErrorType, Executor, type LoggedError, type LogType } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
+import { findBlockByLine } from "@kutelabs/shared"
 
 type Args = any[]
 export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
@@ -42,6 +43,9 @@ export class TestRunner {
     message: string
   ) => void = console.error
   private readonly onBlockError: (blockId: string, message: string) => void = console.error
+  private readonly onFinished: (() => void) | undefined
+
+  private readonly executor: Executor
 
   private executionDelay = 0
   private firstCallFinished = false
@@ -53,13 +57,23 @@ export class TestRunner {
     onResult: typeof this.onFinalTestResult,
     onLog?: typeof this.onLog,
     onGeneralError?: typeof this.onGeneralError,
-    onBlockError?: typeof this.onBlockError
+    onBlockError?: typeof this.onBlockError,
+    onFinished?: () => void
   ) {
     this.testSuite = testSuite
     this.onFinalTestResult = onResult
     if (onLog) this.onLog = onLog
     if (onGeneralError) this.onGeneralError = onGeneralError
     if (onBlockError) this.onBlockError = onBlockError
+    if (onFinished) this.onFinished = onFinished
+
+    this.executor = new Executor(
+      this.onResult.bind(this),
+      this.onError.bind(this),
+      this.onLog.bind(this),
+      this.onExecutionCompleted.bind(this),
+      this.onWaitRequest.bind(this)
+    )
   }
 
   public setExecutionDelay(delay: number) {
@@ -80,14 +94,8 @@ export class TestRunner {
     this.executionDelay = config.executionDelay
     this.firstCallFinished = false
     this.currentScript = this.buildScript(userCode, config)
-    const executor = new Executor(
-      this.onResult.bind(this),
-      this.onError.bind(this),
-      this.onLog.bind(this),
-      this.onExecutionCompleted.bind(this),
-      this.onWaitRequest.bind(this)
-    )
-    return executor.execute(this.currentScript, config.timeout, config.callbacks)
+
+    return this.executor.execute(this.currentScript, config.timeout, config.callbacks)
   }
 
   /**
@@ -130,7 +138,14 @@ export class TestRunner {
    * @param resolve resolving function for the wait request
    */
   onWaitRequest(resolve: () => void) {
-    setTimeout(resolve, this.firstCallFinished ? 0 : this.executionDelay)
+    this.executor.pauseTimeout()
+    setTimeout(
+      () => {
+        this.executor.resumeTimeout()
+        resolve()
+      },
+      this.firstCallFinished ? 0 : this.executionDelay
+    )
   }
 
   /**
@@ -141,6 +156,7 @@ export class TestRunner {
   private onResult(args: Args, result: any): void {
     this.firstCallFinished = true
     this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
+    if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
   }
 
   /**
@@ -183,9 +199,10 @@ export class TestRunner {
    * Fails all still remaining tests. This is called when an error occurs or the execution times out.
    */
   private failRemainingTests(message?: string) {
-    Object.entries(this.pivotTests).forEach(([testId, test]) => {
+    Object.entries(this.pivotTests).forEach(([testId, _]) => {
       this.onFinalTestResult(testId, TestResult.Failed, message)
     })
+    this.onFinished?.()
   }
 
   /**
@@ -204,6 +221,7 @@ export class TestRunner {
     if (this.pivotTests[id].args.length === 0) {
       delete this.pivotTests[id]
       this.onFinalTestResult(id, passed, message)
+      if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
     } else {
       console.log(`test ${id}(${args}): ${this.pivotTests[id].args.length} argsets remaining`)
     }
@@ -223,6 +241,7 @@ export class TestRunner {
    * @param error the error that occured
    */
   private onError(type: ErrorType, error: ErrorEvent | LoggedError) {
+    console.log("Error:", type, error)
     if (type == ErrorType.Worker || type == ErrorType.Timeout) {
       this.failRemainingTests()
       this.onGeneralError(type, error.message)
@@ -234,7 +253,7 @@ export class TestRunner {
       console.error("Could not find line in stack:", (error as LoggedError).stack)
       return
     }
-    const blockId = this.findBlockByLine(line)
+    const blockId = findBlockByLine(this.matchUserFunctionLines(), line)
     if (!blockId) {
       console.error("Could not find block by line:", line)
       return
@@ -252,27 +271,6 @@ export class TestRunner {
     const line = stack.match(/<anonymous>:(\d+):/)?.pop()
     if (!line) return undefined
     return Number(line)
-  }
-
-  /**
-   * Finds the most recent markBlock call before the user code line that caused an error
-   * @param line line number in the user code that caused the error
-   * @returns block id of the block that caused the error, or undefined if not found
-   */
-  private findBlockByLine(line: number): string | undefined {
-    if (this.currentScript == null) {
-      console.error("Tried to find block in null code")
-      return
-    }
-    const lines = this.matchUserFunctionLines()
-
-    let blockId: string | undefined = undefined
-    let currentLine = line - 1
-    while (!blockId && currentLine > 0 && line - currentLine < 5) {
-      blockId = lines[currentLine].match(/markBlock\("([^"]+)"\)/)?.pop()
-      currentLine--
-    }
-    return blockId
   }
 
   /**

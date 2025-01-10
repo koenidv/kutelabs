@@ -6,6 +6,7 @@ import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import { Coordinates } from "../util/Coordinates"
 import { objectsEqual1d } from "../util/ObjectUtils"
 import { Block, type AnyBlock } from "./Block"
+import { blocksAreSimiliar } from "./blocksMatch"
 import { BlockType } from "./configuration/BlockType"
 
 export class DrawerBlock extends Block<BlockType.Root> {
@@ -124,8 +125,7 @@ export class DrawerBlock extends Block<BlockType.Root> {
 
   private hasMatchingBlock(block: AnyBlock): AnyBlock | null {
     if (this._blocks.has(block)) return block
-    for (const test of this._blocks.keys())
-      if (block.type === test.type && objectsEqual1d(block.data, test.data)) return test
+    for (const test of this._blocks.keys()) if (blocksAreSimiliar(block, test)) return test
     return null
   }
 }

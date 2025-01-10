@@ -39,3 +39,4 @@ export function copyEvent(evt: MouseEvent | TouchEvent): MouseEvent | TouchEvent
     ? copyTouchEvent(evt as TouchEvent)
     : copyMouseEvent(evt as MouseEvent)
 }
+

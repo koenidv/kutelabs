@@ -1,50 +1,65 @@
-import type { Block } from "../blocks/Block"
-import { BlockType } from "../blocks/configuration/BlockType"
-import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
-import { DataType } from "../blocks/configuration/DataType"
-import { ConnectorRole } from "../connections/ConnectorRole"
-import { BaseCompiler } from "./BaseCompiler"
 import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
+import type { Block } from "../blocks/Block"
+import { LogicJunctionMode } from "../blocks/configuration/BlockData"
+import { BlockType } from "../blocks/configuration/BlockType"
+import { DataType } from "../blocks/configuration/DataType"
+import { DefinedExpressionData } from "../blocks/configuration/DefinedExpression"
+import { ConnectorRole } from "../connections/ConnectorRole"
+import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
 
 export class KtCompiler extends BaseCompiler {
-  declareEnvironmentFunctions(callbacks: SandboxCallbacks): string {
-    return [...callbacks.callbacks.keys()]
-      .map(name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`)
-      .join("\n")
+  declareImports(callbacks: SandboxCallbacks): string {
+    const imports = ["import kotlin.js.Promise"]
+    const requestWait = '@JsName("requestWait")\nexternal fun requestWait(): Promise<Unit>'
+    const envFunctions = [...callbacks.callbacks.keys()].map(
+      name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`
+    )
+    return [...imports, requestWait, ...envFunctions].join("\n")
   }
 
   callFunction(name: string, ...args: string[]): string {
     return `${name}(${args.join(", ")});\n`
   }
 
-  addDelayCode(ms: number): string {
-    return `delay(${ms});\n`
+  wrapDelay(code: string): string {
+    return `requestWait().then { ${code} };\n`
   }
 
   addCode(codeByLang: Record<string, string>): string {
     return codeByLang["kt"] ?? ""
   }
 
-  compileFunction(block: Block<BlockType.Function>, next: typeof this.compile, blockMarkings: string): string {
-    const inner = block.inners.length > 0 ? next(block.inners[0]) : ""
-    let ret = ""
-    if (block.output) {
-      if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
-      if (this.executionDelay > 0) ret += this.addDelayCode(this.executionDelay)
-      ret += `return ${next(block.output)};`
+  compileFunction(
+    block: Block<BlockType.Function>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string {
+    props = {
+      ...props,
+      resolveFunction:
+        block.output?.let(it => this.markBlock(it.id) + this.wrapDelay(`resolve(${next(it)});`)) ??
+        "resolve(Unit);",
     }
+    const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
 
-    return `suspend function ${block.data.name}() {\n${blockMarkings}\n\t${inner} ${ret} }` // todo function inputs
+    return `@JsExport
+    @kotlin.js.ExperimentalJsExport
+    fun ${block.data.name}(): Promise<dynamic> = Promise { resolve, _reject ->
+    ${this.markBlock(block.id)}\
+    ${this.wrapDelay(inner)}
+    }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
   }
 
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
-    switch (block.data.expression) {
-      case DefinedExpression.Println:
-        return `println(${this.chainToStringTemplate(block, next)});\n${next(block.after)}`
-      default:
-        throw new Error(`Expression ${block.data.expression} is not defined`)
-    }
+    const definedMethod = DefinedExpressionData[block.data.expression].kt
+    if (!definedMethod) throw new Error(`Expression ${block.data.expression} is not defined`)
+      
+    return definedMethod.replace(/{{\d}}/g, (match: string) => {
+      // matches placeholders like "{{0}}"
+      const index = Number(match[2])
+      return next(block.inputs[index])
+    }) + `\n${next(block.after)}`
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
@@ -57,6 +72,8 @@ export class KtCompiler extends BaseCompiler {
   ): string {
     if ("value" in block.data) {
       switch (block.data.type) {
+        case DataType.Dynamic:
+          return block.data.value.toString()
         case DataType.Int:
         case DataType.Float:
           return Number(block.data.value).toString()
@@ -66,11 +83,11 @@ export class KtCompiler extends BaseCompiler {
           return block.data.value == true ? "true" : "false"
         case DataType.IntArray:
         case DataType.FloatArray:
-          return `[${(block.data.value as number[]).map(it => Number(it)).join(", ")}]`
+          return `listOf(${(block.data.value as number[]).map(it => Number(it)).join(", ")})`
         case DataType.StringArray:
-          return `["${(block.data.value as string[]).join('", "')}"]`
+          return `listOf("${(block.data.value as string[]).join('", "')}")`
         case DataType.BooleanArray:
-          return `[${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")}]`
+          return `listOf(${(block.data.value as boolean[]).map(it => (it == true ? "true" : "false")).join(", ")})`
         default:
           throw new Error(`Value type ${block.data.type} can't be compiled`)
       }
@@ -93,7 +110,8 @@ export class KtCompiler extends BaseCompiler {
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {
     return `while (${next(block.conditional)}) {
-      ${next(block.inners[0])}
+      ${this.markBlock(block.id)}
+      ${this.wrapDelay(next(block.inners[0]))}
     }`
   }
 
@@ -115,6 +133,27 @@ export class KtCompiler extends BaseCompiler {
     return compiled + `\n${next(block.after)}`
   }
 
+  compileLogicNot(block: Block<BlockType.LogicNot>, next: typeof this.compile): string {
+    return `!(${next(block.conditional)})`
+  }
+
+  compileLogicJunction(block: Block<BlockType.LogicJunction>, next: typeof this.compile): string {
+    const operator = block.data.mode == LogicJunctionMode.And ? "&&" : "||"
+    const inputs = block.inputs.map(it => (it == null ? "false" : next(it))).join(` ${operator} `)
+    return `(${inputs})`
+  }
+
+  compileLogicComparison(
+    block: Block<BlockType.LogicComparison>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string {
+    const operator = block.data.mode
+    const left = block.inputs[0] ? next(block.inputs[0]) : "false"
+    const right = block.inputs[1] ? next(block.inputs[1]) : "false"
+    return `(${left} ${operator} ${right})`
+  }
+
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }
@@ -126,7 +165,24 @@ export class KtCompiler extends BaseCompiler {
    * @param next function to compile the input blocks
    * @returns string template with the inputs
    */
-  chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
+  private chainToStringTemplate(block: Block<BlockType>, next: typeof this.compile): string {
     return '"' + block.inputs.map(it => "\${" + next(it) + "}").join(", ") + '"'
+  }
+
+  handleProps(
+    props: InternalCompilationProps | undefined,
+    currentBlock: Block<BlockType>,
+    compile: (block: Block<BlockType>, newProps?: InternalCompilationProps) => string
+  ): string {
+    if (!props) return compile(currentBlock)
+
+    // consume return block on last block inside a function
+    // this is required because the return must be nested within the .then calls of the requestWait functions
+    if (props.resolveFunction && currentBlock.after == null) {
+      const resolve = props.resolveFunction
+      delete props.resolveFunction
+      return compile(currentBlock, props) + resolve
+    }
+    return compile(currentBlock, props)
   }
 }

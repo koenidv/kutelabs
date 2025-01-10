@@ -4,6 +4,7 @@ import { Connection } from "../connections/Connection"
 import type { AnyBlock } from "../blocks/Block"
 import type { ConnectorRInterface } from "./ConnectorRInterface"
 import type { VariableHInterface } from "../variables/VariableHInterface"
+import { BlockType } from "../blocks/configuration/BlockType"
 
 export class ConnectorRegistry implements ConnectorRInterface {
   private _connectors: Connector[] = []
@@ -88,6 +89,31 @@ export class ConnectorRegistry implements ConnectorRInterface {
   }
 
   /**
+   * Finds all unoccupied matching upstream connections for a block and 
+   * lists them in order XY position, starting from the current connector y position.
+   * Upstream connections connect _from before_ **to** an after/inner/extension connector
+   * @param block Block to search connections for
+   */
+  public listUpstreamFreeConnections(block: AnyBlock) {
+    if (!block.connectors.before) return []
+    const connectedIds = [block.id, ...block.allConnectedRecursive.map(({ id }) => id)]
+    const connectors = this.getNearbyConnectors(
+      block.connectors.before,
+      connectedIds,
+      block.connectors.before.globalPosition,
+      null
+    )
+    const free = connectors.filter(
+      connector =>
+        connector.parentBlock &&
+        connector.parentBlock.connectedBlocks.byConnector(connector) === null
+    )
+    return this.sortConnectorsXY(block.connectors.before.globalPosition.y, free).map(
+      connector => new Connection(block.connectors.before!, connector)
+    )
+  }
+
+  /**
    * Find the closest connector to a given position that matches one of the predicates
    * @param localConnector connector to search connection for, will invoke the predicates
    * @param ignoreIds Don't return connectors from these blocks
@@ -118,20 +144,19 @@ export class ConnectorRegistry implements ConnectorRInterface {
     localConnector: Connector,
     ingoreIds: string[],
     position: Coordinates,
-    maxXY: number
+    maxXY: number | null
   ): Connector[] {
     return this._connectors.filter(connector => {
       if (
-        Math.abs(connector.globalPosition.x - position.x) > maxXY ||
-        Math.abs(connector.globalPosition.y - position.y) > maxXY
+        maxXY !== null &&
+        (Math.abs(connector.globalPosition.x - position.x) > maxXY ||
+          Math.abs(connector.globalPosition.y - position.y) > maxXY)
       ) {
         return false
       }
 
       if (connector.parentBlock === null) return false
-      if (ingoreIds.includes(connector.parentBlock.id)) {
-        return false
-      }
+      if (ingoreIds.includes(connector.parentBlock.id)) return false
 
       if (
         localConnector.connectPredicates.allows(connector) &&
@@ -151,7 +176,7 @@ export class ConnectorRegistry implements ConnectorRInterface {
    * @returns Sorted list of connectors
    */
   public sortConnectorsByDistance(position: Coordinates, connectors: Connector[]): Connector[] {
-    return connectors.sort((a, b) => {
+    return [...connectors].sort((a, b) => {
       const aDistance = Math.sqrt(
         Math.pow(a.globalPosition.x - position.x, 2) + Math.pow(a.globalPosition.y - position.y, 2)
       )
@@ -160,6 +185,24 @@ export class ConnectorRegistry implements ConnectorRInterface {
       )
       return aDistance - bDistance
     })
+  }
+
+  /**
+   * Sort connectory by increasing y and x, starting from a given position.
+   * Positions with y < start will be sorted last
+   * Sorts by x/y larger than start first, x second, y third
+   *
+   * @param start workspace y position to start sorting from
+   * @param connectors list of connectors to sort
+   */
+  public sortConnectorsXY(start: number, connectors: Connector[]): Connector[] {
+    return [...connectors].sort(
+      (a, b) =>
+        (a.globalPosition.y <= start && b.globalPosition.y > start ? 1 : 0) ||
+        (b.globalPosition.y <= start && a.globalPosition.y > start ? -1 : 0) ||
+        a.globalPosition.y - b.globalPosition.y ||
+        a.globalPosition.x - b.globalPosition.x
+    )
   }
 
   public clear() {

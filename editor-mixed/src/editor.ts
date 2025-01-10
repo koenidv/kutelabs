@@ -16,20 +16,20 @@ import type { BaseWidgetRenderer } from "./render/WidgetRenderers/BaseWidgetRend
 import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { isSafari } from "./util/browserCheck"
-import { DebugMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
+import { DefaultMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
 import { VariableHelper } from "./variables/VariableHelper"
 import type { VariableHInterface } from "./variables/VariableHInterface"
 
+import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 import "@kutelabs/shared"
+import { BlockType } from "./blocks/configuration/BlockType"
 import "./drag/DragLayer"
 import { generateCallbacks } from "./environment/Environment"
-import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
   //#region Properties
   workspaceRef = createRef<SVGSVGElement>()
-  drawerRef = createRef<SVGSVGElement>()
   dragWorkspaceRef = createRef<SVGSVGElement>()
   dragLayerRef = createRef<DragLayer>()
 
@@ -99,6 +99,21 @@ export class EditorMixed extends LitElement {
     button {
       cursor: pointer;
     }
+    g[class^="block"]:focus {
+      outline: none;
+    }
+    g.block-container:focus > [id^="bg"] {
+      stroke: #0000ff;
+      stroke-width: 5;
+    }
+    .sr-only {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
   `
 
   protected render() {
@@ -108,12 +123,16 @@ export class EditorMixed extends LitElement {
       <noscript>Please enable JavaScript.</noscript>
       <div
         id="editor-container"
+        role="application"
+        aria-details="sr-details"
         style="position: relative;"
         @mousedown="${(e: MouseEvent) => this.dragHelper!.startDrag(e)}"
         @touchstart="${(e: TouchEvent) => this.dragHelper!.startDrag(e)}"
+        @touchcancel="${() => this.dragHelper!.cancelDrag()}"
         @mousemove="${(e: MouseEvent) => this.dragHelper!.drag(e)}"
         @mouseup="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
-        @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}">
+        @mouseleave="${(e: MouseEvent) => this.dragHelper!.endDrag(e)}"
+        @keydown="${(e: KeyboardEvent) => this.dragHelper!.onKeydown(e)}">
         <div
           tabindex="0"
           class="panzoom"
@@ -125,31 +144,62 @@ export class EditorMixed extends LitElement {
           @mouseup="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @mouseleave="${() => this.panzoomHelper.onMouseUpOrLeave()}"
           @touchend="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
-          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}">
+          @touchcancel="${(e: TouchEvent) => this.panzoomHelper.onTouchEnd(e)}"
+          @keydown="${(e: KeyboardEvent) => this.panzoomHelper.onKeydown(e)}"
+          @keyup="${(e: KeyboardEvent) => this.panzoomHelper.onKeyup(e)}">
           <svg
             ${ref(this.workspaceRef)}
             width="100%"
             height="100%"
             viewBox="0 0 800 800"
-            style="position: absolute; top: 0; left: 0; pointer-events: all;">
+            style="position: absolute; top: 0; left: 0; pointer-events: all;"
+            aria-label="Block workspace"
+            aria-describedby="sr-workspace-helper"
+            role="tree">
             ${this.extrasRenderer.renderBackground()} ${this.blockRenderer.render()}
           </svg>
+          <p></p>
         </div>
 
-        <div
-          ${ref(this.drawerRef)}
-          id="drawer-container"
-          style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
-          ${this.drawerRenderer!.renderElement()}
+        ${this.drawerRenderer!.renderElement()}
+
+        <div id="editor-controls" style="position: absolute; bottom: 0; right: 0;">
+          ${this.extrasRenderer.renderZoomButtons(this.panzoomHelper)}
         </div>
 
-        <div id="editor-widgets" style="position: relative">${this.widgetRenderer.render()}</div>
+        <div id="editor-widgets" style="position: absolute; top: 0; left: 0;">
+          ${this.widgetRenderer.render()}
+        </div>
 
         <editor-mixed-drag
           ${ref(this.dragLayerRef)}
           .dragRenderer=${this.dragRenderer}
           .dragLayerRef=${this.dragWorkspaceRef}></editor-mixed-drag>
       </div>
+
+      <p id="sr-announcement" class="sr-only" role="status"></p>
+
+      <ol id="sr-details" class="sr-only">
+        <li>
+          This is a block-based code editor. There's a drawer with available blocks and a workspace
+          to assemble code from blocks.
+        </li>
+        <li>
+          Once a block is selected, use "j" to connect it to the next unoccupied matching connector,
+          or "k" to disconnect it from its current connection, or "l" to return it to the drawer.
+        </li>
+        <li>Use WASD to pan around the workspace, if needed, and plus / minus to zoom.</li>
+        <li>
+          These types of blocks are available:
+          <ol>
+            ${Object.values(BlockType).map(type => html`<li>${type}</li>`)}
+          </ol>
+        </li>
+      </ol>
+
+      <p id="sr-workspace-helper" class="sr-only">
+        There are ${this.blockRegistry.root?.blocks.length} block stacks
+      </p>
     `
     // console.timeEnd("editor | render time")
     return result
@@ -175,7 +225,7 @@ export class EditorMixed extends LitElement {
     }
 
     if (changedProperties.has("useDefaultConfig") && this.useDefaultConfig) {
-      this.setConfig(DebugMixedEditorConfig)
+      this.setConfig(DefaultMixedEditorConfig)
     } else if (changedProperties.has("config") && this.config && this.config.layouter != null) {
       try {
         this.setConfig(this.config)
@@ -199,12 +249,14 @@ export class EditorMixed extends LitElement {
     this.blockRenderer = new config.blockRenderer(
       this.blockRegistry,
       this.layouter,
-      this.widgetRenderer.setWidget.bind(this.widgetRenderer)
+      this.widgetRenderer.setWidget.bind(this.widgetRenderer),
+      this.requestUpdate.bind(this)
     )
     this.drawerRenderer = new config.drawerRenderer(
       this.blockRegistry,
       this.layouter,
       this.blockRenderer,
+      this.requestUpdate.bind(this),
       this.data?.hideDrawer != true
     )
     this.dragRenderer = new config.dragRenderer(this.blockRegistry, this.blockRenderer)
@@ -214,10 +266,10 @@ export class EditorMixed extends LitElement {
       this.connectorRegistry,
       this.dragRenderer,
       this.workspaceRef,
-      this.drawerRef,
       () => this.dragLayerRef.value?.requestUpdate(),
       this.requestUpdate.bind(this),
-      () => this.widgetRenderer?.removeWidget?.()
+      () => this.widgetRenderer?.removeWidget?.(),
+      () => this.drawerRenderer?.setExpanded?.(false)
     )
   }
 
@@ -230,6 +282,26 @@ export class EditorMixed extends LitElement {
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
     super.firstUpdated(_changedProperties)
+  }
+
+  //#region Lifecycle
+
+  /**
+   * The escape key must be listened on document-wide to enable drag cancelling without tabbing into the editor
+   * @param e keyboard event on the document
+   */
+  private documentKeydownListener = ((e: KeyboardEvent) => {
+    if (e.key == "Escape") this.dragHelper?.onKeydown(e)
+  }).bind(this)
+
+  connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener("keydown", this.documentKeydownListener)
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback()
+    document.removeEventListener("keydown", this.documentKeydownListener)
   }
 
   //#region Public API

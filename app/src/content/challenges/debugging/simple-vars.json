@@ -13,6 +13,14 @@
   "environment": {
     "language": "js"
   },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
   "editor": {
     "type": "mixed",
     "initialBlocks": [
@@ -88,6 +96,17 @@
         "data": {
           "name": "test",
           "type": "array<string>"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "array<string>",
+          "value": [
+            "dings",
+            "dangs",
+            "dongs"
+          ]
         }
       }
     ]

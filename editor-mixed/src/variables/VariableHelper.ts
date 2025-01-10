@@ -1,5 +1,5 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type { BlockDataVariableInit } from "../blocks/configuration/BlockData"
+import type { BlockDataVariable, BlockDataVariableInit } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { DataType } from "../blocks/configuration/DataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
@@ -33,6 +33,7 @@ export class VariableHelper implements VariableHInterface {
   ) {
     blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
     blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
+    blockRegistry.on("registeredClone", ({ block }) => this.onRegisteredClone(block))
 
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
@@ -54,7 +55,7 @@ export class VariableHelper implements VariableHInterface {
    * d) applies any pending variable uses for this variable
    * e) applies the next available variable name if the name is already taken
    * side effect: requests a render update
-   * // todo: refactor this massive method 
+   * // todo: refactor this massive method
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
@@ -113,10 +114,11 @@ export class VariableHelper implements VariableHInterface {
     let requestUpdate = false
 
     if (currentData.name !== changedBlock.data.name) {
-      if (this.isNameAvailable(changedBlock.data.name)) {
-        currentData.name = changedBlock.data.name
+      const newName = changedBlock.data.name.replaceAll(/[^a-zA-Z0-9]/g, "_")
+      if (this.isNameAvailable(newName)) {
+        currentData.name = newName
         currentData.usages.forEach(usage => {
-          usage.updateData(data => ({ ...data, name: changedBlock.data.name }))
+          usage.updateData(data => ({ ...data, name: newName }))
         })
         requestUpdate = true
       }
@@ -126,9 +128,7 @@ export class VariableHelper implements VariableHInterface {
       currentData.type = changedBlock.data.type
       currentData.usages.forEach(usage => {
         if (usage.reevaluateBlocks()) requestUpdate = true
-        if (usage.upstream?.type == BlockType.VarSet) {
-          if (usage.upstream.reevaluateBlocks()) requestUpdate = true
-        }
+        if (usage.upstream?.reevaluateBlocks()) requestUpdate = true
       })
     }
 
@@ -143,10 +143,11 @@ export class VariableHelper implements VariableHInterface {
   private handleVarBlockAdded = (block: Block<BlockType.Variable>) => {
     const data = this.dataByVarName(block.data.name)
     if (!data) {
-      console.info(
-        `Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`,
-        block.id
-      )
+      if (window.location.hostname == "localhost" || window.location.hostname.includes("main"))
+        console.info(
+          `Variable '${block.data.name}' used but not yet initialized. This should only happen during block loading. block id`,
+          block.id
+        )
       this.pendingUsages.push(block)
       return
     }
@@ -201,6 +202,18 @@ export class VariableHelper implements VariableHInterface {
   }
 
   /**
+   * Adds a reference to the VariableHelper to newly cloned blocks (when they are dragged from the drawer)
+   * This is required to check compatibility of variable types when connecting blocks on the first drag
+   * @param block cloned block
+   */
+  private onRegisteredClone = (block: AnyBlock) => {
+    if (block.type === BlockType.Variable)
+      block.updateData(
+        data => ({ ...data, variableHelper: new WeakRef(this) }) as BlockDataVariable
+      )
+  }
+
+  /**
    * Finds a variable by its name
    * @param name variable name
    * @returns variable data or null if not found
@@ -215,7 +228,7 @@ export class VariableHelper implements VariableHInterface {
    * @returns true if the name is available, false if it's already registered or invalid
    */
   public isNameAvailable(name: string): boolean {
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return false
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,30}$/.test(name)) return false
     for (const { name: registeredName } of this.variables.values())
       if (registeredName === name) return false
     return true

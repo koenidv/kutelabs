@@ -1,4 +1,5 @@
 import type { Ref } from "lit/directives/ref.js"
+import { findShadowedActiveElement } from "./DOMUtils"
 
 interface FocusTrapOptions {
   onDeactivate?: () => void
@@ -35,7 +36,7 @@ export class FocusTrap {
       return
     }
     if (e.key != "Tab") return
-    const activeElement = this.findShadowedActiveElement()
+    const activeElement = findShadowedActiveElement(document)
 
     if (this.focusableElements == null) {
       this.setUpFocusTrap(activeElement as HTMLElement | null)
@@ -77,13 +78,5 @@ export class FocusTrap {
     this.firstFocusable = this.focusableElements[0] || null
     this.lastFocusable = this.focusableElements[this.focusableElements.length - 1] || null
     this.firstFocusable?.focus()
-  }
-
-  findShadowedActiveElement(): Element | null {
-    let element: Element | null = document.activeElement
-    while (element?.shadowRoot && element.shadowRoot.activeElement) {
-      element = element.shadowRoot.activeElement
-    }
-    return element
   }
 }

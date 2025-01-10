@@ -1,6 +1,12 @@
 import { Block, type AnyBlock } from "../blocks/Block"
-import type { BlockDataByType, BlockDataExpression } from "../blocks/configuration/BlockData"
+import {
+  LogicComparisonOperator,
+  LogicJunctionMode,
+  type BlockDataByType,
+  type BlockDataExpression,
+} from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
+import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { Connector } from "../connections/Connector"
 import { ConnectorRole } from "../connections/ConnectorRole"
@@ -85,10 +91,10 @@ function parseBlockRecursive(
   }
 
   const type = parseBlockType(data.type)
-  const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type>)
+  const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type> | undefined)
 
   // add a false branch connector if elsebranch is set to true
-  const defaultConnectors = DefaultConnectors.byBlockType(type)
+  const defaultConnectors = DefaultConnectors.byBlockType(type, (blockData as BlockDataExpression | null)?.expression)
   if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
     defaultConnectors.push(DefaultConnectors.conditionalFalse())
   }
@@ -97,7 +103,7 @@ function parseBlockRecursive(
     type,
     blockData,
     mergeConnectors(connectedBlocks, defaultConnectors),
-    true,
+    data.draggable !== false,
     blockRegistry,
     connectorRegistry
   )
@@ -105,9 +111,9 @@ function parseBlockRecursive(
 
 function normalizeBlockData(
   type: BlockType,
-  data: BlockDataByType<typeof type>
+  data: BlockDataByType<typeof type> | undefined
 ): BlockDataByType<typeof type> {
-  if (!data) return data
+  if (!data) data = {} as BlockDataByType<typeof type>
   switch (type) {
     case BlockType.Expression:
       if ((data as BlockDataExpression).expression == DefinedExpression.Custom) {
@@ -122,6 +128,21 @@ function normalizeBlockData(
       ;(data as BlockDataByType<BlockType.VarInit>).mutable =
         (data as BlockDataByType<BlockType.VarInit>).mutable ?? true
       break
+    case BlockType.LogicNot:
+    case BlockType.LogicJunction:
+    case BlockType.LogicComparison:
+      // set type to boolean for compatibility with values
+      ;(data as any).type = DataType.Boolean
+      if (type == BlockType.LogicJunction) {
+        // default mode for junction
+        ;(data as BlockDataByType<BlockType.LogicJunction>).mode =
+          (data as any)?.mode ?? LogicJunctionMode.And
+      }
+      if (type == BlockType.LogicComparison) {
+        // default mode for comparison
+        ;(data as BlockDataByType<BlockType.LogicComparison>).mode =
+          (data as any)?.mode ?? LogicComparisonOperator.Equal
+      }
   }
   return data
 }
@@ -141,6 +162,10 @@ function parseDefaultConnector(
       return DefaultConnectors.inputExtension()
     case "conditional":
       return DefaultConnectors.conditionalExtension()
+    case "conditionalInput":
+      return DefaultConnectors.conditionalInput()
+    case "comparisonInput":
+      return DefaultConnectors.comparisonInput()
     case "output":
       return DefaultConnectors.output()
     case "inner":
@@ -167,23 +192,25 @@ function mergeConnectors(
   incoming: { connector: Connector; connected?: AnyBlock | undefined }[],
   existing: Connector[]
 ): { connector: Connector; connected?: AnyBlock | undefined }[] {
+  const combined = [...incoming]
   existing.forEach(connector => {
-    if (
-      !incoming.find(
-        it => it.connector.type === connector.type && it.connector.role === connector.role
-      )
-    ) {
-      incoming.unshift({ connector, connected: undefined })
+    const matchingIncomingIndex = incoming.findIndex(
+      it => it.connector.type === connector.type && it.connector.role === connector.role
+    )
+    if (matchingIncomingIndex == -1) {
+      combined.unshift({ connector, connected: undefined })
+    } else {
+      incoming.splice(matchingIncomingIndex, 1)
     }
   })
 
   const typeOrder = Object.values(ConnectorType)
   const roleOrder = Object.values(ConnectorRole)
-  incoming.sort((a, b) => {
+  combined.sort((a, b) => {
     const typeComparison = typeOrder.indexOf(a.connector.type) - typeOrder.indexOf(b.connector.type)
     if (typeComparison !== 0) return typeComparison
     return roleOrder.indexOf(a.connector.role) - roleOrder.indexOf(b.connector.role)
   })
 
-  return incoming
+  return combined
 }

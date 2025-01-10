@@ -1,5 +1,4 @@
 import type { AnyBlock } from "../blocks/Block"
-import { ConnectorRegistry } from "../registries/ConnectorRegistry"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { Coordinates } from "../util/Coordinates"
 import { ConnectorRole } from "./ConnectorRole"
@@ -38,7 +37,7 @@ export class Connector {
     return this._parentBlock
   }
 
-  get isDownstram() {
+  get isDownstream() {
     return (
       this.type === ConnectorType.After ||
       this.type === ConnectorType.Inner ||

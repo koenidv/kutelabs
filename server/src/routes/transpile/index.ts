@@ -1,32 +1,67 @@
 import { Hono } from "hono"
-import { ResultDTO } from "./ResultDTO"
-import { transpile } from "../../transpile/transpile"
-import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import { getConnInfo } from "hono/bun"
+import { posthog } from "../../analytics/PostHogClient"
 import {
   existsInCache,
   readTranspiledCache,
   shouldCache,
   writeTranspiledCache,
 } from "../../cache/cacheUtils"
+import { env } from "../../env"
+import { restoreBlockIds, standardizeBlockIds } from "../../transpile/standardizeBlockIds"
+import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import { transpile } from "../../transpile/transpile"
+import { ResultDTO } from "./ResultDTO"
 
 const app = new Hono()
 
 app.post("/kt/js", async c => {
+  const startTime = Date.now()
   const body = await c.req.json()
-  const kotlinCode = body.kotlinCode as string
+  if (!body || !body.kotlinCode) {
+    c.status(400)
+    c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
+  }
+  const { code, ids: standardizedBlockIds } = standardizeBlockIds(body.kotlinCode)
 
-  if (!kotlinCode)
-    return c.also(it => {
-      it.status(400)
-      it.json(ResultDTO.error(TranspilationStatus.EmptyInput))
+  const ipHash = Bun.hash(getConnInfo(c).remote.address ?? "").toString() ?? "anynomous"
+  // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
+
+  if (env.CACHE_ENABLED && (await existsInCache(code))) {
+    posthog.capture({
+      distinctId: ipHash,
+      event: "transpile_request",
+      properties: {
+        result: "cached",
+        code: code,
+        time: Date.now() - startTime,
+        server: env.POSTHOG_IDENTIFIER,
+      },
     })
 
-  if (await existsInCache(kotlinCode))
-    return c.json(await readTranspiledCache(kotlinCode))
+    return c.json(
+      (await readTranspiledCache(code)).postProcess(code =>
+        restoreBlockIds(code, standardizedBlockIds)
+      )
+    )
+  }
 
-  const dto = ResultDTO.fromTranspilationResult(await transpile(kotlinCode))
-  if (shouldCache(dto.status)) writeTranspiledCache(kotlinCode, dto) // async, not blocking response
+  const dto = ResultDTO.fromTranspilationResult(await transpile(code))
+  if (shouldCache(dto.status)) await writeTranspiledCache(code, dto) // async, not blocking response
 
+  posthog.capture({
+    distinctId: ipHash,
+    event: "transpile_request",
+    properties: {
+      result: dto.status,
+      code: code,
+      message: dto.message,
+      time: Date.now() - startTime,
+      server: env.POSTHOG_IDENTIFIER,
+    },
+  })
+
+  dto.postProcess(code => restoreBlockIds(code, standardizedBlockIds))
   return c.json(dto)
 })
 

@@ -5,12 +5,12 @@ import { ConnectorRole } from "../connections/ConnectorRole"
 import { ConnectorType } from "../connections/ConnectorType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import { BlockRegistry } from "../registries/BlockRegistry"
-import type { BlockRInterface } from "../registries/BlockRInterface"
+import type { BlockRegisterOptions, BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
 import { Emitter } from "../util/Emitter"
-import { clone1d } from "../util/ObjectUtils"
+import { clone1d, deepClone } from "../util/ObjectUtils"
 import { BlockConnectors } from "./BlockConnectors"
 import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
@@ -39,7 +39,8 @@ export class Block<T extends BlockType, S = never>
     blockRegistry: BlockRInterface,
     connectorRegistry: ConnectorRInterface,
     position?: Coordinates,
-    size?: SizeProps
+    size?: SizeProps,
+    registerOptions?: BlockRegisterOptions
   ) {
     super()
     this.type = type
@@ -59,7 +60,7 @@ export class Block<T extends BlockType, S = never>
       }
     }
 
-    blockRegistry.register(this, position, size)
+    blockRegistry.register(this, position, size, registerOptions)
     this.insertOnRoot = blockRegistry.attachToRoot.bind(blockRegistry)
   }
 
@@ -85,7 +86,7 @@ export class Block<T extends BlockType, S = never>
 
     if (!localConnector) return this.handleNoLocalConnector(block, connection)
 
-    if (!isOppositeAction && !localConnector?.isDownstram) {
+    if (!isOppositeAction && !localConnector?.isDownstream) {
       return this.handleConnectUpstream(block, connection, localConnector.type, atPosition)
     }
 
@@ -100,7 +101,7 @@ export class Block<T extends BlockType, S = never>
 
   private handleNoLocalConnector(block: AnyBlock, connection: Connection) {
     const lastLocalConnector = connection.localConnector(this.lastAfter)
-    if (lastLocalConnector && !lastLocalConnector.isDownstram) {
+    if (lastLocalConnector && !lastLocalConnector.isDownstream) {
       this.handleConnectUpstream(block, connection, lastLocalConnector.type)
       return
     }
@@ -175,6 +176,7 @@ export class Block<T extends BlockType, S = never>
   get inputs() {
     return this.connectors
       .byRole(ConnectorRole.Input)
+      .filter(connector => connector.isDownstream)
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
@@ -196,6 +198,16 @@ export class Block<T extends BlockType, S = never>
       this,
       ...this.downstreamWithConnectors.flatMap(({ block }) => block.allConnectedRecursive),
     ]
+  }
+
+  get countAfterRecursive(): number {
+    let count = 0
+    let block: AnyBlock | null = this
+    while (block) {
+      count++
+      block = block.after
+    }
+    return count
   }
 
   //#region Connectors
@@ -252,9 +264,9 @@ export class Block<T extends BlockType, S = never>
   ): Block<T, S> {
     const registered = blockRegistry.getRegistered(this)
     // new blocks register themselves
-    return new Block(
+    const clone = new Block(
       this.type,
-      structuredClone(this._data),
+      deepClone(this._data),
       this.connectors.all.map(connector => ({
         connector: new Connector(
           connector.type,
@@ -267,10 +279,14 @@ export class Block<T extends BlockType, S = never>
       blockRegistry,
       connectorRegistry,
       registered?.globalPosition,
-      registered?.size ?? undefined
-    ).also(it => {
-      it.isInDrawer = this.isInDrawer
-    })
+      registered?.size ?? undefined,
+      {
+        cloned: true,
+      }
+    )
+    clone.isInDrawer = this.isInDrawer
+    this.emit("cloned", clone)
+    return clone
   }
 
   /**

@@ -8,4 +8,7 @@ export enum BlockType {
   VarSet = "variable_set",
   Loop = "loop",
   Conditional = "conditional",
+  LogicNot = "logic_not",
+  LogicJunction = "logic_junction",
+  LogicComparison = "logic_comparison",
 }

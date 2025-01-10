@@ -1,16 +1,20 @@
 import { $ } from "bun"
 import { env } from "../env"
 
-export async function checkRunscEnvironment(): Promise<boolean> {
+export async function checkRunscEnvironment(
+  exit: (code: number) => void = process.exit
+): Promise<boolean> {
   return new Promise(async resolve => {
     runscAvailable()
       .then(available => {
         if (!available) {
-          if (!isDev()) {
-            console.error(
-              "gVisor (runsc) is not available and is required for production."
+          if (!isDev() && (env.TRANSPILER_GVISOR ?? true)) {
+            console.error("gVisor (runsc) is not available and is required for production.")
+            exit(1)
+          } else if (!isDev()) {
+            console.warn(
+              "WARN: gVisor (runsc) is DISABLED. Transpilation security might be compromised."
             )
-            process.exit(1)
           } else {
             console.warn(
               "WARN: gVisor (runsc) is not available and will not be used for transpilation. This will break in production."
@@ -21,7 +25,7 @@ export async function checkRunscEnvironment(): Promise<boolean> {
       })
       .catch(error => {
         console.error("Error checking runsc availability:", error, "Exiting.")
-        process.exit(1)
+        exit(1)
       })
   })
 }

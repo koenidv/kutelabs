@@ -23,7 +23,7 @@ export async function writeTranspiledCache(input: string, output: ResultDTO) {
     await writeFile(
       await baseCacheDir(),
       hash(input).toString(),
-      output.also(it => (it.cached = true)).toString()
+      output.setAsCached().toString()
     )
   } catch (e) {
     console.error(e)
