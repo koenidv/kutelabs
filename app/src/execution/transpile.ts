@@ -1,8 +1,8 @@
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { API_BASE_URL } from "astro:env/client"
+import { PUBLIC_API_BASE_URL } from "astro:env/client"
 
 export async function transpileKtJs(code: string): Promise<ResultDtoInterface | null> {
-  const res = await fetch(`${API_BASE_URL}/transpile/kt/js`, {
+  const res = await fetch(`${PUBLIC_API_BASE_URL}/transpile/kt/js`, {
     method: "post",
     headers: {
       "Content-Type": "application/json",

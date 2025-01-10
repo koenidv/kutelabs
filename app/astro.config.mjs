@@ -10,18 +10,20 @@ import { defineConfig, envField } from "astro/config";
 // https://astro.build/config
 export default defineConfig({
   integrations: [sentry({
-    dsn: process.env["SENTRY_DSN"],
+    dsn: process.env["PUBLIC_SENTRY_DSN"],
     sourceMapsUploadOptions: {
       project: "kutelabs-astro",
-      authToken: process.env["SENTRY_AUTH_TOKEN"],
+      authToken: process.env["SECRET_SENTRY_AUTH_TOKEN"],
     },
   }), tailwind(), icon(), svelte(), compress()],
   output: "static",
   adapter: netlify(),
   env: {
     schema: {
-      API_BASE_URL: envField.string({ context: "client", "access": "public", optional: false, default: "http://api.kutelabs.koeni.dev", url: true }),
-      POSTHOG_API_KEY: envField.string({ context: "client", "access": "public", optional: true }),
+      PUBLIC_API_BASE_URL: envField.string({ context: "client", access: "public", optional: false, default: "https://api.kutelabs.koeni.dev", url: true }),
+      PUBLIC_POSTHOG_API_KEY: envField.string({ context: "client", access: "public", optional: false, startsWith: "phc_" }),
+      PUBLIC_SENTRY_DSN: envField.string({ context: "client", access: "public", optional: false, url: true, includes: "sentry.io" }),
+      SECRET_SENTRY_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sntrys_" }),
     }
   },
   prefetch: {
