@@ -69,6 +69,9 @@ export class SizeProps {
   get tails(): number[] {
     return this.byProp(this.heights, HeightProp.Tail)
   }
+  get fullTailHeight() {
+    return this.tails.reduce((acc, h) => acc + h, 0)
+  }
 
   get fullWidth() {
     return this.widths.reduce((acc, w) => acc + w.value, 0)

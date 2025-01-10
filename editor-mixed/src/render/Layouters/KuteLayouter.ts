@@ -1,6 +1,7 @@
 import type { AnyBlock } from "../../blocks/Block"
-import type { BlockDataExpression } from "../../blocks/configuration/BlockData"
+import type { BlockDataExpression, BlockDataValue, BlockDataVariable } from "../../blocks/configuration/BlockData"
 import { BlockType } from "../../blocks/configuration/BlockType"
+import { DataType } from "../../blocks/configuration/DataType"
 import type { Connector } from "../../connections/Connector"
 import { ConnectorRole } from "../../connections/ConnectorRole"
 import { ConnectorType } from "../../connections/ConnectorType"
@@ -9,7 +10,7 @@ import { Coordinates } from "../../util/Coordinates"
 import { HeightProp, SizeProps, WidthProp } from "../SizeProps"
 import { BaseLayouter } from "./BaseLayouter"
 
-const MIN_HEIGHT = 60
+const MIN_HEIGHT = 50
 const DEFAULT_HEAD_HEIGHT = 50
 const DEFAULT_TAIL_HEIGHT = 25
 const DEFAULT_CONNECTOR_HEIGHT = 40
@@ -60,10 +61,18 @@ export class KuteLayouter extends BaseLayouter {
       })
     } else if (block.type == BlockType.Expression && (block.data as BlockDataExpression).editable) {
       size.addWidth(WidthProp.Left, 200)
-
+    } else if (
+      block.type == BlockType.Value &&
+      (block.data as BlockDataValue<any>).type == DataType.String
+    ) {
+      size.addWidth(WidthProp.Left, 150)
+    } else if (block.type == BlockType.VarInit) {
+      size.addWidth(WidthProp.Right, 200)
     }
 
-    if (size.fullWidth < MIN_WIDTH) size.addWidth(WidthProp.Left, MIN_WIDTH - size.fullWidth)
+    if (block.type == BlockType.Variable) {
+      size.addWidth(WidthProp.Left, (block.data as BlockDataVariable).name.length * 7.9 + 12)
+    } else if (size.fullWidth < MIN_WIDTH) size.addWidth(WidthProp.Left, MIN_WIDTH - size.fullWidth)
 
     const fullHeight = size.fullHeight
     if (block.connectors.outputExtension) {
@@ -72,12 +81,14 @@ export class KuteLayouter extends BaseLayouter {
       else size.addHeight(HeightProp.Tail, DEFAULT_CONNECTOR_HEIGHT)
     } else if (inners.length > 0) {
       size.addHeight(HeightProp.Tail, DEFAULT_TAIL_HEIGHT)
+    } else if (block.type == BlockType.VarInit) {
+      size.addHeight(HeightProp.Tail, DEFAULT_TAIL_HEIGHT)
     } else if (
       fullHeight < MIN_HEIGHT &&
       block.type != BlockType.Value &&
       block.type != BlockType.Variable
     )
-      size.addHeight(HeightProp.Tail, Math.max(MIN_HEIGHT - fullHeight, DEFAULT_TAIL_HEIGHT))
+      size.addHeight(HeightProp.Tail, Math.min(MIN_HEIGHT - fullHeight, DEFAULT_TAIL_HEIGHT))
 
     return size
   }

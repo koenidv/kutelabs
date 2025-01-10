@@ -114,10 +114,11 @@ export class VariableHelper implements VariableHInterface {
     let requestUpdate = false
 
     if (currentData.name !== changedBlock.data.name) {
-      if (this.isNameAvailable(changedBlock.data.name)) {
-        currentData.name = changedBlock.data.name
+      const newName = changedBlock.data.name.replaceAll(/[^a-zA-Z0-9]/g, "_")
+      if (this.isNameAvailable(newName)) {
+        currentData.name = newName
         currentData.usages.forEach(usage => {
-          usage.updateData(data => ({ ...data, name: changedBlock.data.name }))
+          usage.updateData(data => ({ ...data, name: newName }))
         })
         requestUpdate = true
       }
@@ -227,7 +228,7 @@ export class VariableHelper implements VariableHInterface {
    * @returns true if the name is available, false if it's already registered or invalid
    */
   public isNameAvailable(name: string): boolean {
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return false
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,30}$/.test(name)) return false
     for (const { name: registeredName } of this.variables.values())
       if (registeredName === name) return false
     return true

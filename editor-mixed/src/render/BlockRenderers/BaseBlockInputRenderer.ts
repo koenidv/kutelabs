@@ -11,6 +11,7 @@ import "../../inputs/PrismKotlinEditor"
 import type { Widget } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
+import { isSafari } from "../../util/browserCheck"
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   //#region Input Wrappers
@@ -46,7 +47,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     widgetPosition: Coordinates | undefined,
     elementSize: Coordinates,
     widgetSize: Coordinates = elementSize,
-    inputElement: (ref: Ref<RefType>) => TemplateResult<1>,
+    inputElement: (ref: Ref<RefType>, isInWidget: boolean) => TemplateResult<1>,
     widget: Widget | undefined,
     onWidgetOpened: (
       originRef: RefType,
@@ -64,10 +65,12 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
             <div
               style="border-radius: ${6 /
               this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-              ${inputElement(widgetInputRef)}
+              ${inputElement(widgetInputRef, true)}
             </div>
           `,
           size: widgetSize,
+          // scale: this._workspaceScaleFactor,
+          scale: 1
         },
         widgetPosition ?? registered.globalPosition.add(elementPosition)
       )
@@ -98,13 +101,13 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: text; overflow: auto;"
+              style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block.isInDrawer ? this._safariFixOnly : this._safariTransform}"
               tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown=${onOpenEvent}
               @touchstart=${onOpenEvent}
               @keydown=${onOpenEvent}>
               <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${inputElement(inputRef)}
+                ${inputElement(inputRef, false)}
               </div>
             </div>
           `
@@ -115,24 +118,23 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
 
   /**
    * Estimates the selected cursor position and sets it to the newly created input field on widget open.
-   * @param originRef Reference to the original input field
-   * @param targetRef Reference to the new input field
+   * @param origin Reference to the original input field
+   * @param target Reference to the new input field
    * @param evt Event that triggered the opening of the widget
    */
   protected setSelectionOnWidgetOpened(
-    originRef: HTMLTextAreaElement | HTMLInputElement,
-    targetRef: HTMLTextAreaElement | HTMLInputElement,
+    _origin: HTMLTextAreaElement | HTMLInputElement,
+    target: HTMLTextAreaElement | HTMLInputElement,
     evt: MouseEvent | TouchEvent | KeyboardEvent
   ) {
-    console.log(originRef.value, targetRef.value)
-    targetRef.focus()
+    target.focus()
     if (evt instanceof KeyboardEvent) {
-      targetRef.setSelectionRange(0, targetRef.value.length)
+      target.setSelectionRange(0, target.value.length)
       return
     }
     const position = normalizePrimaryPointerPosition(evt)
-    const focusPosition = approximateCaretPosition(originRef, position!.x, position!.y)
-    targetRef.setSelectionRange(focusPosition ?? 0, focusPosition ?? targetRef.value.length)
+    const focusPosition = approximateCaretPosition(target, position!.x, position!.y)
+    target.setSelectionRange(focusPosition ?? 0, focusPosition ?? target.value.length)
   }
 
   /**
@@ -190,7 +192,17 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       size,
       undefined,
-      ref => this.renderInputString(registered, size, value, onChange, () => {}, ref, props),
+      (ref, inWidget) =>
+        this.renderInputString(
+          registered,
+          size,
+          value,
+          onChange,
+          () => {},
+          ref,
+          inWidget ? 1 / this._workspaceScaleFactor * 0.82 : 1,
+          props
+        ),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
       props
@@ -234,7 +246,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: pointer; overflow: auto;"
+              style="width: 100%; height: 100%; cursor: pointer; overflow: auto; ${registered.block.isInDrawer ? this._safariFixOnly : this._safariTransform}"
               tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown="${onClick}"
               @touchstart="${onClick}"
@@ -328,6 +340,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     onChange: (value: string) => void,
     onKeydown: (e: KeyboardEvent) => void,
     reference: Ref<HTMLInputElement> | undefined,
+    textScaling: number,
     props: InternalBlockRenderProps
   ): TemplateResult<1>
 

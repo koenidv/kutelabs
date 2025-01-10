@@ -64,8 +64,7 @@ export class DragHelper {
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1)
       return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
-    this.removeWidgets()
-
+    
     const draggedParent = this.findParent(
       evt.target as HTMLElement,
       it => it.classList.contains("dragable"),
@@ -78,6 +77,7 @@ export class DragHelper {
     this.previousUpstream = data.previousUpstream
     this.previousConnection = data.previousConnection
     evt.preventDefault()
+    this.removeWidgets()
 
     this.startPos = this.determineBlockStartPosition(this.dragged, draggedParent)
 

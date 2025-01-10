@@ -14,6 +14,7 @@ export type OverlayWidget = {
   type: "overlay"
   content: TemplateResult<1>
   size: Coordinates
+  scale: number
 }
 
 export type Widget = SelectorWidget | OverlayWidget
@@ -61,9 +62,7 @@ export abstract class BaseWidgetRenderer {
       return html`
         <div
           ${ref(this.widgetRef)}
-          style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;"
-          @mousedown="${(e: MouseEvent) => e.preventDefault()}"
-          @touchstart="${(e: TouchEvent) => e.preventDefault()}">
+          style="position: absolute; left: ${screenPos.x}px; top: ${screenPos.y}px;">
           ${this.renderWidget(this.displayedWidget)}
         </div>
       `
@@ -84,7 +83,9 @@ export abstract class BaseWidgetRenderer {
       <div
         style="position: relative; padding: ${this.containerPadding.top}% ${this.containerPadding
           .right}% ${this.containerPadding.bottom}% ${this.containerPadding
-          .left}%; box-sizing: border-box; width: ${widgetSize.x}px; height: ${widgetSize.y}px">
+          .left}%; box-sizing: border-box; width: ${widgetSize.x}px; height: ${widgetSize.y}px"
+        @mousedown="${(e: MouseEvent) => e.preventDefault()}"
+        @touchstart="${(e: TouchEvent) => e.preventDefault()}">
         <div style="overflow-y: auto; overflow-x: hidden; width: 100%; height: 100%;">
           ${content}
         </div>
@@ -92,12 +93,15 @@ export abstract class BaseWidgetRenderer {
     `
   }
 
-  private withoutBackground(content: TemplateResult<1>, size: Coordinates): TemplateResult<1> {
+  private withoutBackground(content: TemplateResult<1>, size: Coordinates, scale: number): TemplateResult<1> {
     const ctm = this.workspaceRef.value!.getScreenCTM()!
     return html`
       <div
-        style="position: relative; box-sizing: border-box; width: ${size.x * ctm.a}px; height: ${size.y * ctm.a}px;">
-        ${content}
+        style="position: relative; box-sizing: border-box; width: ${size.x *
+        ctm.a}px; height: ${size.y * ctm.a}px;">
+        <div style="width: 100%; height: 100%; transform: scale(${1 / scale}); transform-origin: 0 0;">
+          ${content}
+        </div>
       </div>
     `
   }
@@ -107,7 +111,7 @@ export abstract class BaseWidgetRenderer {
       case "selector":
         return this.withBackground(this.renderSelectorWidget(widget))
       case "overlay":
-        return this.withoutBackground(this.renderOverlayWidegt(widget), widget.size)
+        return this.withoutBackground(this.renderOverlayWidegt(widget), widget.size, widget.scale)
     }
   }
 

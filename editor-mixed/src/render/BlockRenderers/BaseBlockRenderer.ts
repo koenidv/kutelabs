@@ -21,7 +21,7 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
 
   protected abstract readonly inputRenderer: BaseBlockInputRenderer
 
-  /* relay scaling to  */
+  /* relay scaling to input renderer */
   public override setWorkspaceScaleFactor(value: number) {
     super.setWorkspaceScaleFactor(value)
     this.inputRenderer.setWorkspaceScaleFactor(value)

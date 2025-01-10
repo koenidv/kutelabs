@@ -22,6 +22,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         .inDrawer=${block.isInDrawer}
         @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
       </prism-kotlin-editor>
+  </div>
     `
   }
 
@@ -32,6 +33,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     onChange: (value: string) => void,
     onKeydown: (e: KeyboardEvent) => void,
     reference: Ref<HTMLInputElement> | undefined,
+    textScaling: number,
     _props: InternalBlockRenderProps
   ): TemplateResult<1> {
     return html`
@@ -40,7 +42,8 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         value=${value}
         type="text"
         tabindex="-1"
-        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
+        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
+        textScaling}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
         @input=${(e: InputEvent) => onChange((e.target as HTMLInputElement).value)}
         @keydown=${onKeydown}
         spellcheck="false" />
@@ -88,22 +91,5 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         <p style="font-family: monospace; font-size: 14px; font-weight: normal;">${selected}</p>
       </div>
     `
-
-    // return svg`
-    // <g
-    //   transform="${`translate(${position.x}, ${position.y})`}"
-    //   role="button"
-    //   tabindex=${++props.tabindex}
-    //   style="cursor: pointer;"
-    //   @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-    //   @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-    //   @keydown="${(e: KeyboardEvent) => {
-    //     if (e.key === "Enter" || e.key === " ") showDropdown(e)
-    //   }}"
-    //   >
-    //   <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
-    //   <text x="5" y="${size.y / 2 + 6}">${selected}</text>
-    //   </g>
-    // `
   }
 }

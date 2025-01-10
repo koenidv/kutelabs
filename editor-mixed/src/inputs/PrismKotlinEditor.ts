@@ -107,6 +107,7 @@ export class PrismKotlinEditor extends LitElement {
           tabindex=${this.disableFocus ? -1 : 0}
           class="input"
           .value=${this.value}
+          @mousedown=${console.log}
           @input=${this.handleInput}
           @keydown=${this.handleKeyDown}
           spellcheck="false"></textarea>
