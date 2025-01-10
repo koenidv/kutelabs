@@ -175,11 +175,11 @@
         }
       },
       {
-        "type": "variable",
+        "type": "value",
         "data": {
-          "name": "imavar"
-        },
-        "count": -1
+          "type": "dynamic",
+          "value": "true"
+        }
       },
       {
         "type": "variable_init",

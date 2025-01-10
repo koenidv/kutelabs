@@ -192,7 +192,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   protected override renderContentFunction(
     registered: RegisteredBlock<BlockType.Function, any>,
-    props: InternalBlockRenderProps
+    _props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
     return svg`
@@ -203,7 +203,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   protected override renderContentConditional(
     registered: RegisteredBlock<BlockType.Conditional, any>,
-    props: InternalBlockRenderProps
+    _props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
     return [
@@ -222,7 +222,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   protected override renderContentLoop(
     registered: RegisteredBlock<BlockType.Loop, any>,
-    props: InternalBlockRenderProps
+    _props: InternalBlockRenderProps
   ): SvgResult {
     const { size } = registered
     return svg`
@@ -251,7 +251,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates((size.fullWidth - 52) / 2 + 44, 6),
             new Coordinates((size.fullWidth - 52) / 2, size.fullHeight - 12),
             new Coordinates(200, 200),
-            Object.entries(DataType).map(([display, id]) => ({ id, display })),
+            Object.entries(DataType).filter(([_, it]) => it != DataType.Dynamic).map(([display, id]) => ({ id, display })),
             block.data.type,
             (id: string) => block.updateData(cur => ({ ...cur, type: id })),
             props
@@ -261,7 +261,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   protected override renderContentVariable(
     registered: RegisteredBlock<BlockType.Variable, any>,
-    props: InternalBlockRenderProps
+    _props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
     return svg`
@@ -274,6 +274,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
+    if (block.data.type == DataType.Dynamic) {
+      // code editor for dynamic value
+      return this.inputRenderer.editableCode(
+        registered,
+        new Coordinates(6, 6),
+        new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
+        block.isInDrawer ? "code()" : block.data.value,
+        (value: string) => block.updateData(cur => ({ ...cur, value })),
+        props
+      )
+    }
     if (block.data.type == DataType.Boolean) {
       return this.inputRenderer.inputBoolean(
         registered,

@@ -334,7 +334,16 @@ export interface VariableInitBlock {
     /**
      * Value type (from ValueDataType)
      */
-    type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
+    type:
+      | "int"
+      | "float"
+      | "string"
+      | "boolean"
+      | "array<int>"
+      | "array<float>"
+      | "array<string>"
+      | "array<boolean>"
+      | "dynamic"
     /**
      * If the variable is mutable, defaults to true
      */

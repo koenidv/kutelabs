@@ -56,6 +56,8 @@ export class JsCompiler extends BaseCompiler {
   ): string {
     if ("value" in block.data) {
       switch (block.data.type) {
+        case DataType.Dynamic:
+          return block.data.value.toString()
         case DataType.Int:
         case DataType.Float:
           return Number(block.data.value).toString()

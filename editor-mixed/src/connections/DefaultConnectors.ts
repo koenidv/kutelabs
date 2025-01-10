@@ -112,7 +112,10 @@ export class DefaultConnectors {
           return remote.parentBlock.data == null || !("type" in remote.parentBlock.data)
 
         if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
-          return localType === remote.parentBlock.data.type
+          return (
+            localType === remote.parentBlock.data.type ||
+            remote.parentBlock.data.type === DataType.Dynamic
+          )
         }
         return false
       },
@@ -137,7 +140,10 @@ export class DefaultConnectors {
         if (!localType) return false
 
         if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
-          return localType === remote.parentBlock.data.type
+          return (
+            localType === remote.parentBlock.data.type ||
+            remote.parentBlock.data.type === DataType.Dynamic
+          )
         }
 
         return false
@@ -151,7 +157,7 @@ export class DefaultConnectors {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
         const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
-        return remoteType === DataType.Boolean
+        return remoteType === DataType.Boolean || remoteType === DataType.Dynamic
       },
     ])
   }
@@ -163,7 +169,7 @@ export class DefaultConnectors {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
         const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
-        return remoteType === DataType.Boolean
+        return remoteType === DataType.Boolean || remoteType === DataType.Dynamic
       },
     ])
   }
@@ -214,12 +220,7 @@ export class DefaultConnectors {
   static extender() {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
       remote => remote.role === ConnectorRole.Input && remote.type !== ConnectorType.Before,
-      (remote, local) =>
-        local.parentBlock?.data != null &&
-        "type" in local.parentBlock.data &&
-        local.parentBlock.data.type == DataType.Boolean &&
-        remote.role === ConnectorRole.Conditional &&
-        remote.type !== ConnectorType.Before,
+      remote => remote.role === ConnectorRole.Conditional && remote.type !== ConnectorType.Before,
     ])
   }
 

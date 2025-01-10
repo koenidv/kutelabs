@@ -16,7 +16,8 @@
         "array<int>",
         "array<float>",
         "array<string>",
-        "array<boolean>"
+        "array<boolean>",
+        "dynamic"
       ]
     },
     "AnyBlock": {
@@ -407,6 +408,22 @@
                     "items": {
                       "type": "boolean"
                     }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "dynamic"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string"
                   }
                 }
               }

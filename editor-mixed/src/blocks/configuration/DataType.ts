@@ -9,6 +9,8 @@ export enum DataType {
   StringArray = "array<string>",
   BooleanArray = "array<boolean>",
 
+  Dynamic = "dynamic",
+
   // todo store function reference in value and create a separate block for function output as input
 }
 
@@ -29,4 +31,6 @@ export type TsTypeByDataType<T extends DataType> =
                 ? string[]
                 : T extends DataType.BooleanArray
                   ? boolean[]
-                  : never
+                  : T extends DataType.Dynamic
+                    ? any
+                    : never
