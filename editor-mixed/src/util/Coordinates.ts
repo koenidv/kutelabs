@@ -32,4 +32,28 @@ export class Coordinates {
   static addPopOffset(coordinates: Coordinates): Coordinates {
     return Coordinates.add(coordinates, Coordinates.popOffset)
   }
+
+  toArray(): [number, number] {
+    return [this.x, this.y]
+  }
+
+  add(other: Coordinates): Coordinates {
+    return new Coordinates(this.x + other.x, this.y + other.y)
+  }
+  plus(x: number, y: number): Coordinates {
+    return new Coordinates(this.x + x, this.y + y)
+  }
+
+  toScreenCoordinates(workspace: SVGSVGElement): Coordinates {
+    const ctm = workspace.getScreenCTM()!
+    const bounds = workspace.getBoundingClientRect()
+    const transformed = workspace
+      .createSVGPoint()
+      .also(it => {
+        it.x = this.x
+        it.y = this.y
+      })
+      .matrixTransform(ctm)
+    return new Coordinates(transformed.x - bounds.left, transformed.y - bounds.top)
+  }
 }

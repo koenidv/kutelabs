@@ -35,29 +35,78 @@
             "required": [
               "x",
               "y"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
           "block",
           "coordinates"
         ],
-        "additionalProperties": false
+        "unevaluatedProperties": false
       }
     },
     "initialDrawerBlocks": {
       "description": "Initial blocks to be loaded into the editor",
       "type": "array",
       "items": {
-        "$ref": "./blocks.schema.json#/$defs/AnyBlockSingle"
+        "type": "object",
+        "allOf": [
+          {"$ref": "./blocks.schema.json#/$defs/AnyBlockSingle"},
+          {
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of times this block can be used, -1 for infinite",
+                "default": -1,
+                "minimum": -1
+              }
+            }
+          }
+        ],
+      "unevaluatedProperties": false
       }
+    },
+    "hideDrawer": {
+      "description": "Hides the drawer",
+      "type": "boolean",
+      "const": true
+    },
+    "invisibleCode": {
+      "description": "Additional code to include (raw) in compiled code but not show in the editor",
+      "type": "object",
+      "properties": {
+        "kt": {
+          "type": "string"
+        },
+        "js": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "mainFunction": {
+      "description": "Name of the function that should be called on execution",
+      "type": "string",
+      "default": "main"
     }
   },
   "required": [
     "type",
-    "initialBlocks",
-    "initialDrawerBlocks"
+    "initialBlocks"
+  ],
+  "oneOf": [
+    {
+      "required": [
+        "initialDrawerBlocks"
+      ]
+    },
+    {
+      "required": [
+        "hideDrawer"
+      ]
+    }
   ],
   "additionalProperties": false
 }

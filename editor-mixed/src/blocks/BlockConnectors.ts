@@ -2,18 +2,14 @@ import type { Connector } from "../connections/Connector"
 import { ConnectorType } from "../connections/ConnectorType"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import type { AnyBlock } from "./Block"
-import type { ConnectorRegistry } from "../registries/ConnectorRegistry"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 
 export class BlockConnectors {
   private _connectors: Map<ConnectorType, Connector> = new Map()
   private _innerConnectors: Connector[] = []
   private _extensionConnectors: Connector[] = []
 
-  addConnector(
-    parentBlock: AnyBlock,
-    registry: ConnectorRegistry,
-    connector: Connector
-  ) {
+  addConnector(parentBlock: AnyBlock, registry: ConnectorRInterface, connector: Connector) {
     connector.register(registry, parentBlock)
 
     switch (connector.type) {
@@ -41,11 +37,7 @@ export class BlockConnectors {
   }
 
   get all() {
-    return [
-      ...this._connectors.values(),
-      ...this._innerConnectors,
-      ...this._extensionConnectors,
-    ]
+    return [...this._connectors.values(), ...this._innerConnectors, ...this._extensionConnectors]
   }
 
   get internal(): Connector {
@@ -60,8 +52,11 @@ export class BlockConnectors {
   get inners() {
     return this._innerConnectors
   }
-  get extensions() {
-    return this._extensionConnectors
+  get inputExtensions() {
+    return this._extensionConnectors.filter(it => it.role != ConnectorRole.Output)
+  }
+  get outputExtension() {
+    return this._extensionConnectors.filter(it => it.role == ConnectorRole.Output).firstOrNull()
   }
 
   byRole(role: ConnectorRole): Connector[] {

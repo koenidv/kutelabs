@@ -9,8 +9,22 @@
     "imageStart": {
       "src": "/images/illustration_debug_launch.png",
       "alt": ""
+    },
+    "dialog": {
+      "static": "ヽ༼ ຈل͜ຈ༼ ▀̿̿Ĺ̯̿̿▀̿ ̿༽Ɵ͆ل͜Ɵ͆ ༽ﾉ<br/> ᕕ(⌐■_■)ᕗ ♪♬<br/>    let's go!<br/>ᕙ(`▽´)ᕗ<br/>─=≡Σ((( つ◕ل͜◕)つ"
     }
   },
+  "environment": {
+    "language": "js"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
   "editor": {
     "type": "mixed",
     "initialBlocks": [
@@ -27,42 +41,73 @@
           "connectedBlocks": [
             {
               "on": "inner",
-              "type": "expression",
+              "type": "variable_init",
               "data": {
-                "expression": "Println"
+                "name": "imavar",
+                "type": "string"
               },
               "connectedBlocks": [
                 {
-                  "on": "inputExtension",
-                  "type": "value",
-                  "data": {
-                    "type": "string",
-                    "value": "Hello World"
-                  }
-                },
-                {
-                  "on": "inputExtension",
-                  "type": "variable",
-                  "data": {
-                    "name": "imavar",
-                    "type": "string"
-                  }
-                },
-                {
                   "on": "after",
-                  "type": "conditional",
-                  "elsebranch": true,
+                  "type": "variable_set",
                   "connectedBlocks": [
                     {
-                      "on": "ifTrue",
+                      "on": "inner",
+                      "type": "variable",
+                      "data": {
+                        "name": "imavar"
+                      }
+                    },
+                    {
+                      "on": "input",
+                      "type": "value",
+                      "data": {
+                        "type": "string",
+                        "value": "ooh a variable!"
+                      }
+                    },
+                    {
+                      "on": "after",
                       "type": "expression",
                       "data": {
-                        "expression": "Custom",
-                        "customExpression": {
-                          "js": "1 + 2",
-                          "kt": "1 + 2"
+                        "expression": "Println"
+                      },
+                      "connectedBlocks": [
+                        {
+                          "on": "input",
+                          "type": "value",
+                          "data": {
+                            "type": "string",
+                            "value": "Hello World"
+                          }
+                        },
+                        {
+                          "on": "after",
+                          "type": "conditional",
+                          "elsebranch": true,
+                          "connectedBlocks": [
+                            {
+                              "on": "conditional",
+                              "type": "value",
+                              "data": {
+                                "type": "boolean",
+                                "value": true
+                              }
+                            },
+                            {
+                              "on": "ifTrue",
+                              "type": "expression",
+                              "data": {
+                                "expression": "Custom",
+                                "customExpression": {
+                                  "js": "1 + 2",
+                                  "kt": "1 + 2"
+                                }
+                              }
+                            }
+                          ]
                         }
-                      }
+                      ]
                     }
                   ]
                 }
@@ -73,10 +118,9 @@
       },
       {
         "block": {
-          "type": "value",
+          "type": "variable",
           "data": {
-            "type": "boolean",
-            "value": true
+            "name": "imavar"
           }
         },
         "coordinates": {
@@ -107,7 +151,8 @@
         "type": "function",
         "data": {
           "name": "not-main"
-        }
+        },
+        "count": 2
       },
       {
         "type": "expression",
@@ -119,7 +164,8 @@
           "editable": {
             "lang": "kt"
           }
-        }
+        },
+        "count": 3
       },
       {
         "type": "value",
@@ -129,10 +175,39 @@
         }
       },
       {
-        "type": "variable",
+        "type": "value",
         "data": {
-          "name": "imavar",
-          "type": "string"
+          "type": "dynamic",
+          "value": "true"
+        }
+      },
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "testVarHelper",
+          "type": "array<string>"
+        }
+      },
+      {
+        "type": "expression",
+        "count": 1,
+        "data": {
+          "customExpression": {
+            "js": "throw new Error('test')"
+          },
+          "expression": "Custom"
+        }
+      },
+      {
+        "type": "loop"
+      },
+      {
+        "type": "logic_not"
+      },
+      {
+        "type": "logic_junction",
+        "data": {
+          "type": "and"
         }
       }
     ]

@@ -16,6 +16,10 @@ out/
 
 .DS_Store
 .env
-.env.*
+.env.
+!.env.test
+!.env.example
 
-server/src/data/
+server/src/data
+
+**/schema/*.d.ts

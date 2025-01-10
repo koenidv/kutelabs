@@ -1,15 +1,19 @@
-import type { AnyBlock } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DrawerBlock } from "../blocks/DrawerBlock"
 import { RootBlock } from "../blocks/RootBlock"
 import { Connection } from "../connections/Connection"
 import { Connector } from "../connections/Connector"
+import { BlockMarking } from "@kutelabs/editor-mixed"
 import type { SizeProps } from "../render/SizeProps"
 import { Coordinates } from "../util/Coordinates"
+import { Emitter } from "../util/Emitter"
+import type { BlockRegisterOptions, BlockREvents, BlockRInterface } from "./BlockRInterface"
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
+import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
 
-export class BlockRegistry {
+export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterface {
   private _root: RootBlock | null = null
   public get root() {
     return this._root
@@ -20,16 +24,52 @@ export class BlockRegistry {
     return this._drawer
   }
 
-  constructor(connectorRegistry: ConnectorRegistry) {
+  private workspaceState: WorkspaceStateHelper
+  notifyConnecting: (block: AnyBlock, to: AnyBlock) => void
+  notifyDisconnecting: (block: AnyBlock, from: AnyBlock) => void
+
+  private readonly requestUpdate: () => void
+
+  constructor(connectorRegistry: ConnectorRegistry, requestUpdate: () => void) {
+    super()
     this._root = new RootBlock(this, connectorRegistry)
     this._drawer = new DrawerBlock(this, connectorRegistry)
+    this.requestUpdate = requestUpdate
+
+    this.workspaceState = new WorkspaceStateHelper(this.emit.bind(this))
+    this.notifyConnecting = this.workspaceState.onConnecting.bind(this.workspaceState)
+    this.notifyDisconnecting = this.workspaceState.onDisconnecting.bind(this.workspaceState)
   }
 
   _blocks: Map<AnyBlock, AnyRegisteredBlock> = new Map()
-  public register(block: AnyBlock) {
+
+  public register<T extends BlockType, S>(
+    block: Block<T, S>,
+    position?: Coordinates,
+    size?: SizeProps,
+    options: BlockRegisterOptions = {}
+  ): void {
     if (this._blocks.has(block)) throw new Error("Block is already registered")
-    this._blocks.set(block, new RegisteredBlock(block))
+    this._blocks.set(block, new RegisteredBlock(block, position, size))
+    if (options.cloned) this.emit("registeredClone", { block })
   }
+
+  /**
+   * Deregisters a block from the registry. THIS ASSUMES that the block has been disconnected from all other blocks.
+   * @param block block to deregister
+   */
+  public deregister(block: AnyBlock): void {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    this._blocks.delete(block)
+  }
+
+  public getRegistered(block: AnyBlock): AnyRegisteredBlock {
+    const registered = this._blocks.get(block)
+    if (!registered) throw new Error("Block is not registered")
+    return registered
+  }
+
   public getRegisteredById(id: string) {
     return [...this._blocks.values()].find(it => it.block.id == id)
   }
@@ -48,10 +88,7 @@ export class BlockRegistry {
     return registered.size
   }
 
-  public setPosition(
-    block: AnyBlock,
-    position: Coordinates
-  ): AnyRegisteredBlock {
+  public setPosition(block: AnyBlock, position: Coordinates): AnyRegisteredBlock {
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     registered.globalPosition = position
@@ -72,29 +109,27 @@ export class BlockRegistry {
     this.attach(block, this._root, this._root.rootConnector, modifyPosition)
   }
 
-  public attachToDrawer(block: AnyBlock | null) {
+  public attachToDrawer(block: AnyBlock | null, count?: number) {
     if (!this._drawer) throw new Error("Drawer is not set")
-    this.attach(
-      block,
-      this._drawer,
-      this._drawer.drawerConnector,
-      () => Coordinates.zero
-    )
+    this.attach(block, this._drawer, this._drawer.drawerConnector, () => Coordinates.zero, count)
   }
 
   private attach(
     block: AnyBlock | null,
     to: RootBlock | DrawerBlock,
     on: Connector,
-    modifyPosition: (c: Coordinates) => Coordinates
+    modifyPosition: (c: Coordinates) => Coordinates,
+    count?: number
   ) {
     if (!block) return
     const registered = this._blocks.get(block)
     if (!registered) throw new Error("Block is not registered")
     to.connect(
+      this,
       block,
       new Connection(on, block.connectors.internal),
-      modifyPosition(registered.globalPosition)
+      modifyPosition(registered.globalPosition),
+      count
     )
   }
 
@@ -104,10 +139,7 @@ export class BlockRegistry {
       this.detachedBlockIds = []
       return
     }
-    this.detachedBlockIds = [
-      block.id,
-      ...block.allConnectedRecursive.map(({ id }) => id),
-    ]
+    this.detachedBlockIds = [block.id, ...block.allConnectedRecursive.map(({ id }) => id)]
   }
 
   public get leafs(): AnyBlock[] {
@@ -125,6 +157,35 @@ export class BlockRegistry {
       if (registered.isInvalidated || registered.size == null) return false
     }
     return true
+  }
+
+  public markBlock(block: AnyBlock | string, marking: BlockMarking, single = true) {
+    const registered =
+      typeof block === "string" ? this.getRegisteredById(block) : this._blocks.get(block)
+    if (!registered) {
+      console.error("Block to mark is not registered or could not be found", block)
+      return
+    }
+
+    if (single) this.clearMarked()
+    registered.marking = marking
+
+    registered.block.extensions.forEach(it => {
+      this.markBlock(it, marking, false)
+    }, this)
+
+    this.requestUpdate()
+  }
+
+  public clearMarked(keepErrors: boolean = true) {
+    let changed = false
+    this._blocks.forEach(it => {
+      if (it.marking != null && (!keepErrors || it.marking != BlockMarking.Error)) {
+        it.marking = null
+        changed = true
+      }
+    })
+    if (changed) this.requestUpdate()
   }
 
   public clear() {

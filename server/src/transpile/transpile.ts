@@ -1,9 +1,9 @@
 import { spawn } from "bun"
-import { checkRunscEnvironment } from "./checkRunscEnv"
-import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
-import { checkTranspilerImage } from "./checkTranspilerImage"
 import { env } from "../env"
+import { checkRunscEnvironment } from "./checkRunscEnv"
+import { checkTranspilerImage } from "./checkTranspilerImage"
 import { TranspilationStatus } from "./TranspilationStatus"
+import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
 
 export type TranspilationResult = {
   status: TranspilationStatus
@@ -15,40 +15,65 @@ const withRunsc = await checkRunscEnvironment()
 await checkTranspilerImage()
 
 export async function transpile(code: string): Promise<TranspilationResult> {
-  return withTempDir(async workdir => {
-    await writeInputFile(workdir, code)
-    const processResult = await transpileKtJs(workdir, 30000, 512, withRunsc)
+  return withTempDir(
+    async (relative, absolute) => {
+      await writeInputFile(absolute, code)
+      const processResult = await transpileKtJs(
+        env.DATA_VOLUME_NAME,
+        env.DATA_DIR,
+        relative,
+        env.TRANSPILER_TIMEOUT,
+        env.TRANSPILER_COROUTINE_LIB,
+        withRunsc,
+        env.TRANSPILER_MEMORY,
+        env.TRANSPILER_MEMORY_SWAP,
+        env.TRANSPILER_CPU
+      )
 
-    if (processResult.status !== TranspilationStatus.Success)
-      return { status: processResult.status, message: processResult.message }
+      if (processResult.status !== TranspilationStatus.Success)
+        return { status: processResult.status, message: processResult.message }
 
-    return {
-      status: processResult.status,
-      transpiled: await readOutputFile(workdir),
+      return {
+        status: processResult.status,
+        transpiled: await readOutputFile(absolute),
+      }
+    },
+    {
+      status: TranspilationStatus.UnknownError,
+      message: "An internal error occurred.",
     }
-  })
+  )
 }
 
 async function transpileKtJs(
-  workdir: string,
+  volumeName: string | undefined,
+  dataDir: string | undefined,
+  relativeWorkDir: string,
   timeout: number,
-  maxMemory: number,
-  withRunsc: boolean
+  withCoroutineLib: boolean,
+  withRunsc: boolean,
+  maxMemory: string,
+  maxSwap: string | undefined,
+  cpuLimit: number | undefined
 ): Promise<{ status: TranspilationStatus; message?: string }> {
   return new Promise(async resolve => {
+    if (!volumeName && !dataDir) throw new Error("Either volumeName or dataDir must be provided")
     const process = spawn(
       [
         "docker",
         "run",
+        volumeName
+          ? `--mount=source=${volumeName},volume-subpath=${relativeWorkDir},target=/data,type=volume`
+          : `-v=${dataDir}/${relativeWorkDir}:/data`,
         withRunsc ? "--runtime=runsc" : "",
-        "--rm",
-        "-v",
-        `${workdir}:/data`,
-        `--memory=${maxMemory}m`,
-        "--cpus=1",
+        withCoroutineLib ? "--env=INCLUDE_COROUTINE_LIB=true" : "",
+        maxMemory ? `--memory=${maxMemory}` : "",
+        maxSwap ? `--memory-swap=${maxSwap}` : "",
+        cpuLimit ? `--cpus=${cpuLimit}` : "",
         "--network=none",
+        "--rm",
         `${env.TRANSPILER_NAME}:latest`,
-      ],
+      ].filter(Boolean),
       { stdout: "pipe", stderr: "pipe" }
     )
 
@@ -64,9 +89,19 @@ async function transpileKtJs(
 
     const exitCode = await process.exited
     clearTimeout(killTimeout)
-    console.info("Ressource usage:", process.resourceUsage())
 
-    if (process.signalCode === "SIGKILL") return
+    console.info(
+      "Ressource usage:",
+      process.resourceUsage(),
+      "completed with exit code",
+      exitCode,
+      process.signalCode
+    )
+    if (process.signalCode === "SIGKILL") {
+      resolve({
+        status: TranspilationStatus.Timeout,
+      })
+    }
     switch (exitCode) {
       case 0:
         resolve({ status: TranspilationStatus.Success })
@@ -74,20 +109,17 @@ async function transpileKtJs(
       case 1:
         resolve({
           status: TranspilationStatus.CompilationError,
-          message: trimErrorMessage(await new Response(process.stderr).text()),
+          message:
+            (await new Response(process.stderr).text()) +
+            "\n" +
+            (await new Response(process.stdout).text()),
         })
         break
       default:
-        return {
+        resolve({
           status: TranspilationStatus.UnknownError,
           message: await new Response(process.stderr).text(),
-        }
+        })
     }
   })
-}
-
-function trimErrorMessage(error: string): string {
-  const internalIndex = error.indexOf("info: produce executable: /data/js/")
-  if (internalIndex === -1) return error
-  return error.substring(0, internalIndex)
 }

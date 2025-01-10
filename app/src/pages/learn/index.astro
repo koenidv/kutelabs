@@ -60,7 +60,7 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
             const data = it.data as Challenge
             return (
               <div class="pb-4 flex flex-col items-center">
-                <a href={`/learn/${it.id}`} class="w-full">
+                <a href={`/learn/${it.id}`} class="w-full" data-astro-prefetch>
                   <ElevatedBox
                     elevation={2}
                     hoverable

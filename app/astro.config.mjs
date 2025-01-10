@@ -1,15 +1,34 @@
 // @ts-check
-import { defineConfig } from "astro/config"
 import netlify from "@astrojs/netlify";
-import tailwind from "@astrojs/tailwind"
-import lit from "@astrojs/lit"
-
+import svelte from "@astrojs/svelte";
+import tailwind from "@astrojs/tailwind";
 import sentry from "@sentry/astro";
-import spotlightjs from "@spotlightjs/astro";
+import compress from "astro-compress";
+import icon from "astro-icon";
+import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), lit(), sentry(), spotlightjs()],
+  integrations: [sentry({
+    dsn: process.env["SENTRY_DSN"],
+    sourceMapsUploadOptions: {
+      project: "kutelabs-astro",
+      authToken: process.env["SENTRY_AUTH_TOKEN"],
+    },
+  }), tailwind(), icon(), svelte(), compress()],
   output: "static",
   adapter: netlify(),
+  env: {
+    schema: {
+      API_BASE_URL: envField.string({ context: "client", "access": "public", optional: false, default: "http://api.kutelabs.koeni.dev", url: true }),
+      POSTHOG_API_KEY: envField.string({ context: "client", "access": "public", optional: true }),
+    }
+  },
+  prefetch: {
+    defaultStrategy: "viewport",
+  },
+  experimental: {
+    clientPrerender: true,
+    svg: true,
+  }
 })

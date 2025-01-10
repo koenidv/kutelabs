@@ -8,5 +8,16 @@
     "type": "mixed",
     "initialBlocks": [],
     "initialDrawerBlocks": []
-  }
+  },
+  "environment": {
+    "language": "js"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ]
 }

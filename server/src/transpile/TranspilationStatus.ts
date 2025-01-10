@@ -4,6 +4,7 @@ export enum TranspilationStatus {
   CompilationError = "compilationError",
   Timeout = "timeout",
   EmptyInput = "emptyInput",
+  InvalidOptions = "invalidOptions",
   CacheError = "cacheError",
   UnknownError = "unknownError"
 }

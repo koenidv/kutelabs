@@ -6,6 +6,58 @@
  */
 
 /**
+ * Configuration for the mixed content editor within a kutelabs challenge
+ */
+export type MixedContentEditorConfiguration = {
+  /**
+   * Defines this editor as a mixed content editor
+   */
+  type: "mixed"
+  /**
+   * Initial blocks to be loaded into the editor
+   */
+  initialBlocks: {
+    block: MixedContentEditorBlock
+    /**
+     * Coordinates of the block
+     */
+    coordinates: {
+      x: number
+      y: number
+      [k: string]: unknown
+    }
+    [k: string]: unknown
+  }[]
+  /**
+   * Initial blocks to be loaded into the editor
+   */
+  initialDrawerBlocks?: (AnyBlockSingle & {
+    /**
+     * Number of times this block can be used, -1 for infinite
+     */
+    count?: number
+    [k: string]: unknown
+  })[]
+  /**
+   * Hides the drawer
+   */
+  hideDrawer?: true
+  /**
+   * Additional code to include (raw) in compiled code but not show in the editor
+   */
+  invisibleCode?: {
+    kt?: string
+    js?: string
+    [k: string]: string
+  }
+  /**
+   * Name of the function that should be called on execution
+   */
+  mainFunction?: string
+} & {
+  [k: string]: unknown
+}
+/**
  * Block
  */
 export type MixedContentEditorBlock = AnyBlockConnected
@@ -21,22 +73,37 @@ export type AnyBlockConnected = AnyBlock & {
     [k: string]: unknown
   } & AnyBlockConnected1)[]
   [k: string]: unknown
-} & {
-  type?: unknown
-  data?: unknown
-  connectedBlocks?: unknown
-  on?: unknown
-  elsebranch?: unknown
 }
-export type AnyBlock = FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock
+export type AnyBlock = (
+  | FunctionBlock
+  | ExpressionBlock
+  | ValueBlock
+  | VariableInitBlock
+  | VariableSetBlock
+  | VariableBlock
+  | ConditionalBlock
+  | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
+  /**
+   * Set to false to disable dragging this block
+   */
+  draggable?: boolean
+  [k: string]: unknown
+}
 /**
  * Connector on this block
  */
 export type MixedContentEditorConnector =
   | "before"
   | "after"
-  | "inputExtension"
-  | "conditionalExtension"
+  | "input"
+  | "conditional"
+  | "conditionalInput"
+  | "comparisonInput"
+  | "output"
   | "extender"
   | "inner"
   | "ifTrue"
@@ -53,48 +120,30 @@ export type AnyBlockConnected1 = AnyBlock & {
     [k: string]: unknown
   } & AnyBlockConnected1)[]
   [k: string]: unknown
-} & {
-  type?: unknown
-  data?: unknown
-  connectedBlocks?: unknown
-  on?: unknown
-  elsebranch?: unknown
 }
 /**
  * A block without connected Blocks. Use "type" to determine the type of block
  */
-export type AnyBlockSingle = {
-  type?: unknown
-  data?: unknown
-  elsebranch?: unknown
-} & (FunctionBlock | ExpressionBlock | ValueBlock | VariableBlock | ConditionalBlock)
-
-/**
- * Configuration for the mixed content editor within a kutelabs challenge
- */
-export interface MixedContentEditorConfiguration {
+export type AnyBlockSingle = (
+  | FunctionBlock
+  | ExpressionBlock
+  | ValueBlock
+  | VariableInitBlock
+  | VariableSetBlock
+  | VariableBlock
+  | ConditionalBlock
+  | LoopBlock
+  | LogicNotBlock
+  | LogicJunctionBlock
+  | LogicComparisonBlock
+) & {
   /**
-   * Defines this editor as a mixed content editor
+   * Set to false to disable dragging this block
    */
-  type: "mixed"
-  /**
-   * Initial blocks to be loaded into the editor
-   */
-  initialBlocks: {
-    block: MixedContentEditorBlock
-    /**
-     * Coordinates of the block
-     */
-    coordinates: {
-      x: number
-      y: number
-    }
-  }[]
-  /**
-   * Initial blocks to be loaded into the editor
-   */
-  initialDrawerBlocks: AnyBlockSingle[]
+  draggable?: boolean
+  [k: string]: unknown
 }
+
 /**
  * Function Block
  */
@@ -111,7 +160,12 @@ export interface FunctionBlock {
      * Name of the function
      */
     name: string
+    [k: string]: unknown
   }
+  connectedBlocks?: {
+    on: "inner" | "input" | "output"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }
 /**
@@ -146,6 +200,10 @@ export interface ExpressionBlock {
           maxLines?: number
         }
   }
+  connectedBlocks?: {
+    on: "after" | "input"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }
 /**
@@ -162,10 +220,67 @@ export interface ValueBlock {
   data: {
     [k: string]: unknown
   }
+  /**
+   * Value blocks can't have downstream connected blocks
+   */
+  connectedBlocks?: null
   [k: string]: unknown
 }
 /**
- * Variable Block
+ * Variable Init Block
+ */
+export interface VariableInitBlock {
+  /**
+   * Defines this block as an variable block
+   */
+  type: "variable_init"
+  /**
+   * Variable Block Data
+   */
+  data: {
+    /**
+     * Name of the variable
+     */
+    name: string
+    /**
+     * Value type (from ValueDataType)
+     */
+    type:
+      | "int"
+      | "float"
+      | "string"
+      | "boolean"
+      | "array<int>"
+      | "array<float>"
+      | "array<string>"
+      | "array<boolean>"
+      | "dynamic"
+    /**
+     * If the variable is mutable, defaults to true
+     */
+    mutable?: boolean
+  }
+  connectedBlocks?: {
+    on: "after" | "input"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Variable Set Block
+ */
+export interface VariableSetBlock {
+  /**
+   * Defines this block as an variable block
+   */
+  type: "variable_set"
+  connectedBlocks?: {
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Variable Block. You must include a Variable Init Block to initialize the variable
  */
 export interface VariableBlock {
   /**
@@ -180,11 +295,11 @@ export interface VariableBlock {
      * Name of the variable
      */
     name: string
-    /**
-     * Variable type (from ValueDataType)
-     */
-    type: "int" | "float" | "string" | "boolean" | "array<int>" | "array<float>" | "array<string>" | "array<boolean>"
   }
+  /**
+   * Variable blocks can't have downstream connected blocks
+   */
+  connectedBlocks?: null
   [k: string]: unknown
 }
 /**
@@ -199,5 +314,85 @@ export interface ConditionalBlock {
    * Include else branch?
    */
   elsebranch?: boolean
+  connectedBlocks?: {
+    on: "conditional" | "ifTrue" | "ifFalse" | "after"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Loop Block
+ */
+export interface LoopBlock {
+  /**
+   * Defines this block as a loop block
+   */
+  type: "loop"
+  connectedBlocks?: {
+    on?: "inner" | "input"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * "Not" Logic Block
+ */
+export interface LogicNotBlock {
+  /**
+   * Defines this block as a Logic Not block
+   */
+  type: "logic_not"
+  connectedBlocks?: {
+    on?: "conditional"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Junction Logic Block
+ */
+export interface LogicJunctionBlock {
+  /**
+   * Defines this block as a Logic Junction block
+   */
+  type: "logic_junction"
+  /**
+   * Junction Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of junction
+     */
+    mode: "and" | "or"
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "conditionalInput"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Comparison Logic Block
+ */
+export interface LogicComparisonBlock {
+  /**
+   * Defines this block as a Logic Comparison block
+   */
+  type: "logic_comparison"
+  /**
+   * Comparison Logic Block Data
+   */
+  data?: {
+    /**
+     * Mode of comparison
+     */
+    mode: "==" | "!=" | "<" | "<=" | ">" | ">="
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "comparisonInput"
+    [k: string]: unknown
+  }[]
   [k: string]: unknown
 }

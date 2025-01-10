@@ -9,67 +9,80 @@
     "imageEnd": {
       "src": "/images/character_boozle_rainbow.png",
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
+    },
+    "dialog": {
+      "static": "Hey, good to see you!<br/> Really cool that you want to learn programming.<br/><br/> Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.<br/><br/> For now, just enter your name in the input and click the run button. Let's see what happens!"
     }
   },
-  "dialog": {
-    "text": "Hey, good to see you! Really cool that you want to learn programming. Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.\n For now, just enter your name in the input and click the run button. Let's see what happens!"
+  "environment": {
+    "language": "js",
+    "appFeatures": [
+      "setUsername"
+    ]
   },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {
+        "entername": {
+          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
+          "description": "Enter your name"
+        }
+      }
+    }
+  ],
   "editor": {
     "type": "mixed",
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 400,
+          "x": 100,
           "y": 200
         },
         "block": {
           "type": "function",
           "data": {
-            "name": "main"
+            "name": "inputName"
           },
           "connectedBlocks": [
             {
               "on": "inner",
-              "type": "expression",
+              "type": "variable_init",
+              "draggable": false,
               "data": {
-                "expression": "Println"
+                "name": "name",
+                "type": "string"
               },
               "connectedBlocks": [
                 {
-                  "on": "inputExtension",
-                  "type": "value",
-                  "data": {
-                    "type": "string",
-                    "value": "Hello World"
-                  }
-                },
-                {
-                  "on": "inputExtension",
-                  "type": "variable",
-                  "data": {
-                    "name": "imavar",
-                    "type": "string"
-                  }
-                },
-                {
                   "on": "after",
-                  "type": "conditional",
-                  "elsebranch": true,
+                  "type": "expression",
+                  "draggable": false,
+                  "data": {
+                    "expression": "Println"
+                  },
                   "connectedBlocks": [
                     {
-                      "on": "ifTrue",
-                      "type": "expression",
+                      "on": "input",
+                      "type": "variable",
+                      "draggable": false,
                       "data": {
-                        "expression": "Custom",
-                        "customExpression": {
-                          "js": "1 + 2",
-                          "kt": "1 + 2"
-                        }
+                        "name": "name"
                       }
                     }
                   ]
                 }
               ]
+            },
+            {
+              "on": "output",
+              "type": "variable",
+              "draggable": false,
+              "data": {
+                "name": "name"
+              }
             }
           ]
         }
@@ -78,66 +91,21 @@
         "block": {
           "type": "value",
           "data": {
-            "type": "boolean",
-            "value": true
+            "type": "string",
+            "value": "Your name here"
           }
         },
         "coordinates": {
-          "x": 600,
-          "y": 100
-        }
-      },
-      {
-        "block": {
-          "type": "value",
-          "data": {
-            "type": "array<int>",
-            "value": [
-              1,
-              2,
-              3
-            ]
-          }
-        },
-        "coordinates": {
-          "x": 800,
-          "y": 200
+          "x": 400,
+          "y": 280
         }
       }
     ],
-    "initialDrawerBlocks": [
-      {
-        "type": "function",
-        "data": {
-          "name": "not-main"
-        }
-      },
-      {
-        "type": "expression",
-        "data": {
-          "expression": "Custom",
-          "customExpression": {
-            "kt": "1 + 2"
-          },
-          "editable": {
-            "lang": "kt"
-          }
-        }
-      },
-      {
-        "type": "value",
-        "data": {
-          "type": "string",
-          "value": "moin"
-        }
-      },
-      {
-        "type": "variable",
-        "data": {
-          "name": "imavar",
-          "type": "string"
-        }
-      }
-    ]
+    "hideDrawer": true,
+    "invisibleCode": {
+      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
+      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
+    },
+    "mainFunction": "processUsername"
   }
 }

@@ -5,36 +5,76 @@
   "description": "Block within the mixed content editor",
   "type": "object",
   "$defs": {
+    "dataType": {
+      "description": "Value type (from ValueDataType)",
+      "type": "string",
+      "enum": [
+        "int",
+        "float",
+        "string",
+        "boolean",
+        "array<int>",
+        "array<float>",
+        "array<string>",
+        "array<boolean>",
+        "dynamic"
+      ]
+    },
     "AnyBlock": {
       "type": "object",
-      "oneOf": [
+      "allOf": [
         {
-          "$ref": "#/$defs/FunctionBlock"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/ExpressionBlock"
+            },
+            {
+              "$ref": "#/$defs/ValueBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableInitBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableSetBlock"
+            },
+            {
+              "$ref": "#/$defs/VariableBlock"
+            },
+            {
+              "$ref": "#/$defs/ConditionalBlock"
+            },
+            {
+              "$ref": "#/$defs/LoopBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicNotBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicJunctionBlock"
+            },
+            {
+              "$ref": "#/$defs/LogicComparisonBlock"
+            }
+          ]
         },
         {
-          "$ref": "#/$defs/ExpressionBlock"
-        },
-        {
-          "$ref": "#/$defs/ValueBlock"
-        },
-        {
-          "$ref": "#/$defs/VariableBlock"
-        },
-        {
-          "$ref": "#/$defs/ConditionalBlock"
+          "type": "object",
+          "properties": {
+            "draggable": {
+              "type": "boolean",
+              "description": "Set to false to disable dragging this block"
+            }
+          }
         }
       ]
     },
     "AnyBlockSingle": {
       "type": "object",
       "description": "A block without connected Blocks. Use \"type\" to determine the type of block",
-      "$ref": "#/$defs/AnyBlock",
-      "properties": {
-        "type": true,
-        "data": true,
-        "elsebranch": true
-      },
-      "additionalProperties": false
+      "$ref": "#/$defs/AnyBlock"
     },
     "AnyBlockConnected": {
       "type": "object",
@@ -58,7 +98,8 @@
                       }
                     },
                     "required": [
-                      "on"
+                      "on",
+                      "type"
                     ]
                   },
                   {
@@ -70,15 +111,7 @@
             }
           }
         }
-      ],
-      "properties": {
-        "type": true,
-        "data": true,
-        "connectedBlocks": true,
-        "on": true,
-        "elsebranch": true
-      },
-      "additionalProperties": false
+      ]
     },
     "FunctionBlock": {
       "type": "object",
@@ -100,8 +133,26 @@
           },
           "required": [
             "name"
-          ],
-          "additionalProperties": false
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "inner",
+                  "input",
+                  "output"
+                ]
+              }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
+          }
         }
       },
       "required": [
@@ -178,6 +229,24 @@
             "expression"
           ],
           "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "input"
+                ]
+              }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
+          }
         }
       },
       "required": [
@@ -199,18 +268,7 @@
           "type": "object",
           "properties": {
             "type": {
-              "description": "Value type (from ValueDataType)",
-              "type": "string",
-              "enum": [
-                "int",
-                "float",
-                "string",
-                "boolean",
-                "array<int>",
-                "array<float>",
-                "array<string>",
-                "array<boolean>"
-              ]
+              "$ref": "#/$defs/dataType"
             }
           },
           "allOf": [
@@ -353,12 +411,33 @@
                   }
                 }
               }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "dynamic"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              }
             }
           ],
           "required": [
             "type",
             "value"
           ]
+        },
+        "connectedBlocks": {
+          "description": "Value blocks can't have downstream connected blocks",
+          "type": "null",
+          "additionalProperties": false
         }
       },
       "required": [
@@ -366,9 +445,117 @@
         "data"
       ]
     },
+    "VariableInitBlock": {
+      "type": "object",
+      "description": "Variable Init Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an variable block",
+          "type": "string",
+          "const": "variable_init"
+        },
+        "data": {
+          "description": "Variable Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the variable",
+              "type": "string"
+            },
+            "type": {
+              "$ref": "#/$defs/dataType"
+            },
+            "mutable": {
+              "description": "If the variable is mutable, defaults to true",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "input"
+                ]
+              }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "VariableSetBlock": {
+      "type": "object",
+      "description": "Variable Set Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as an variable block",
+          "type": "string",
+          "const": "variable_set"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "after",
+                  "inner",
+                  "input"
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "on": {
+                      "const": "inner"
+                    }
+                  }
+                },
+                "then": {
+                  "description": "Variable to apply this value to",
+                  "properties": {
+                    "type": {
+                      "description": "Inner connected block must be a variable block",
+                      "const": "variable"
+                    }
+                  }
+                }
+              }
+            ],
+            "required": [
+              "on",
+              "type"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
     "VariableBlock": {
       "type": "object",
-      "description": "Variable Block",
+      "description": "Variable Block. You must include a Variable Init Block to initialize the variable",
       "properties": {
         "type": {
           "description": "Defines this block as an variable block",
@@ -382,26 +569,16 @@
             "name": {
               "description": "Name of the variable",
               "type": "string"
-            },
-            "type": {
-              "description": "Variable type (from ValueDataType)",
-              "type": "string",
-              "enum": [
-                "int",
-                "float",
-                "string",
-                "boolean",
-                "array<int>",
-                "array<float>",
-                "array<string>",
-                "array<boolean>"
-              ]
             }
           },
           "required": [
-            "name",
-            "type"
+            "name"
           ],
+          "additionalProperties": false
+        },
+        "connectedBlocks": {
+          "description": "Variable blocks can't have downstream connected blocks",
+          "type": "null",
           "additionalProperties": false
         }
       },
@@ -422,6 +599,173 @@
         "elsebranch": {
           "description": "Include else branch?",
           "type": "boolean"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditional",
+                  "ifTrue",
+                  "ifFalse",
+                  "after"
+                ]
+              }
+            },
+            "required": [
+              "on",
+              "type"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LoopBlock": {
+      "type": "object",
+      "description": "Loop Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a loop block",
+          "type": "string",
+          "const": "loop"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "inner",
+                  "input"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicNotBlock": {
+      "type": "object",
+      "description": "\"Not\" Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Not block",
+          "type": "string",
+          "const": "logic_not"
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditional"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicJunctionBlock": {
+      "type": "object",
+      "description": "Junction Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Junction block",
+          "type": "string",
+          "const": "logic_junction"
+        },
+        "data": {
+          "description": "Junction Logic Block Data",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "description": "Mode of junction",
+              "type": "string",
+              "enum": [
+                "and",
+                "or"
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "conditionalInput"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "LogicComparisonBlock": {
+      "type": "object",
+      "description": "Comparison Logic Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Logic Comparison block",
+          "type": "string",
+          "const": "logic_comparison"
+        },
+        "data": {
+          "description": "Comparison Logic Block Data",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "description": "Mode of comparison",
+              "type": "string",
+              "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">="
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "comparisonInput"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [

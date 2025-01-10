@@ -4,11 +4,12 @@ import { cors } from "hono/cors"
 import { env } from "./env"
 
 import "@kutelabs/shared"
+import "./analytics/Sentry"
 
-const app = new Hono()
+export const app = new Hono()
 
 const routes = new Glob(__dirname + "/routes/**/index.ts")
-registerRoutes(routes)
+await registerRoutes(routes)
 
 async function registerRoutes(routes: Glob) {
   for await (const path of routes.scan(".")) {
@@ -26,8 +27,7 @@ async function registerRoutes(routes: Glob) {
 function parseRouteName(path: string): string | null {
   const routeNameMatches = /src[\/\\]routes[\/\\](.*)[\/\\]index\.ts/.exec(path)
   const routeName = routeNameMatches !== null ? routeNameMatches[1] : null
-  if (routeName === null)
-    console.error(`Could not parse route name for file ${path}`)
+  if (routeName === null) console.error(`Could not parse route name for file ${path}`)
   return routeName
 }
 
@@ -37,9 +37,7 @@ async function importModule(path: String): Promise<Hono | null> {
       const exports = await import(`${path}`)
       const module = exports.default
       if (!(module instanceof Hono)) {
-        console.error(
-          `Failed to import module from ${path}; not a Hono instance`
-        )
+        console.error(`Failed to import module from ${path}; not a Hono instance`)
         resolve(null)
       }
       resolve(module)
