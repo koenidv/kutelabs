@@ -1,56 +1,30 @@
-import { html, svg, type TemplateResult } from "lit"
-import { createRef, ref, type Ref } from "lit/directives/ref.js"
-import type { AnyBlock, Block } from "../../blocks/Block"
+import { svg, type TemplateResult } from "lit"
+import type { AnyBlock } from "../../blocks/Block"
 import { BlockType } from "../../blocks/configuration/BlockType"
+import { ConnectorType } from "../../connections/ConnectorType"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
-import { isSafari } from "../../util/browserCheck"
 import { Coordinates } from "../../util/Coordinates"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
-
-/* import custom elements - this is required but will not throw if it's removed */
-import type { DataType } from "../../blocks/configuration/DataType"
-import { ConnectorType } from "../../connections/ConnectorType"
-import "../../drag/TapOrDragLayer"
-import { approximateCaretPosition } from "../../inputs/InputUtils"
-import "../../inputs/PrismKotlinEditor"
-import { normalizePrimaryPointerPosition } from "../../util/InputUtils"
-
-export enum BlockMarking {
-  Executing = "executing",
-  Error = "error",
-}
-
-export type SvgResult = TemplateResult<2> | TemplateResult<2>[]
-
-/** A set of options to be passed down the block tree to pass context to downstream blocks */
-export type InternalBlockRenderProps = {
-  tabindex: number
-  level: number
-  indexInLevel?: number
-}
+import type { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
+import type { InternalBlockRenderProps, SvgResult } from "./BlockRendererTypes"
+import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
 
 /**
  * The BlockRenderer is responsible for rendering blocks in the workspace.
  * It will also be called from other renderers to render blocks in different contexts.
  */
-export abstract class BaseBlockRenderer {
+export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
   private readonly blockRegistry: BlockRegistry
   private readonly layouter: BaseLayouter
 
-  protected readonly setWidget: typeof BaseWidgetRenderer.prototype.setWidget
-  protected readonly requestUpdate: () => void
+  protected abstract readonly inputRenderer: BaseBlockInputRenderer
 
-  /* Because Safari doesn't apply viewBox scaling to foreignObject elements, we need to apply a workaround*/
-  protected _workspaceScaleFactor = 1
-  /** additional classes to apply, will hold scale information for safari */
-  protected _safariTransform = ""
-  public setWorkspaceScaleFactor(value: number) {
-    this._workspaceScaleFactor = value
-    this._safariTransform = isSafari
-      ? `position: fixed; transform: scale(${1 / this._workspaceScaleFactor}); transform-origin: 0 0;`
-      : ""
+  /* relay scaling to  */
+  public override setWorkspaceScaleFactor(value: number) {
+    super.setWorkspaceScaleFactor(value)
+    this.inputRenderer.setWorkspaceScaleFactor(value)
   }
 
   constructor(
@@ -59,10 +33,9 @@ export abstract class BaseBlockRenderer {
     setWidget: typeof BaseWidgetRenderer.prototype.setWidget,
     requestUpdate: () => void
   ) {
+    super(setWidget, requestUpdate)
     this.blockRegistry = blockRegistry
     this.layouter = layouter
-    this.setWidget = setWidget
-    this.requestUpdate = requestUpdate
   }
 
   /**
@@ -278,18 +251,6 @@ export abstract class BaseBlockRenderer {
   //#region Utilities
 
   /**
-   * Wraps a block in a tap-or-drag-layer element to enable dragging the block on this element
-   * @param content Function to render the content of the layer
-   * @returns HTML template result
-   */
-  protected tapOrDragLayer(content: (ref: Ref<HTMLElement>) => TemplateResult<1>) {
-    const ref = createRef<HTMLElement>()
-    return html`
-      <tap-or-drag-layer .tappableComponent=${ref}> ${content(ref)} </tap-or-drag-layer>
-    `
-  }
-
-  /**
    * Wraps a block in a container that will be recognized as draggable by the DragHelper.
    * The container should also handle displaying block markings.
    * This element is not tab-able; tab focus should be handled by the block container for better focus highlighting.
@@ -329,244 +290,6 @@ export abstract class BaseBlockRenderer {
       )
   }
 
-  //#region Input Wrappers
-
-  /**
-   * Renders an input field for a block.
-   * This wrapper handles retrieving the language-specific value and changes to it.
-   * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
-   * @param size size of the input field (in svg units)
-   * @param props context properties to be passed down the block tree
-   * @returns SVG template result for the editable code input
-   */
-  protected editableCode(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    // TODO CLEANUP
-    // TODO value and set value should be defined in renderer
-
-    const block = registered.block as Block<BlockType.Expression>
-    const language = block.data.editable ? block.data.editable.lang : "kotlin"
-
-    const value = block.data.customExpression?.get(language) ?? ""
-    const onChange = (value: string) => {
-      block.updateData(cur => {
-        const expr = cur.customExpression?.set(language, value)
-        return { ...cur, customExpression: expr }
-      })
-    }
-
-    const openInWidget = (focusPosition?: number) => {
-      const widgetInputRef = createRef<HTMLTextAreaElement>()
-      this.setWidget(
-        {
-          type: "overlay",
-          content: html`
-            <div
-              style="border-radius: ${6 /
-              this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-              ${this.renderInputCode(
-                registered,
-                position,
-                size,
-                value,
-                onChange,
-                widgetInputRef,
-                props
-              )}
-            </div>
-          `,
-          size: size,
-        },
-        registered.globalPosition.add(position)
-      )
-      setTimeout(() => {
-        widgetInputRef.value?.focus()
-        widgetInputRef.value?.setSelectionRange(focusPosition ?? 0, focusPosition ?? value.length)
-      }, 0)
-    }
-
-    const onMouseOrTouch = (e: MouseEvent | TouchEvent) => {
-      // only accept inputs from TapOrDragLayer, which will be untrusted
-      if (e.isTrusted || registered.block.isInDrawer) return
-      const position = normalizePrimaryPointerPosition(e)
-      const focusPosition = approximateCaretPosition(inputRef.value!, position!.x, position!.y)
-
-      openInWidget(focusPosition)
-      e.preventDefault()
-    }
-
-    const onKeydown = (e: KeyboardEvent) => {
-      if (e.key == "Enter" && !registered.block.isInDrawer) {
-        e.preventDefault()
-        e.stopPropagation()
-        openInWidget()
-      }
-    }
-
-    const inputRef = createRef<HTMLTextAreaElement>()
-
-    return svg`
-        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
-        ${this.tapOrDragLayer(
-          reference => html`
-            <div
-              ${ref(reference)}
-              class="donotdrag"
-              style="width: 100%; height: 100%; ${this._safariTransform}"
-              tabindex=${++props.tabindex}
-              @mousedown=${onMouseOrTouch}
-              @touchstart=${onMouseOrTouch}
-              @keydown=${onKeydown}>
-              <!-- keydown not yet working -->
-              ${this.renderInputCode(registered, position, size, value, onChange, inputRef, props)}
-            </div>
-          `
-        )}
-        `
-  }
-
-  protected inputString(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    const block = registered.block as Block<BlockType.Value, DataType.String>
-
-    const value = block.data.value
-    const onChange = (value: string) => {
-      block.updateData(cur => ({ ...cur, value: value }))
-    }
-
-    const openInWidget = (focusPosition?: number) => {
-      const widgetInputRef = createRef<HTMLInputElement>()
-      this.setWidget(
-        {
-          type: "overlay",
-          content: html`
-            <div
-              style="border-radius: ${6 /
-              this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-              ${this.renderInputString(
-                registered,
-                position,
-                size,
-                value,
-                onChange,
-                () => {},
-                widgetInputRef,
-                props
-              )}
-            </div>
-          `,
-          size: size,
-        },
-        registered.globalPosition.add(position)
-      )
-      setTimeout(() => {
-        widgetInputRef.value?.focus()
-        widgetInputRef.value?.setSelectionRange(focusPosition ?? 0, focusPosition ?? value.length)
-      }, 0)
-    }
-
-    const onMouseOrTouch = (e: MouseEvent | TouchEvent) => {
-      // only accept inputs from TapOrDragLayer, which will be untrusted
-      if (e.isTrusted || registered.block.isInDrawer) return
-      const position = normalizePrimaryPointerPosition(e)
-      const focusPosition = approximateCaretPosition(inputRef.value!, position!.x, position!.y)
-
-      openInWidget(focusPosition)
-      e.preventDefault()
-    }
-
-    const onKeydown = (e: KeyboardEvent) => {
-      if (e.key == "Enter" && !registered.block.isInDrawer) {
-        e.preventDefault()
-        e.stopPropagation()
-        openInWidget()
-      }
-    }
-
-    const inputRef = createRef<HTMLInputElement>()
-
-    return svg`
-        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="">
-        ${this.tapOrDragLayer(
-          reference => html`
-            <div
-              ${ref(reference)}
-              class="donotdrag"
-              style="width: 100%; height: 100%; cursor: text; overflow: auto;"
-              tabindex=${++props.tabindex}
-              @mousedown=${onMouseOrTouch}
-              @touchstart=${onMouseOrTouch}
-              @keydown=${onKeydown}>
-              <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${this.renderInputString(
-                  registered,
-                  position,
-                  size,
-                  value,
-                  () => {},
-                  () => {},
-                  inputRef,
-                  props
-                )}
-              </div>
-            </div>
-          `
-        )}
-        </foreignObject>
-        `
-  }
-
-  protected inputBoolean(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    const block = registered.block as Block<BlockType.Value, DataType.Boolean>
-
-    const value = block.data.value
-    const onClick = (e: MouseEvent | TouchEvent | KeyboardEvent) => {
-      if (
-        typeof KeyboardEvent !== "undefined" &&
-        ((!(e instanceof KeyboardEvent) && e.isTrusted) ||
-          (e instanceof KeyboardEvent && e.key != "Enter" && e.key != " "))
-      ) {
-        return
-      }
-      block.updateData(cur => ({ ...cur, value: !(cur.value ?? false) }))
-      this.requestUpdate()
-    }
-
-    return svg`
-        <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="">
-        ${this.tapOrDragLayer(
-          reference => html`
-            <div
-              ${ref(reference)}
-              class="donotdrag"
-              style="width: 100%; height: 100%; cursor: pointer; overflow: auto;"
-              tabindex=${++props.tabindex}
-              @mousedown="${onClick}"
-              @touchstart="${onClick}"
-              @keydown="${onClick}">
-              <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${this.renderInputBoolean(registered, position, size, value, props)}
-              </div>
-            </div>
-          `
-        )}
-        </foreignObject>
-        `
-  }
 
   //#region Block Contents
 
@@ -684,86 +407,6 @@ export abstract class BaseBlockRenderer {
     props: InternalBlockRenderProps
   ): SvgResult
 
-  /**
-   * Renders an editable code input field
-   * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
-   * @param size size of the input field (in svg units)
-   * @param value current value of the input field
-   * @param onChange function to call when the value changes
-   * @param props context properties to be passed down the block tree
-   */
-  protected abstract renderInputCode(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: string,
-    onChange: (value: string) => void,
-    reference: Ref<HTMLTextAreaElement> | undefined,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1>
-
-  /**
-   * Renders an input field for a block
-   * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
-   * @param size size of the input field (in svg units)
-   * @param value current value of the input field
-   * @param onChange function to call when the value changes
-   * @param onKeydown function to call when a key is pressed
-   * @param reference reference to set on to the input field element
-   * @param props context properties to be passed down the block tree
-   */
-  protected abstract renderInputString(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: string,
-    onChange: (value: string) => void,
-    onKeydown: (e: KeyboardEvent) => void,
-    reference: Ref<HTMLInputElement> | undefined,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1>
-
-  /**
-   * Renders a boolean input for a block
-   * Defaults to a string input with true/false values
-   * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
-   * @param size size of the input field (in svg units)
-   * @param value current value of the input field
-   * @param onChange function to call when the value changes
-   * @param props context properties to be passed down the block tree
-   */
-  protected abstract renderInputBoolean(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: boolean,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1>
-
-  /**
-   * Renders a selector input
-   * The input may display a widget to facilitate selecting from a list of values
-   * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
-   * @param size size of the input field (in svg units)
-   * @param widgetPosition position of the widget, relative to the root (global svg position)
-   * @param values list of ids and values to select from
-   * @param selected id of the currently selected value
-   * @param onSelect function to call with the selected id when a value is selected
-   */
-  protected abstract renderInputSelector(
-    registered: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    widgetPosition: Coordinates,
-    values: { id: string; display: string }[],
-    selected: string,
-    onSelect: (id: string) => void,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2>
 }
 
 export type BlockRendererConstructorType = {

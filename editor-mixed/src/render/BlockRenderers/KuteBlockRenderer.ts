@@ -1,25 +1,36 @@
-import { html, svg, type TemplateResult } from "lit"
+import { svg } from "lit"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
-import {
-  BaseBlockRenderer,
-  BlockMarking,
-  type InternalBlockRenderProps,
-  type SvgResult,
-} from "./BaseBlockRenderer"
 
-import { ref, type Ref } from "lit/directives/ref.js"
+import type { AnyBlock } from "../../blocks/Block"
+import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
 import { DataType } from "../../blocks/configuration/DataType"
+import { ConnectorRole } from "../../connections/ConnectorRole"
+import type { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 import { RectBuilder } from "../../svg/RectBuilder"
+import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import { HeightProp, type SizeProps } from "../SizeProps"
-import type { AnyBlock } from "../../blocks/Block"
-import { ConnectorRole } from "../../connections/ConnectorRole"
-import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
+import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
+import { BaseBlockRenderer } from "./BaseBlockRenderer"
+import { BlockMarking, type InternalBlockRenderProps, type SvgResult } from "./BlockRendererTypes"
+import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
+  protected readonly inputRenderer: KuteBlockInputRenderer
+
+  constructor(
+    blockRegistry: BlockRegistry,
+    layouter: BaseLayouter,
+    setWidget: typeof BaseWidgetRenderer.prototype.setWidget,
+    requestUpdate: () => void
+  ) {
+    super(blockRegistry, layouter, setWidget, requestUpdate)
+    this.inputRenderer = new KuteBlockInputRenderer(setWidget, requestUpdate)
+  }
+
   protected renderContainer(
     { block, size, globalPosition, marking }: AnyRegisteredBlock,
     _props: InternalBlockRenderProps
@@ -185,14 +196,16 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     const { block, size, globalPosition: position } = registered
     return svg`
           <text x="5" y="15">create var</text>
-          ${this.inputString(
+          ${this.inputRenderer.inputString(
             registered,
             new Coordinates(5, 20),
             new Coordinates(size.fullWidth - 10, 20),
+            block.data.name,
+            (name: string) => block.updateData(cur => ({ ...cur, name })),
             props
           )}
           <text x="5" y="55">as</text>
-          ${this.renderInputSelector(
+          ${this.inputRenderer.renderInputSelector(
             registered,
             new Coordinates(5, 60),
             new Coordinates(size.fullWidth - 10, 28),
@@ -211,17 +224,21 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { block, size } = registered
     if (block.data.type == DataType.Boolean) {
-      return this.inputBoolean(
+      return this.inputRenderer.inputBoolean(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
+        Boolean(block.data.value),
+        (value: boolean) => block.updateData(cur => ({ ...cur, value })),
         props
       )
     }
-    return this.inputString(
+    return this.inputRenderer.inputString(
       registered,
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
+      block.data.value.toString(),
+      (value: string) => block.updateData(cur => ({ ...cur, value })),
       props
     )
   }
@@ -230,14 +247,26 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.Expression, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
-    if (registered.block.data.editable)
-      return this.editableCode(
+    const { block } = registered
+    if (registered.block.data.editable) {
+      const language = block.data.editable ? block.data.editable.lang : "kotlin"
+      const value = block.data.customExpression?.get(language) ?? ""
+      const onChange = (value: string) => {
+        block.updateData(cur => {
+          const expr = cur.customExpression?.set(language, value)
+          return { ...cur, customExpression: expr }
+        })
+      }
+
+      return this.inputRenderer.editableCode(
         registered,
         new Coordinates(6, 6),
         new Coordinates(registered.size.fullWidth - 12, registered.size.fullHeight - 12),
+        value,
+        onChange,
         props
       )
-    else
+    } else
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
   }
 
@@ -253,7 +282,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
-      ${this.renderInputSelector(
+      ${this.inputRenderer.renderInputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
@@ -272,7 +301,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size, block, globalPosition } = registered
     return svg`
-      ${this.renderInputSelector(
+      ${this.inputRenderer.renderInputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
@@ -282,111 +311,6 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator })),
         props
       )}
-    `
-  }
-
-  protected renderInputCode(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: string,
-    onChange: (value: string) => void,
-    reference: Ref<HTMLTextAreaElement> | undefined,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1> {
-    return html`
-      <prism-kotlin-editor
-        .value=${value}
-        .reference=${reference}
-        .inDrawer=${block.isInDrawer}
-        @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
-      </prism-kotlin-editor>
-    `
-  }
-
-  protected renderInputString(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: string,
-    onChange: (value: string) => void,
-    onKeydown: (e: KeyboardEvent) => void,
-    reference: Ref<HTMLInputElement> | undefined,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1> {
-    return html`
-      <input
-        ${ref(reference)}
-        value=${value}
-        type="text"
-        tabindex="-1"
-        style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: 14px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
-        @input=${(e: InputEvent) => onChange((e.target as HTMLInputElement).value)}
-        @keydown=${onKeydown}
-        spellcheck="false" />
-    `
-  }
-
-  protected override renderInputBoolean(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    value: boolean,
-    props: InternalBlockRenderProps
-  ): TemplateResult<1> {
-    return html`
-    <div
-      style="width: 100%; height: 100%; display: flex; padding: 0 8px; justify-content: start; align-items: center; background-color: white; border-radius: 6px;"
-      role="button"
-      tabindex="-1">
-      <p style="font-family: monospace; font-size: 14px; font-weight: normal;">
-        ${value ? "✅ Yes" : "❌ No"}
-      </p>
-    </div>
-    `
-  }
-
-  protected renderInputSelector(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    widgetPosition: Coordinates,
-    values: { id: string; display: string }[],
-    selected: string,
-    onSelect: (id: string) => void,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    const showDropdown = (e: Event) => {
-      e.preventDefault()
-      this.setWidget(
-        {
-          type: "selector",
-          options: values,
-          selected,
-          onSelected: (it: string) => {
-            onSelect(it)
-            return true
-          },
-        },
-        new Coordinates(widgetPosition.x, widgetPosition.y)
-      )
-    }
-
-    return svg`
-    <g
-      transform="${`translate(${position.x}, ${position.y})`}"
-      role="button"
-      tabindex=${++props.tabindex}
-      style="cursor: pointer;"
-      @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-      @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-      @keydown="${(e: KeyboardEvent) => {
-        if (e.key === "Enter" || e.key === " ") showDropdown(e)
-      }}"
-      >
-      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
-      <text x="5" y="${size.y / 2 + 6}">${selected}</text>
-      </g>
     `
   }
 }

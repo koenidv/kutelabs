@@ -4,11 +4,12 @@ import type { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
 import { HeightProp } from "../SizeProps"
-import { BaseBlockRenderer, BlockMarking, type SvgResult } from "./BaseBlockRenderer"
+import { BaseBlockRenderer } from "./BaseBlockRenderer"
 
 import { ref } from "lit/directives/ref.js"
 import { DataType } from "../../blocks/configuration/DataType"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
+import { BlockMarking, type SvgResult } from "./BlockRendererTypes"
 
 export class DebugBlockRenderer extends BaseBlockRenderer {
   protected renderContainer({
