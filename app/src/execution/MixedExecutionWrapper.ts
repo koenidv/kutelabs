@@ -17,6 +17,7 @@ import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/R
 import { findBlockByLine } from "@kutelabs/shared/src"
 import { atom } from "nanostores"
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { validateJs } from "./validateJs"
 
 const executionDelay = {
   fast: 250,
@@ -112,6 +113,24 @@ export class ExecutionWrapper {
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
+
+    const parsed = validateJs(compiled.code)
+    if (!parsed.valid) {
+      if (parsed.line) {
+        const causingBlockId = findBlockByLine(compiled.code.split("\n"), parsed.line)
+        if (causingBlockId) {
+          this.onBlockError(
+            causingBlockId,
+            "Error during code processing" + parsed.message ? ": " + parsed.message : "",
+            "Please check the highlighted block."
+          )
+          return
+        }
+      }
+      displayMessage("Please make sure your blocks are correct", "error", { single: true })
+      return
+    }
+
     this.testRunner
       .execute(compiled.code, {
         argNames: compiled.argNames,

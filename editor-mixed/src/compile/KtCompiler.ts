@@ -59,7 +59,7 @@ export class KtCompiler extends BaseCompiler {
       // matches placeholders like "{{0}}"
       const index = Number(match[2])
       return next(block.inputs[index])
-    })
+    }) + `\n${next(block.after)}`
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
