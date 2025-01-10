@@ -94,7 +94,7 @@ function parseBlockRecursive(
   const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type> | undefined)
 
   // add a false branch connector if elsebranch is set to true
-  const defaultConnectors = DefaultConnectors.byBlockType(type)
+  const defaultConnectors = DefaultConnectors.byBlockType(type, (blockData as BlockDataExpression | null)?.expression)
   if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
     defaultConnectors.push(DefaultConnectors.conditionalFalse())
   }

@@ -1,11 +1,11 @@
 import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 import type { Block } from "../blocks/Block"
+import { LogicJunctionMode } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
-import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
+import { DefinedExpressionData } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
-import { LogicJunctionMode } from "../blocks/configuration/BlockData"
 
 export class KtCompiler extends BaseCompiler {
   declareImports(callbacks: SandboxCallbacks): string {
@@ -52,12 +52,14 @@ export class KtCompiler extends BaseCompiler {
   }
 
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
-    switch (block.data.expression) {
-      case DefinedExpression.Println:
-        return `println(${this.chainToStringTemplate(block, next)});\n${next(block.after)}`
-      default:
-        throw new Error(`Expression ${block.data.expression} is not defined`)
-    }
+    const definedMethod = DefinedExpressionData[block.data.expression].kt
+    if (!definedMethod) throw new Error(`Expression ${block.data.expression} is not defined`)
+      
+    return definedMethod.replace(/{{\d}}/g, (match: string) => {
+      // matches placeholders like "{{0}}"
+      const index = Number(match[2])
+      return next(block.inputs[index])
+    })
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
@@ -135,11 +137,15 @@ export class KtCompiler extends BaseCompiler {
 
   compileLogicJunction(block: Block<BlockType.LogicJunction>, next: typeof this.compile): string {
     const operator = block.data.mode == LogicJunctionMode.And ? "&&" : "||"
-    const inputs = block.inputs.map(it => it == null ? "false" : next(it)).join(` ${operator} `)
+    const inputs = block.inputs.map(it => (it == null ? "false" : next(it))).join(` ${operator} `)
     return `(${inputs})`
   }
 
-  compileLogicComparison(block: Block<BlockType.LogicComparison>, next: typeof this.compile, props?: InternalCompilationProps): string {
+  compileLogicComparison(
+    block: Block<BlockType.LogicComparison>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string {
     const operator = block.data.mode
     const left = block.inputs[0] ? next(block.inputs[0]) : "false"
     const right = block.inputs[1] ? next(block.inputs[1]) : "false"

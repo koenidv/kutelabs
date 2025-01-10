@@ -5,6 +5,10 @@ import {
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
+import {
+  DefinedExpressionData,
+  type DefinedExpression,
+} from "../blocks/configuration/DefinedExpression"
 import { Connector } from "./Connector"
 import { ConnectorRole } from "./ConnectorRole"
 import { ConnectorType } from "./ConnectorType"
@@ -13,14 +17,16 @@ export class DefaultConnectors {
   private static beforeAfter() {
     return [this.before(), this.after()]
   }
-  static byBlockType(type: BlockType): Connector[] {
+  static byBlockType(type: BlockType, expression?: DefinedExpression): Connector[] {
     switch (type) {
       case BlockType.Function:
         return [DefaultConnectors.inner(), DefaultConnectors.output()]
       case BlockType.Expression:
+        if (!expression) return this.beforeAfter()
+        const expressionInputs = DefinedExpressionData[expression].inputs
         return [
           ...this.beforeAfter(),
-          DefaultConnectors.inputExtension(), // todo variable input count
+          ...expressionInputs.map(() => DefaultConnectors.inputExtension()), // todo type checking
         ]
       case BlockType.VarInit:
         return [...this.beforeAfter(), DefaultConnectors.variableInitInput()]
