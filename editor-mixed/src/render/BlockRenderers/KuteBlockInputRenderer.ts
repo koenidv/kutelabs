@@ -18,6 +18,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
       <prism-kotlin-editor
         .value=${value}
         .reference=${reference}
+        .disableFocus=${block.isInDrawer}
         .inDrawer=${block.isInDrawer}
         @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
       </prism-kotlin-editor>

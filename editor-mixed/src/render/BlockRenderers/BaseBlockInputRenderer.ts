@@ -99,7 +99,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
               ${ref(reference)}
               class="donotdrag"
               style="width: 100%; height: 100%; cursor: text; overflow: auto;"
-              tabindex=${++props.tabindex}
+              tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown=${onOpenEvent}
               @touchstart=${onOpenEvent}
               @keydown=${onOpenEvent}>
@@ -235,7 +235,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
               ${ref(reference)}
               class="donotdrag"
               style="width: 100%; height: 100%; cursor: pointer; overflow: auto;"
-              tabindex=${++props.tabindex}
+              tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown="${onClick}"
               @touchstart="${onClick}"
               @keydown="${onClick}">

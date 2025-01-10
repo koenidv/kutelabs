@@ -21,6 +21,7 @@ export class PrismKotlinEditor extends LitElement {
   declare value: string
   declare reference: Ref<HTMLTextAreaElement>
   declare highlighted: string
+  declare disableFocus: boolean
 
   static properties = {
     value: { type: String },
@@ -103,6 +104,7 @@ export class PrismKotlinEditor extends LitElement {
         <pre class="highlighted language-kotlin"><code>${unsafeHTML(this.highlighted)}</code></pre>
         <textarea
           ${ref(this.reference)}
+          tabindex=${this.disableFocus ? -1 : 0}
           class="input"
           .value=${this.value}
           @input=${this.handleInput}
