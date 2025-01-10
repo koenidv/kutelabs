@@ -193,7 +193,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.VarInit, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
-    const { block, size, globalPosition: position } = registered
+    const { block, size } = registered
     return svg`
           <text x="5" y="15">create var</text>
           ${this.inputRenderer.inputString(
@@ -205,11 +205,11 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             props
           )}
           <text x="5" y="55">as</text>
-          ${this.inputRenderer.renderInputSelector(
+          ${this.inputRenderer.inputSelector(
             registered,
             new Coordinates(5, 60),
             new Coordinates(size.fullWidth - 10, 28),
-            position.plus(0, size.fullHeight),
+            new Coordinates(200, 200),
             Object.entries(DataType).map(([display, id]) => ({ id, display })),
             block.data.type,
             (id: string) => block.updateData(cur => ({ ...cur, type: id })),
@@ -280,13 +280,13 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.LogicJunction, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
-    const { size, block, globalPosition } = registered
+    const { size, block } = registered
     return svg`
-      ${this.inputRenderer.renderInputSelector(
+      ${this.inputRenderer.inputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
-        globalPosition.plus(0, size.fullHeight),
+        new Coordinates(200, 200),
         Object.entries(LogicJunctionMode).map(([display, id]) => ({ id, display })),
         block.data.mode,
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode })),
@@ -299,13 +299,13 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     registered: RegisteredBlock<BlockType.LogicComparison, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
-    const { size, block, globalPosition } = registered
+    const { size, block } = registered
     return svg`
-      ${this.inputRenderer.renderInputSelector(
+      ${this.inputRenderer.inputSelector(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 15, 28),
-        globalPosition.plus(0, size.fullHeight),
+        new Coordinates(200, 200),
         Object.entries(LogicComparisonOperator).map(([display, id]) => ({ id, display })),
         block.data.mode,
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator })),

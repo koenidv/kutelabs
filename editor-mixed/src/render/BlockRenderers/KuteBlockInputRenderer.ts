@@ -1,4 +1,4 @@
-import { type TemplateResult, html, svg } from "lit"
+import { type TemplateResult, html } from "lit"
 import { type Ref, ref } from "lit/directives/ref.js"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { Coordinates } from "../../util/Coordinates"
@@ -25,7 +25,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected renderInputString(
-    { block }: AnyRegisteredBlock,
+    _registered: AnyRegisteredBlock,
     _size: Coordinates,
     value: string,
     onChange: (value: string) => void,
@@ -47,7 +47,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected override renderInputBoolean(
-    { block }: AnyRegisteredBlock,
+    _registered: AnyRegisteredBlock,
     _size: Coordinates,
     value: boolean,
     _props: InternalBlockRenderProps
@@ -64,47 +64,45 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     `
   }
 
-  public override renderInputSelector(
-    { block }: AnyRegisteredBlock,
-    position: Coordinates,
-    size: Coordinates,
-    widgetPosition: Coordinates,
-    values: { id: string; display: string }[],
+  protected override renderInputSelector(
+    _registered: AnyRegisteredBlock,
+    _size: Coordinates,
+    _values: { id: string; display: string }[],
     selected: string,
-    onSelect: (id: string) => void,
-    props: InternalBlockRenderProps
-  ): TemplateResult<2> {
-    const showDropdown = (e: Event) => {
-      e.preventDefault()
-      this.setWidget(
-        {
-          type: "selector",
-          options: values,
-          selected,
-          onSelected: (it: string) => {
-            onSelect(it)
-            return true
-          },
-        },
-        new Coordinates(widgetPosition.x, widgetPosition.y)
-      )
-    }
-
-    return svg`
-    <g
-      transform="${`translate(${position.x}, ${position.y})`}"
-      role="button"
-      tabindex=${++props.tabindex}
-      style="cursor: pointer;"
-      @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-      @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
-      @keydown="${(e: KeyboardEvent) => {
-        if (e.key === "Enter" || e.key === " ") showDropdown(e)
-      }}"
-      >
-      <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
-      <text x="5" y="${size.y / 2 + 6}">${selected}</text>
-      </g>
+    _props: InternalBlockRenderProps
+  ): TemplateResult<1> {
+    return html`
+      <div
+        style="width: 100%; height: 100%; display: flex; justify-content: start; align-items: center; background-color: white; border-radius: 6px; overflow: hidden;">
+        <div style="padding: 0 2px 0 4px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-width="2"
+              d="m5 10l7 7l7-7" />
+          </svg>
+        </div>
+        <p style="font-family: monospace; font-size: 14px; font-weight: normal;">${selected}</p>
+      </div>
     `
+
+    // return svg`
+    // <g
+    //   transform="${`translate(${position.x}, ${position.y})`}"
+    //   role="button"
+    //   tabindex=${++props.tabindex}
+    //   style="cursor: pointer;"
+    //   @mousedown="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
+    //   @touchstart="${(e: Event) => !block.isInDrawer && showDropdown(e)}"
+    //   @keydown="${(e: KeyboardEvent) => {
+    //     if (e.key === "Enter" || e.key === " ") showDropdown(e)
+    //   }}"
+    //   >
+    //   <rect width=${size.x} height=${size.y} fill="white" stroke="black" stroke-width="1" rx="6"/>
+    //   <text x="5" y="${size.y / 2 + 6}">${selected}</text>
+    //   </g>
+    // `
   }
 }

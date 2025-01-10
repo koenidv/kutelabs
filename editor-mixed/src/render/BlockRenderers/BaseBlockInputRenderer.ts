@@ -1,16 +1,14 @@
 import { type TemplateResult, html, svg } from "lit"
 import { type Ref, createRef, ref } from "lit/directives/ref.js"
-import type { BlockType } from "../../blocks/configuration/BlockType"
-import type { DataType } from "../../blocks/configuration/DataType"
 import { approximateCaretPosition } from "../../inputs/InputUtils"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import type { Coordinates } from "../../util/Coordinates"
 import { normalizePrimaryPointerPosition } from "../../util/InputUtils"
-import type { Block } from "../../blocks/Block"
 
 /* import custom elements - this is required but will not throw if it's removed */
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
+import type { Widget } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
 
@@ -45,9 +43,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   protected inputInWidget<RefType extends HTMLElement>(
     registered: AnyRegisteredBlock,
     elementPosition: Coordinates,
+    widgetPosition: Coordinates | undefined,
     elementSize: Coordinates,
     widgetSize: Coordinates = elementSize,
     inputElement: (ref: Ref<RefType>) => TemplateResult<1>,
+    widget: Widget | undefined,
     onWidgetOpened: (
       originRef: RefType,
       targetRef: RefType,
@@ -58,7 +58,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const openInWidget = (evt: MouseEvent | TouchEvent | KeyboardEvent) => {
       const widgetInputRef = createRef<RefType>()
       this.setWidget(
-        {
+        widget ?? {
           type: "overlay",
           content: html`
             <div
@@ -69,7 +69,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
           `,
           size: widgetSize,
         },
-        registered.globalPosition.add(elementPosition)
+        widgetPosition ?? registered.globalPosition.add(elementPosition)
       )
       const originInput = inputRef.value
       setTimeout(
@@ -156,9 +156,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     return this.inputInWidget<HTMLTextAreaElement>(
       registered,
       position,
+      undefined,
       size,
       undefined,
       ref => this.renderInputCode(registered, size, value, onChange, ref, props),
+      undefined,
       this.setSelectionOnWidgetOpened.bind(this),
       props
     )
@@ -185,9 +187,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     return this.inputInWidget<HTMLInputElement>(
       registered,
       position,
+      undefined,
       size,
       undefined,
       ref => this.renderInputString(registered, size, value, onChange, () => {}, ref, props),
+      undefined,
       this.setSelectionOnWidgetOpened.bind(this),
       props
     )
@@ -243,6 +247,49 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         )}
         </foreignObject>
         `
+  }
+
+  /**
+   * Renders a selector input, options will be displayed in a widget.
+   * @param registered registered block this input is for
+   * @param position position of the input field, relative to the content group (in svg units)
+   * @param size size of the input field (in svg units)
+   * @param widgetSize size of the widget that will be opened
+   * @param values list of ids and values to select from
+   * @param selected id of the currently selected value
+   * @param onSelected function to call when a value is selected
+   * @param props context properties to be passed down the block tree
+   * @returns
+   */
+  public inputSelector(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    widgetSize: Coordinates,
+    values: { id: string; display: string }[],
+    selected: string,
+    onSelected: (id: string) => void,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
+    return this.inputInWidget(
+      registered,
+      position,
+      registered.globalPosition.add(position).plus(0, size.y),
+      size,
+      widgetSize,
+      () => this.renderInputSelector(registered, size, values, selected, props),
+      {
+        type: "selector",
+        options: values,
+        selected,
+        onSelected: (it: string) => {
+          onSelected(it)
+          return true
+        },
+      },
+      undefined,
+      props
+    )
   }
 
   //#region Abstract Render Methods
@@ -304,21 +351,16 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * Renders a selector input // todo make protected and expose inputSelector Wrapper
    * The input may display a widget to facilitate selecting from a list of values
    * @param registered registered block this input is for
-   * @param position position of the input field, relative to the content group (in svg units)
    * @param size size of the input field (in svg units)
-   * @param widgetPosition position of the widget, relative to the root (global svg position)
    * @param values list of ids and values to select from
    * @param selected id of the currently selected value
-   * @param onSelect function to call with the selected id when a value is selected
+   * @param props context properties to be passed down the block tree
    */
-  public abstract renderInputSelector(
+  protected abstract renderInputSelector(
     registered: AnyRegisteredBlock,
-    position: Coordinates,
     size: Coordinates,
-    widgetPosition: Coordinates,
     values: { id: string; display: string }[],
     selected: string,
-    onSelect: (id: string) => void,
     props: InternalBlockRenderProps
-  ): TemplateResult<2>
+  ): TemplateResult<1>
 }
