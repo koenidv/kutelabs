@@ -6,7 +6,11 @@ import { Coordinates } from "../../util/Coordinates"
 
 import type { AnyBlock } from "../../blocks/Block"
 import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
-import { DataType } from "../../blocks/configuration/DataType"
+import {
+  DataType,
+  isArrayType,
+  simpleTypeFromArrayType
+} from "../../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../../connections/ConnectorRole"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
@@ -251,7 +255,9 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates((size.fullWidth - 52) / 2 + 44, 6),
             new Coordinates((size.fullWidth - 52) / 2, size.fullHeight - 12),
             new Coordinates(200, 200),
-            Object.entries(DataType).filter(([_, it]) => it != DataType.Dynamic).map(([display, id]) => ({ id, display })),
+            Object.entries(DataType)
+              .filter(([_, it]) => it != DataType.Dynamic)
+              .map(([display, id]) => ({ id, display })),
             block.data.type,
             (id: string) => block.updateData(cur => ({ ...cur, type: id })),
             props
@@ -295,6 +301,18 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         props
       )
     }
+    if (isArrayType(block.data.type)) {
+      return this.inputRenderer.inputArray(
+        registered,
+        new Coordinates(5, 5),
+        new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
+        simpleTypeFromArrayType(block.data.type),
+        block.data.value,
+        (value: any[]) => block.updateData(cur => ({ ...cur, value })),
+        props
+      )
+    }
+
     return this.inputRenderer.inputString(
       registered,
       new Coordinates(5, 5),
@@ -329,12 +347,14 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         props
       )
     } else {
-    const definedExpressionData = DefinedExpressionData[block.data.expression]
+      const definedExpressionData = DefinedExpressionData[block.data.expression]
       return svg`<text x="5" y="20" fill="black" style="user-select: none;">${definedExpressionData.display}</text>`
     }
   }
 
-  protected override renderContentLogicNot({size}: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
+  protected override renderContentLogicNot({
+    size,
+  }: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
     return svg`
       <text x=${size.fullWidth / 2 - 2} y=${size.fullHeight / 2} fill="white" text-anchor="middle" alignment-baseline="middle">not</text>
     `

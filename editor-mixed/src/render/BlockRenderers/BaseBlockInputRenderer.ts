@@ -2,16 +2,20 @@ import { type TemplateResult, html, svg } from "lit"
 import { type Ref, createRef, ref } from "lit/directives/ref.js"
 import { approximateCaretPosition } from "../../inputs/InputUtils"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
-import type { Coordinates } from "../../util/Coordinates"
+import { Coordinates } from "../../util/Coordinates"
 import { normalizePrimaryPointerPosition } from "../../util/InputUtils"
 
 /* import custom elements - this is required but will not throw if it's removed */
+import {
+  DataType,
+  type SimpleDataType,
+  type TsTypeByDataType,
+} from "../../blocks/configuration/DataType"
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
 import type { Widget } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
-import { isSafari } from "../../util/browserCheck"
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   //#region Input Wrappers
@@ -99,7 +103,10 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block.isInDrawer ? this._safariFixOnly : this._safariTransform}"
+              style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block
+                .isInDrawer
+                ? this._safariFixOnly
+                : this._safariTransform}"
               tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown=${onOpenEvent}
               @touchstart=${onOpenEvent}
@@ -159,7 +166,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       size,
       undefined,
-      ref => this.renderInputCode(registered, size, value, onChange, ref, props),
+      ref => this.renderInputCode(registered, value, onChange, ref),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
       props
@@ -192,14 +199,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       (ref, inWidget) =>
         this.renderInputString(
-          registered,
-          size,
           value,
           onChange,
           () => {},
           ref,
-          inWidget ? 1 / this._workspaceScaleFactor * 0.82 : 1,
-          props
+          inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
         ),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
@@ -244,19 +248,78 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: pointer; overflow: auto; ${registered.block.isInDrawer ? this._safariFixOnly : this._safariTransform}"
+              style="width: 100%; height: 100%; cursor: pointer; overflow: auto; ${registered.block
+                .isInDrawer
+                ? this._safariFixOnly
+                : this._safariTransform}"
               tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}
               @mousedown="${onClick}"
               @touchstart="${onClick}"
               @keydown="${onClick}">
               <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${this.renderInputBoolean(registered, size, value, props)}
+                ${this.renderInputBoolean(value)}
               </div>
             </div>
           `
         )}
         </foreignObject>
         `
+  }
+
+  public inputArray<T extends SimpleDataType>(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    type: T,
+    values: TsTypeByDataType<T>[],
+    onChange: (value: TsTypeByDataType<T>[]) => void,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
+    const inputElement = this.inputElementByDataType(type)
+
+    return this.inputInWidget<HTMLInputElement>(
+      registered,
+      position,
+      registered.globalPosition.add(position).plus(0, size.y),
+      size,
+      new Coordinates(200, 200),
+      (ref, inWidget) =>
+        this.renderInputString(
+          values.join(", "),
+          () => {},
+          () => {},
+          ref,
+          inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
+        ),
+      {
+        type: "edit-list",
+        values: values,
+        onEdited: onChange,
+        renderItem: (value, _index, onItemChange) => {
+          return inputElement(value, onItemChange)
+        },
+      },
+      undefined,
+      props
+    )
+  }
+
+  protected inputElementByDataType<T extends SimpleDataType>(
+    type: SimpleDataType
+  ): (
+    value: TsTypeByDataType<T>,
+    onChange: (value: TsTypeByDataType<T>) => void
+  ) => TemplateResult<1> {
+    switch (type) {
+      case DataType.Boolean:
+        return this.renderInputBoolean as any
+      case DataType.String:
+        return this.renderInputString as any
+      case DataType.Int:
+        return this.renderInputString as any
+      case DataType.Float:
+        return this.renderInputString as any
+    }
   }
 
   /**
@@ -287,7 +350,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       registered.globalPosition.add(position).plus(0, size.y),
       size,
       widgetSize,
-      () => this.renderInputSelector(registered, size, values, selected, props),
+      () => this.renderInputSelector(values, selected),
       {
         type: "selector",
         options: values,
@@ -314,11 +377,9 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    */
   protected abstract renderInputCode(
     registered: AnyRegisteredBlock,
-    size: Coordinates,
     value: string,
     onChange: (value: string) => void,
-    reference: Ref<HTMLTextAreaElement> | undefined,
-    props: InternalBlockRenderProps
+    reference: Ref<HTMLTextAreaElement> | undefined
   ): TemplateResult<1>
 
   /**
@@ -332,14 +393,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param props context properties to be passed down the block tree
    */
   protected abstract renderInputString(
-    registered: AnyRegisteredBlock,
-    size: Coordinates,
     value: string,
     onChange: (value: string) => void,
-    onKeydown: (e: KeyboardEvent) => void,
-    reference: Ref<HTMLInputElement> | undefined,
-    textScaling: number,
-    props: InternalBlockRenderProps
+    onKeydown?: (e: KeyboardEvent) => void,
+    reference?: Ref<HTMLInputElement> | undefined,
+    textScaling?: number
   ): TemplateResult<1>
 
   /**
@@ -352,10 +410,8 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param props context properties to be passed down the block tree
    */
   protected abstract renderInputBoolean(
-    registered: AnyRegisteredBlock,
-    size: Coordinates,
     value: boolean,
-    props: InternalBlockRenderProps
+    onChange?: (value: boolean) => void
   ): TemplateResult<1>
 
   /**
@@ -368,10 +424,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param props context properties to be passed down the block tree
    */
   protected abstract renderInputSelector(
-    registered: AnyRegisteredBlock,
-    size: Coordinates,
     values: { id: string; display: string }[],
-    selected: string,
-    props: InternalBlockRenderProps
+    selected: string
   ): TemplateResult<1>
 }

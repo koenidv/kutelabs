@@ -1,11 +1,13 @@
 import { html, svg, type TemplateResult } from "lit"
 import {
   BaseWidgetRenderer,
+  type EditListWidget,
   type OverlayWidget,
   type SelectorWidget,
   type Widget,
 } from "./BaseWidgetRenderer"
 import { RectBuilder } from "../../svg/RectBuilder"
+import type { SimpleDataType, TsTypeByDataType } from "../../blocks/configuration/DataType"
 
 export class KuteWidgetRenderer extends BaseWidgetRenderer {
   containerPadding = { top: 2.75, right: 0, bottom: 0, left: 0 }
@@ -48,6 +50,24 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
         }
       </style>
     `
+  }
+
+  protected renderEditListWidget<T>({
+    values,
+    onEdited,
+    renderItem,
+  }: EditListWidget<T>): TemplateResult<1>[] {
+    const onItemChange = (index: number, value: T) => {
+      const newValues = [...values]
+      newValues[index] = value
+      onEdited(newValues)
+    }
+
+    return values.map((value, index) =>
+      renderItem(value, index, newValue => {
+        onItemChange(index, newValue)
+      })
+    )
   }
 
   protected renderOverlayWidegt(widget: OverlayWidget): TemplateResult<1> {

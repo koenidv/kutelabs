@@ -10,12 +10,19 @@ export type SelectorWidget = {
   onSelected: (id: string) => boolean
 }
 
+export type EditListWidget<T> = {
+  type: "edit-list"
+  values: T[]
+  renderItem: (value: T, index: number, onChange: (value: T) => void) => TemplateResult<1>
+  onEdited: (values: T[]) => void
+}
+
 export type OverlayWidget = {
   type: "overlay"
   content: TemplateResult<1>
 }
 
-export type Widget = SelectorWidget | OverlayWidget
+export type Widget = SelectorWidget | EditListWidget<any> | OverlayWidget
 
 export abstract class BaseWidgetRenderer {
   private readonly requestUpdate: () => void
@@ -70,7 +77,7 @@ export abstract class BaseWidgetRenderer {
     return nothing
   }
 
-  private withBackground(content: TemplateResult<1>): TemplateResult<1> {
+  private withBackground(content: TemplateResult<1> | TemplateResult<1>[]): TemplateResult<1> {
     return html`
       <svg
         style="position: absolute; top: 0; left: 0;"
@@ -92,31 +99,32 @@ export abstract class BaseWidgetRenderer {
     `
   }
 
-  private withoutBackground(content: TemplateResult<1>): TemplateResult<1> {
+  private withoutBackground(content: TemplateResult<1> | TemplateResult<1>[]): TemplateResult<1> {
     const ctm = this.workspaceRef.value!.getScreenCTM()!
     return html`
       <div
         style="position: relative; box-sizing: border-box; width: ${this.size.x *
         ctm.a}px; height: ${this.size.y * ctm.a}px;">
-        <div style="width: 100%; height: 100%;">
-          ${content}
-        </div>
+        <div style="width: 100%; height: 100%;">${content}</div>
       </div>
     `
   }
 
-  private renderWidget(widget: Widget): TemplateResult<1> {
+  private renderWidget(widget: Widget): TemplateResult<1> | TemplateResult<1>[] {
     switch (widget.type) {
       case "selector":
         return this.withBackground(this.renderSelectorWidget(widget))
+      case "edit-list":
+        return this.withBackground(this.renderEditListWidget(widget))
       case "overlay":
         return this.withoutBackground(this.renderOverlayWidegt(widget))
     }
   }
 
   protected abstract renderWidgetBackground(width: number, height: number): TemplateResult<2>
-  protected abstract renderSelectorWidget(widget: Widget): TemplateResult<1>
-  protected abstract renderOverlayWidegt(widget: Widget): TemplateResult<1>
+  protected abstract renderSelectorWidget(widget: Widget): TemplateResult<1> | TemplateResult<1>[]
+  protected abstract renderEditListWidget(widget: Widget): TemplateResult<1> | TemplateResult<1>[]
+  protected abstract renderOverlayWidegt(widget: Widget): TemplateResult<1> | TemplateResult<1>[]
 }
 
 export type WidgetRendererConstructorType = {

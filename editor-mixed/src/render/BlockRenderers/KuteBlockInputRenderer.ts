@@ -1,18 +1,14 @@
 import { type TemplateResult, html } from "lit"
 import { type Ref, ref } from "lit/directives/ref.js"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
-import { Coordinates } from "../../util/Coordinates"
 import { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
-import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 
 export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   protected renderInputCode(
     { block }: AnyRegisteredBlock,
-    _size: Coordinates,
     value: string,
     onChange: (value: string) => void,
-    reference: Ref<HTMLTextAreaElement> | undefined,
-    _props: InternalBlockRenderProps
+    reference: Ref<HTMLTextAreaElement> | undefined
   ): TemplateResult<1> {
     return html`
       <prism-kotlin-editor
@@ -27,14 +23,11 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected renderInputString(
-    _registered: AnyRegisteredBlock,
-    _size: Coordinates,
     value: string,
     onChange: (value: string) => void,
-    onKeydown: (e: KeyboardEvent) => void,
-    reference: Ref<HTMLInputElement> | undefined,
-    textScaling: number,
-    _props: InternalBlockRenderProps
+    onKeydown?: (e: KeyboardEvent) => void,
+    reference?: Ref<HTMLInputElement> | undefined,
+    textScaling?: number
   ): TemplateResult<1> {
     return html`
       <input
@@ -43,7 +36,8 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         type="text"
         tabindex="-1"
         style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
-        textScaling}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
+        (textScaling ??
+          1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
         @input=${(e: InputEvent) => onChange((e.target as HTMLInputElement).value)}
         @keydown=${onKeydown}
         spellcheck="false" />
@@ -51,13 +45,16 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected override renderInputBoolean(
-    _registered: AnyRegisteredBlock,
-    _size: Coordinates,
     value: boolean,
-    _props: InternalBlockRenderProps
+    onChange?: (value: boolean) => void
   ): TemplateResult<1> {
     return html`
       <div
+        @mousedown=${() => onChange?.(!value)}
+        @touchstart=${() => onChange?.(!value)}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") onChange?.(!value)
+        }}
         style="width: 100%; height: 100%; display: flex; padding: 0 8px; justify-content: start; align-items: center; background-color: white; border-radius: 6px;"
         role="button"
         tabindex="-1">
@@ -69,11 +66,8 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected override renderInputSelector(
-    _registered: AnyRegisteredBlock,
-    _size: Coordinates,
     _values: { id: string; display: string }[],
-    selected: string,
-    _props: InternalBlockRenderProps
+    selected: string
   ): TemplateResult<1> {
     return html`
       <div
