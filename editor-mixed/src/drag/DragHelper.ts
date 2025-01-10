@@ -19,6 +19,7 @@ export class DragHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly requestRerender: (full: boolean) => void
   private readonly removeWidgets: () => void
+  private readonly collapseDrawer: () => void
 
   constructor(
     blockRegistry: BlockRegistry,
@@ -27,7 +28,8 @@ export class DragHelper {
     workspaceRef: Ref<SVGSVGElement>,
     rerenderDrag: () => void,
     rerenderWorkspace: () => void,
-    removeWidgets: () => void
+    removeWidgets: () => void,
+    collapseDrawer: () => void
   ) {
     this.blockRegistry = blockRegistry
     this.connectorRegistry = connectorRegistry
@@ -38,6 +40,7 @@ export class DragHelper {
       if (full) rerenderWorkspace()
     }
     this.removeWidgets = removeWidgets
+    this.collapseDrawer = collapseDrawer
   }
   private dragged: AnyRegisteredBlock | null = null
   private previousUpstream: AnyBlock | null = null
@@ -82,6 +85,7 @@ export class DragHelper {
 
     this.afterDrag(this.dragged, this.dragX, this.dragY, true)
     this.workspaceRef.value.style.cursor = "grabbing"
+    if (this.workspaceRef.value.clientWidth < 400 && "drawerConnector" in this.previousUpstream!) this.collapseDrawer()
   }
 
   /**

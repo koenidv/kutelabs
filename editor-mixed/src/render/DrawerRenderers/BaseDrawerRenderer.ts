@@ -1,11 +1,10 @@
 import { html, nothing, type TemplateResult } from "lit"
 import type { AnyBlock } from "../../blocks/Block"
-import type { BlockAndSize } from "../SizeProps"
-import type { BlockAndCoordinates, Coordinates } from "../../util/Coordinates"
 import { BlockRegistry } from "../../registries/BlockRegistry"
-import type { BaseLayouter } from "../Layouters/BaseLayouter"
+import type { BlockAndCoordinates } from "../../util/Coordinates"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
-import { ref, type Ref } from "lit/directives/ref.js"
+import type { BaseLayouter } from "../Layouters/BaseLayouter"
+import type { BlockAndSize } from "../SizeProps"
 
 export type BlockSizeCount = BlockAndSize & { count: number }
 export type BlockCoordinateCount = BlockAndCoordinates & { count: number }
@@ -22,6 +21,9 @@ export abstract class BaseDrawerRenderer {
   }
 
   protected expanded = true
+  public setExpanded(value: boolean) {
+    this.expanded = value
+  }
 
   minWidth = 150
   maxWidth = 150
@@ -76,6 +78,7 @@ export abstract class BaseDrawerRenderer {
       <div id="drawer" style="position: absolute; top: 0; left: ${width}px">
         ${this.renderExpandButton(this.expanded, (evt: Event) => {
           if (evt.defaultPrevented) return
+          evt.preventDefault()
           this.expanded = !this.expanded
           this.requestUpdate()
         })}
