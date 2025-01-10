@@ -40,16 +40,13 @@ export abstract class BaseDrawerRenderer {
     this._enabled = enabled
   }
 
-  public renderElement(reference: Ref<HTMLDivElement>): TemplateResult<1> | typeof nothing {
+  public renderElement(): TemplateResult<1> | typeof nothing {
     if (!this._enabled || !this.blockRegistry.drawer) return nothing
 
     const blocks = this.blockRegistry.drawer.blocks
     const withSize = this.measureAndSet(blocks)
     const layout = this.positionAndSet(withSize)
     const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
-
-
-    // todo this will break dropping on the drawer expand button on mobile because the ref will be unset, use workspace root instead
 
     return html`
       ${this.expanded
@@ -59,7 +56,6 @@ export abstract class BaseDrawerRenderer {
               style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
               <svg
                 id="drawer"
-                ${ref(reference)}
                 id="drawer-content"
                 width="${width}"
                 height="${layout.fullHeight}"

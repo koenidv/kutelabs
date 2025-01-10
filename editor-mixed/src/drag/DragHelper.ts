@@ -7,6 +7,7 @@ import { type AnyRegisteredBlock } from "../registries/RegisteredBlock"
 import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 import { findShadowedActiveElement, focusBlockElement, srAnnounce } from "../util/DOMUtils"
+import { normalizePrimaryPointerPosition } from "../util/InputUtils"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -16,7 +17,6 @@ export class DragHelper {
   private readonly connectorRegistry: ConnectorRegistry
   private readonly renderer: BaseDragRenderer
   private readonly workspaceRef: Ref<SVGSVGElement>
-  private readonly drawerRef: Ref<HTMLDivElement>
   private readonly requestRerender: (full: boolean) => void
   private readonly removeWidgets: () => void
 
@@ -25,7 +25,6 @@ export class DragHelper {
     connectorRegistry: ConnectorRegistry,
     renderer: BaseDragRenderer,
     workspaceRef: Ref<SVGSVGElement>,
-    drawerRef: Ref<HTMLDivElement>,
     rerenderDrag: () => void,
     rerenderWorkspace: () => void,
     removeWidgets: () => void
@@ -34,7 +33,6 @@ export class DragHelper {
     this.connectorRegistry = connectorRegistry
     this.renderer = renderer
     this.workspaceRef = workspaceRef
-    this.drawerRef = drawerRef
     this.requestRerender = (full: boolean) => {
       rerenderDrag()
       if (full) rerenderWorkspace()
@@ -236,13 +234,14 @@ export class DragHelper {
 
     let droppedOnDrawer = false
 
-    if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) {
-      /* Because of the touch event rerender fix we applied at touchstart, the event's target will be the invisible cloned element.
-       * Thus we cannot check if the target is within the drawer, but we have to compare touch position and drawer bounds. */
-      droppedOnDrawer = this.testTouchInDrawer(this.currentTouchX, this.currentTouchY)
-    } else {
-      droppedOnDrawer = this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null
-    }
+    // if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) {
+    /* Because of the touch event rerender fix we applied at touchstart, the event's target will be the invisible cloned element.
+     * Thus we cannot check if the target is within the drawer, but we have to compare touch position and drawer bounds. */
+    const dropCoords = normalizePrimaryPointerPosition(evt)!
+    droppedOnDrawer = this.testTouchInDrawer(dropCoords.x, dropCoords.y)
+    // } else {
+    //   droppedOnDrawer = this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null
+    // }
 
     if (droppedOnDrawer) {
       this.blockRegistry.attachToDrawer(this.dragged.block)
@@ -316,7 +315,8 @@ export class DragHelper {
    * Tests if a position is within the referenced drawer bounds
    */
   private testTouchInDrawer(x: number, y: number): boolean {
-    const bounds = this.drawerRef.value?.querySelector("#drawer")?.getBoundingClientRect()
+    const root = this.workspaceRef.value?.getRootNode() as SVGElement | null
+    const bounds = root?.querySelector("#drawer")?.getBoundingClientRect()
     if (!bounds) {
       console.error("Drawer bounds not found")
       return false
