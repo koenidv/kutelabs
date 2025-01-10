@@ -44,7 +44,8 @@ export abstract class BaseDrawerRenderer {
     if (!this._enabled || !this.blockRegistry.drawer) return nothing
 
     const blocks = this.blockRegistry.drawer.blocks
-    const withSize = this.measureAndSet(blocks)
+    const ordered = this.orderBlocks(blocks)
+    const withSize = this.measureAndSet(ordered)
     const layout = this.positionAndSet(withSize)
     const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
 
@@ -108,6 +109,12 @@ export abstract class BaseDrawerRenderer {
       this.layouter.setConnectorPositions(registered)
     })
     return calculated
+  }
+
+  protected orderBlocks(
+    blocks: { block: AnyBlock; count: number }[]
+  ): { block: AnyBlock; count: number }[] {
+    return blocks
   }
 
   protected abstract calculatePositions(blocks: BlockSizeCount[]): {

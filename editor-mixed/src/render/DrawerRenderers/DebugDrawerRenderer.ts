@@ -1,12 +1,11 @@
 import { html, svg, type TemplateResult } from "lit"
-import type { AnyBlock } from "../../blocks/Block"
+import { Coordinates } from "../../util/Coordinates"
+import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 import {
   BaseDrawerRenderer,
   type BlockCoordinateCount,
   type BlockSizeCount,
 } from "./BaseDrawerRenderer"
-import { Coordinates } from "../../util/Coordinates"
-import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 
 export class DebugDrawerRenderer extends BaseDrawerRenderer {
   calculatePositions(blockSizes: BlockSizeCount[]): {
@@ -58,7 +57,7 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
         @mousedown=${toggle}
         @touchstart=${toggle}
         @keydown=${(evt: KeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") toggle(evt)
+          if (evt.key === "Enter" || evt.key === " ") toggle(evt)
         }}
         role="button"
         tabindex="0"
@@ -79,8 +78,8 @@ export class DebugDrawerRenderer extends BaseDrawerRenderer {
         viewBox="0 0 24 24"
         @mousedown=${toggle}
         @touchstart=${toggle}
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") toggle()
+        @keydown=${(evt: KeyboardEvent) => {
+          if (evt.key === "Enter" || evt.key === " ") toggle(evt)
         }}
         role="button"
         tabindex="0"

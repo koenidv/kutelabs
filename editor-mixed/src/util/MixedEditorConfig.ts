@@ -5,6 +5,7 @@ import type { DragRendererConstructorType } from "../render/DragRenderers/BaseDr
 import { DebugDragRenderer } from "../render/DragRenderers/DebugDragRenderer"
 import type { DrawerRendererConstructorType } from "../render/DrawerRenderers/BaseDrawerRenderer"
 import { DebugDrawerRenderer } from "../render/DrawerRenderers/DebugDrawerRenderer"
+import { KuteDrawerRenderer } from "../render/DrawerRenderers/KuteDrawerRenderer"
 import { ExtrasRenderer } from "../render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import type { ExtrasRendererInterface } from "../render/ExtrasRenderers.ts/ExtrasRendererInterface"
 import type { LayouterConstructorType } from "../render/Layouters/BaseLayouter"
@@ -35,7 +36,7 @@ export const DebugMixedEditorConfig: MixedEditorConfig = {
 export const DefaultMixedEditorConfig: MixedEditorConfig = {
   layouter: KuteLayouter,
   blockRenderer: KuteBlockRenderer,
-  drawerRenderer: DebugDrawerRenderer,
+  drawerRenderer: KuteDrawerRenderer,
   widgetRenderer: KuteWidgetRenderer,
   dragRenderer: DebugDragRenderer,
   extrasRenderer: ExtrasRenderer,
