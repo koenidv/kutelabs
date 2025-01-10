@@ -7,6 +7,7 @@ import { Coordinates } from "../../util/Coordinates"
 import type { AnyBlock } from "../../blocks/Block"
 import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
 import { DataType } from "../../blocks/configuration/DataType"
+import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../../connections/ConnectorRole"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
@@ -316,13 +317,15 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         onChange,
         props
       )
-    } else
-      return svg`<text x="5" y="20" fill="black" style="user-select: none;">${registered.block.data.expression}</text>`
+    } else {
+    const definedExpressionData = DefinedExpressionData[block.data.expression]
+      return svg`<text x="5" y="20" fill="black" style="user-select: none;">${definedExpressionData.display}</text>`
+    }
   }
 
-  protected override renderContentLogicNot(_: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
+  protected override renderContentLogicNot({size}: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
     return svg`
-      <text x="5" y="20" fill="white" style="user-select: none;">not</text>
+      <text x=${size.fullWidth / 2 - 2} y=${size.fullHeight / 2} fill="white" text-anchor="middle" alignment-baseline="middle">not</text>
     `
   }
 
@@ -334,9 +337,9 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     return svg`
       ${this.inputRenderer.inputSelector(
         registered,
-        new Coordinates(5, 5),
-        new Coordinates(size.fullWidth - 15, 28),
-        new Coordinates(200, 200),
+        new Coordinates(6, 6),
+        new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
+        new Coordinates(200, 110),
         Object.entries(LogicJunctionMode).map(([display, id]) => ({ id, display })),
         block.data.mode,
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicJunctionMode })),
@@ -353,8 +356,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     return svg`
       ${this.inputRenderer.inputSelector(
         registered,
-        new Coordinates(5, 5),
-        new Coordinates(size.fullWidth - 15, 28),
+        new Coordinates(6, 6),
+        new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
         new Coordinates(200, 200),
         Object.entries(LogicComparisonOperator).map(([display, id]) => ({ id, display })),
         block.data.mode,

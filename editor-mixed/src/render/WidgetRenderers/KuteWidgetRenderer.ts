@@ -1,9 +1,14 @@
 import { html, svg, type TemplateResult } from "lit"
-import { BaseWidgetRenderer, type OverlayWidget, type SelectorWidget, type Widget } from "./BaseWidgetRenderer"
+import {
+  BaseWidgetRenderer,
+  type OverlayWidget,
+  type SelectorWidget,
+  type Widget,
+} from "./BaseWidgetRenderer"
 import { RectBuilder } from "../../svg/RectBuilder"
 
 export class KuteWidgetRenderer extends BaseWidgetRenderer {
-  containerPadding = { top: 5.5, right: 0, bottom: 0, left: 0 }
+  containerPadding = { top: 2.75, right: 0, bottom: 0, left: 0 }
 
   renderSelectorWidget(widget: SelectorWidget): TemplateResult<1> {
     return html`
@@ -49,10 +54,10 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
     return widget.content
   }
 
-  protected renderWidgetBackground(): TemplateResult<2> {
+  protected renderWidgetBackground(width: number, height: number): TemplateResult<2> {
     const rectangle = new RectBuilder({
-      width: 99,
-      height: 94.5,
+      width: width - 1,
+      height: height - 5.5,
       radius: 5,
       offset: { x: 0.5, y: 5 },
     }).addToTop(

@@ -68,11 +68,9 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
               ${inputElement(widgetInputRef, true)}
             </div>
           `,
-          size: widgetSize,
-          // scale: this._workspaceScaleFactor,
-          scale: 1
         },
-        widgetPosition ?? registered.globalPosition.add(elementPosition)
+        widgetPosition ?? registered.globalPosition.add(elementPosition),
+        widgetSize
       )
       const originInput = inputRef.value
       setTimeout(

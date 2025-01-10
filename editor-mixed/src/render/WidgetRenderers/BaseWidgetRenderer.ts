@@ -13,8 +13,6 @@ export type SelectorWidget = {
 export type OverlayWidget = {
   type: "overlay"
   content: TemplateResult<1>
-  size: Coordinates
-  scale: number
 }
 
 export type Widget = SelectorWidget | OverlayWidget
@@ -28,6 +26,7 @@ export abstract class BaseWidgetRenderer {
 
   private displayedWidget: Widget | null = null
   private position: Coordinates = Coordinates.zero
+  private size: Coordinates = Coordinates.zero
   private dirty = false
 
   abstract containerPadding: { top: number; right: number; bottom: number; left: number }
@@ -37,9 +36,10 @@ export abstract class BaseWidgetRenderer {
     this.requestUpdate = requestUpdate
   }
 
-  public setWidget(widget: Widget, clientPosition: Coordinates) {
+  public setWidget(widget: Widget, clientPosition: Coordinates, size: Coordinates) {
     this.displayedWidget = widget
     this.position = clientPosition
+    this.size = size
     this.dirty = true
     this.requestUpdate()
     this.focusTrap.activate()
@@ -71,19 +71,18 @@ export abstract class BaseWidgetRenderer {
   }
 
   private withBackground(content: TemplateResult<1>): TemplateResult<1> {
-    const widgetSize = new Coordinates(200, 200)
     return html`
       <svg
         style="position: absolute; top: 0; left: 0;"
-        width=${widgetSize.x}
-        height=${widgetSize.y}
-        viewBox="0 0 100 100">
-        ${this.renderWidgetBackground()}Ì
+        width=${this.size.x}
+        height=${this.size.y}
+        viewBox="0 0 ${this.size.x} ${this.size.y}">
+        ${this.renderWidgetBackground(this.size.x, this.size.y)}Ì
       </svg>
       <div
         style="position: relative; padding: ${this.containerPadding.top}% ${this.containerPadding
           .right}% ${this.containerPadding.bottom}% ${this.containerPadding
-          .left}%; box-sizing: border-box; width: ${widgetSize.x}px; height: ${widgetSize.y}px"
+          .left}%; box-sizing: border-box; width: ${this.size.x}px; height: ${this.size.y}px"
         @mousedown="${(e: MouseEvent) => e.preventDefault()}"
         @touchstart="${(e: TouchEvent) => e.preventDefault()}">
         <div style="overflow-y: auto; overflow-x: hidden; width: 100%; height: 100%;">
@@ -93,13 +92,13 @@ export abstract class BaseWidgetRenderer {
     `
   }
 
-  private withoutBackground(content: TemplateResult<1>, size: Coordinates, scale: number): TemplateResult<1> {
+  private withoutBackground(content: TemplateResult<1>): TemplateResult<1> {
     const ctm = this.workspaceRef.value!.getScreenCTM()!
     return html`
       <div
-        style="position: relative; box-sizing: border-box; width: ${size.x *
-        ctm.a}px; height: ${size.y * ctm.a}px;">
-        <div style="width: 100%; height: 100%; transform: scale(${1 / scale}); transform-origin: 0 0;">
+        style="position: relative; box-sizing: border-box; width: ${this.size.x *
+        ctm.a}px; height: ${this.size.y * ctm.a}px;">
+        <div style="width: 100%; height: 100%;">
           ${content}
         </div>
       </div>
@@ -111,11 +110,11 @@ export abstract class BaseWidgetRenderer {
       case "selector":
         return this.withBackground(this.renderSelectorWidget(widget))
       case "overlay":
-        return this.withoutBackground(this.renderOverlayWidegt(widget), widget.size, widget.scale)
+        return this.withoutBackground(this.renderOverlayWidegt(widget))
     }
   }
 
-  protected abstract renderWidgetBackground(): TemplateResult<2>
+  protected abstract renderWidgetBackground(width: number, height: number): TemplateResult<2>
   protected abstract renderSelectorWidget(widget: Widget): TemplateResult<1>
   protected abstract renderOverlayWidegt(widget: Widget): TemplateResult<1>
 }
