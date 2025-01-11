@@ -6,11 +6,7 @@ import { Coordinates } from "../../util/Coordinates"
 
 import type { AnyBlock } from "../../blocks/Block"
 import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
-import {
-  DataType,
-  isArrayType,
-  simpleTypeFromArrayType
-} from "../../blocks/configuration/DataType"
+import { DataType, isArrayType, simpleTypeFromArrayType } from "../../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../../connections/ConnectorRole"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
@@ -48,6 +44,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
     this.addContainerInsets(rectangle, size)
     this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
+    this.addContainerCutouts(rectangle, size)
 
     const path = rectangle.generatePath()
     const stroke = this.determineContainerStroke(marking)
@@ -57,6 +54,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         id="bg-${block.id}"
         class="highlight-target"
         fill=${this.determineContainerFill(block)}
+        fill-rule="evenodd"
         stroke=${stroke.color}
         stroke-width=${stroke.width}
         d=${path}></path>
@@ -88,6 +86,23 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     })
   }
 
+  private addContainerCutouts(rectangle: RectBuilder, size: SizeProps): void {
+    // only one cutout is currently supported
+    size.cutRows.forEach(row => {
+      rectangle.add(
+        {
+          width: size.middleWidth,
+          height: row,
+          radius: 10,
+        },
+        {
+          x: size.leftWidth,
+          y: size.fullHeadHeight,
+        }
+      )
+    })
+  }
+
   private addContainerNooks(
     rectangle: RectBuilder,
     connectors: Connector[],
@@ -106,10 +121,11 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         connector.role == ConnectorRole.Output ||
         connector.type == ConnectorType.Extension
 
-      const horizontal =
-        [ConnectorRole.Input, ConnectorRole.Output, ConnectorRole.Conditional].includes(
-          connector.role
-        ) && ConnectorType.Inner != connector.type
+      const horizontal = [
+        ConnectorRole.Input,
+        ConnectorRole.Output,
+        ConnectorRole.Conditional,
+      ].includes(connector.role)
 
       rectangle.add(
         {
@@ -263,6 +279,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             props
           )}
         `
+  }
+
+  protected override renderContentVariableSet(
+    registered: RegisteredBlock<BlockType.VarSet, any>,
+    _props: InternalBlockRenderProps
+  ): SvgResult {
+    const { size } = registered
+    return svg`
+      <text x=${-size.fullHeight / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">set</text>
+      <text x=${-size.fullHeight / 2} y=${size.leftWidth + size.middleWidth + 4} transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">to</text>
+    `
   }
 
   protected override renderContentVariable(

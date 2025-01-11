@@ -56,7 +56,7 @@ or use the provided compose file.
 | `TRANSPILER_NAME`          | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`        |
 | `TRANSPILER_MEMORY`        | Memory limit for the transpiler container.                                           | `768m`                       |
 | `TRANSPILER_MEMORY_SWAP`   | Memory swap limit for the transpiler container.                                      | `768m`                       |
-| `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | `0.5`                        |
+| `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | _undefined_                  |
 | `TRANSPILER_TIMEOUT`       | Timeout for transpilation in milliseconds.                                           | `60000`                      |
 | `TRANSPILER_COROUTINE_LIB` | Enable coroutine library in transpiler.                                              | `true`                       |
 | `TRANSPILER_GVISOR`        | Enable gVisor sandbox for transpiler.                                                | `true`                       |

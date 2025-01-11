@@ -12,6 +12,7 @@ import type { BlockRegisterOptions, BlockREvents, BlockRInterface } from "./Bloc
 import type { ConnectorRegistry } from "./ConnectorRegistry"
 import { RegisteredBlock, type AnyRegisteredBlock } from "./RegisteredBlock"
 import { WorkspaceStateHelper } from "./WorkspaceStateHelper"
+import { ConnectorRole } from "../connections/ConnectorRole"
 
 export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterface {
   private _root: RootBlock | null = null
@@ -172,6 +173,9 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
 
     registered.block.extensions.forEach(it => {
       this.markBlock(it, marking, false)
+    }, this)
+    registered.block.connectors.inners.filter(it => it.role == ConnectorRole.Input).forEach(it => {
+      this.markBlock(registered.block.connectedBlocks.byConnector(it)!, marking, false)
     }, this)
 
     this.requestUpdate()

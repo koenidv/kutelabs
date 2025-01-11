@@ -4,11 +4,13 @@ export enum HeightProp {
   Head,
   Body,
   Intermediate,
+  CutRow,
   Tail,
 }
 
 export enum WidthProp {
   Left,
+  Middle,
   Right,
 }
 
@@ -66,6 +68,9 @@ export class SizeProps {
   get bodiesAndIntermediates(): { prop: HeightProp; value: number }[] {
     return this.heights.filter(h => h.prop == HeightProp.Body || h.prop == HeightProp.Intermediate)
   }
+  get cutRows(): number[] {
+    return this.byProp(this.heights, HeightProp.CutRow)
+  }
   get tails(): number[] {
     return this.byProp(this.heights, HeightProp.Tail)
   }
@@ -79,6 +84,9 @@ export class SizeProps {
 
   get leftWidth() {
     return this.byProp(this.widths, WidthProp.Left).reduce((acc, w) => acc + w, 0)
+  }
+  get middleWidth() {
+    return this.byProp(this.widths, WidthProp.Middle).reduce((acc, w) => acc + w, 0)
   }
   get rightWidth() {
     return this.byProp(this.widths, WidthProp.Right).reduce((acc, w) => acc + w, 0)
