@@ -9,6 +9,7 @@ import EditorMixed from "../../components/EditorMixedWrapper.svelte"
 import Logs from "../../components/Logs.svelte"
 import Tests from "../../components/Tests.svelte"
 import Snackbar from "../../components/Snackbar.svelte"
+import { undefined } from "astro:schema"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -37,7 +38,7 @@ const challenge = Astro.props.challenge as Challenge
           <Fragment class="w-full" slot="tab-2">Logs</Fragment>
 
           <Fragment slot="panel-1">
-            <div class="flex flex-col h-full gap-6 pb-8">
+            <div class="flex flex-col h-full gap-6">
               <div class="flex flex-col gap-4">
                 <h2 class="font-poppins text-xl">{challenge.story.title}</h2>
                 <p class="font-medium" set:html={challenge.story.dialog?.static} />
@@ -46,6 +47,25 @@ const challenge = Astro.props.challenge as Challenge
               <hr />
 
               <Tests tests={challenge.tests} client:load />
+
+              <div class="hidden lg:flex flex-col justify-between h-full gap-6 flex-grow">
+                <hr />
+                {
+                  challenge.story.imageStart ? (
+                    <img
+                      src={challenge.story.imageStart.src}
+                      alt={challenge.story.title}
+                      class="w-[66%]"
+                    />
+                  ) : challenge.story.imageEnd ? (
+                    <img
+                      src={challenge.story.imageEnd.src}
+                      alt={challenge.story.title}
+                      class="w-[80%] max-w-48 scale-x-[-1]"
+                    />
+                  ) : undefined
+                }
+              </div>
             </div>
           </Fragment>
 
@@ -55,10 +75,10 @@ const challenge = Astro.props.challenge as Challenge
         </Tabs>
       </div>
 
-      <Controls tests={challenge.tests} environment={challenge.environment} client:load/>
+      <Controls tests={challenge.tests} environment={challenge.environment} client:load />
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
-        <EditorMixed data={challenge.editor} client:only="svelte"/>
+        <EditorMixed data={challenge.editor} client:only="svelte" />
         <Snackbar client:idle />
       </ElevatedBox>
     </div>

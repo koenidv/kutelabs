@@ -11,7 +11,7 @@
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     },
     "dialog": {
-      "static": "Hey, good to see you!<br/> Really cool that you want to learn programming.<br/><br/> Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.<br/><br/> For now, just enter your name in the input and click the run button. Let's see what happens!"
+      "static": "Hey, good to see you!<br/>Really cool that you want to learn programming.<br/><br/> Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.<br/><br/><i>For now, just follow my steps:</i><br/><br/>1. Drag the text input block to that really wide blue block<br/>2. Enter your name in the input<br/>3. Click the run button<br/><br/><b>Let's see what happens!</b>"
     }
   },
   "environment": {

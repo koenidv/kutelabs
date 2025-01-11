@@ -24,13 +24,23 @@
 <div class="flex flex-col gap-4 py-4 justify-between">
   <div class="flex flex-row lg:flex-col gap-4 items-center">
     {#if !$executionRunning}
-    <button
-    onclick={execution.run.bind(execution)}
-    class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors">Run</button>
+      <button
+        onclick={execution.run.bind(execution)}
+        aria-label="Run your code" 
+        class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors flex justify-center items-center text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" width="50%" height="50%" viewBox="0 0 24 24"
+          ><path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 17.259V6.741a1 1 0 0 1 1.504-.864l9.015 5.26a1 1 0 0 1 0 1.727l-9.015 5.259A1 1 0 0 1 7 17.259" /></svg
+        ></button>
     {:else}
-    <button
-    onclick={execution.stop.bind(execution)}
-    class="bg-rose-400 rounded-full w-20 h-20 hover:bg-red-500 transition-colors">Stop</button>
+      <button
+        onclick={execution.stop.bind(execution)}
+        class="bg-rose-400 rounded-full w-20 h-20 hover:bg-red-500 transition-colors">Stop</button>
     {/if}
     <button
       onclick={() => execution.setSpeed("fast")}
