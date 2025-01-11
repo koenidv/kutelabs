@@ -106,10 +106,7 @@ export class VariableHelper implements VariableHInterface {
    */
   private handleBlockDataChanged = (changedBlock: Block<BlockType.VarInit>) => {
     const currentData = this.variables.get(changedBlock)
-    if (!currentData) {
-      console.error("Variable init data changed but variable is not registered", changedBlock)
-      return
-    }
+    if (!currentData) return
 
     let requestUpdate = false
 
@@ -175,16 +172,19 @@ export class VariableHelper implements VariableHInterface {
       this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
       data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
 
-      // remove usages
-      for (const usage of data.usages) {
-        usage.disconnectSelf(null)
-        usage.remove(this.blockRegistry, this.connectorRegistry)
-      }
+      // remove usages after drawer deduplicated them
+      setTimeout(() => {
+        for (const usage of data.usages) {
+          if (usage.removed) continue
+          usage.disconnectSelf(null)
+          usage.remove(this.blockRegistry, this.connectorRegistry)
+        }
+        this.requestUpdate()
+      }, 0)
 
       block.off("dataChanged", this.handleBlockDataChanged.bind(this))
 
       this.variables.delete(block as Block<BlockType.VarInit>)
-      this.requestUpdate()
     }
   }
 
@@ -193,6 +193,7 @@ export class VariableHelper implements VariableHInterface {
    * @param block Variable use block that was just removed from the workspace
    */
   private handleVarBlockRemoved = (block: Block<BlockType.Variable>) => {
+    if (block.removed) return
     const data = this.dataByVarName(block.data.name)
     if (!data) {
       console.error("Variable init for removed usage was not registered", block)

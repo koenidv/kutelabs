@@ -292,6 +292,7 @@ export class Block<T extends BlockType, S = never>
   /**
    * Removes this block from the block and connector registries, assumes that it has been disconnected from other blocks
    */
+  public removed = false
   remove(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): void {
     if (this.connectedBlocks.blocks.size > 0)
       console.error("Removing block with connected blocks", this, this.connectedBlocks.blocks)
@@ -300,5 +301,6 @@ export class Block<T extends BlockType, S = never>
     this.data = null as any
     this.connectedBlocks = null as any
     this.connectors = null as any
+    this.removed = true
   }
 }
