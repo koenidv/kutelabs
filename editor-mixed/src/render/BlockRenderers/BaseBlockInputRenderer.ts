@@ -190,6 +190,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     size: Coordinates,
     value: string,
     onChange: (value: string) => void,
+    placeholder: string,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return this.inputInWidget<HTMLInputElement>(
@@ -203,6 +204,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
           value,
           onChange,
           () => {},
+          placeholder,
           ref,
           inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
         ),
@@ -289,6 +291,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
           values.join(", "),
           () => {},
           () => {},
+          undefined,
           ref,
           inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
         ),
@@ -398,6 +401,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     value: string,
     onChange: (value: string) => void,
     onKeydown?: (e: KeyboardEvent) => void,
+    placeholder?: string,
     reference?: Ref<HTMLInputElement> | undefined,
     textScaling?: number
   ): TemplateResult<1>

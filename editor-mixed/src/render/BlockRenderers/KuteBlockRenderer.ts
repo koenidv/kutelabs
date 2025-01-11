@@ -263,6 +263,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates((size.fullWidth - 52) / 2, size.fullHeight - 12),
             block.isInDrawer ? "" : block.data.name,
             (name: string) => block.updateData(cur => ({ ...cur, name })),
+            "name",
             props
           )}
           <text x=${-size.fullHeight / 2} y=${(size.fullWidth - 52) / 2 + 26} transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">as</text>
@@ -347,6 +348,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
       block.isInDrawer ? "text" : block.data.value.toString(),
       (value: string) => block.updateData(cur => ({ ...cur, value })),
+      block.data.placeholder ?? "text",
       props
     )
   }

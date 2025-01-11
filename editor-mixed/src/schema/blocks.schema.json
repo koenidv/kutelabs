@@ -268,7 +268,15 @@
           "type": "object",
           "properties": {
             "type": {
-              "$ref": "#/$defs/dataType"
+              "$ref": "#/$defs/dataType",
+              "editable": {
+                "type": "boolean",
+                "description": "If the type is editable, defaults to true"
+              },
+              "placeholder": {
+                "type": "string",
+                "description": "Placeholder for the value"
+              }
             }
           },
           "allOf": [

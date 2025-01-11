@@ -92,7 +92,8 @@
           "type": "value",
           "data": {
             "type": "string",
-            "value": "Your name here"
+            "value": "",
+            "placeholder": "Your name here"
           }
         },
         "coordinates": {

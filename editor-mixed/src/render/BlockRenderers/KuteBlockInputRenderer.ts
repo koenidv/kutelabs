@@ -28,6 +28,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     value: string,
     onChange: (value: string) => void,
     onKeydown?: (e: KeyboardEvent) => void,
+    placeholder?: string,
     reference?: Ref<HTMLInputElement> | undefined,
     textScaling?: number
   ): TemplateResult<1> {
@@ -35,6 +36,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
       <input
         ${ref(reference)}
         value=${value}
+        placeholder=${placeholder ?? "text"}
         type="text"
         tabindex="-1"
         style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *

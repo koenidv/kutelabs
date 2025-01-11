@@ -50,6 +50,7 @@ export type BlockDataValue<Type extends DataType> = {
   type: Type
   value: TsTypeByDataType<Type>
   editable?: boolean
+  placeholder?: string
 }
 
 export enum LogicJunctionMode {
