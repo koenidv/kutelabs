@@ -4,6 +4,7 @@ import { bool, cleanEnv, num, str } from "envalid"
 export const env = cleanEnv(process.env, {
   PORT: str({ default: "3000" }),
   ENV: str({ choices: ["development", "undefined", "production"], default: "undefined" }),
+  APP_ORIGIN: str({ default: "https://kutelabs.koeni.dev", devDefault: "http://localhost:4321" }),
   DATA_DIR: str({ default: __dirname + "/data" }),
   DATA_VOLUME_NAME: str({ default: undefined }),
   CACHE_ENABLED: bool({ default: true }),
