@@ -259,6 +259,14 @@ export interface VariableInitBlock {
      * If the variable is mutable, defaults to true
      */
     mutable?: boolean
+    /**
+     * If the name is editable, defaults to true
+     */
+    nameEditable?: boolean
+    /**
+     * If the type is editable, defaults to true
+     */
+    typeEditable?: boolean
   }
   connectedBlocks?: {
     on: "after" | "input"
@@ -364,6 +372,10 @@ export interface LogicJunctionBlock {
      * Mode of junction
      */
     mode: "and" | "or"
+    /**
+     * If the mode is editable, defaults to true
+     */
+    editable?: boolean
     [k: string]: unknown
   }
   connectedBlocks?: {
@@ -388,6 +400,10 @@ export interface LogicComparisonBlock {
      * Mode of comparison
      */
     mode: "==" | "!=" | "<" | "<=" | ">" | ">="
+    /**
+     * If the mode is editable, defaults to true
+     */
+    editable?: boolean
     [k: string]: unknown
   }
   connectedBlocks?: {

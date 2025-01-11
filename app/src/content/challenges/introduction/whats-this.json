@@ -53,7 +53,9 @@
               "draggable": false,
               "data": {
                 "name": "name",
-                "type": "string"
+                "type": "string",
+                "nameEditable": false,
+                "typeEditable": false
               },
               "connectedBlocks": [
                 {

@@ -39,6 +39,8 @@ export type BlockDataVariableInit<Type extends DataType> = {
   name: string
   type: Type
   mutable: boolean
+  nameEditable?: boolean
+  typeEditable?: boolean
 }
 
 export type BlockDataVariable = {
@@ -60,6 +62,7 @@ export enum LogicJunctionMode {
 export type BlockDataLogicJunction = {
   mode: LogicJunctionMode
   type: DataType.Boolean
+  editable?: boolean
 }
 
 export enum LogicComparisonOperator {
@@ -81,4 +84,5 @@ export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator
 export type BlockDataLogicComparison = {
   mode: LogicComparisonOperator
   type: DataType.Boolean
+  editable?: boolean
 }

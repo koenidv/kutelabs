@@ -58,9 +58,11 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       targetRef: RefType,
       evt: MouseEvent | TouchEvent | KeyboardEvent
     ) => void = () => {},
+    enabled: boolean,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const openInWidget = (evt: MouseEvent | TouchEvent | KeyboardEvent) => {
+      if (!enabled) return
       const widgetInputRef = createRef<RefType>()
       this.setWidget(
         widget ?? {
@@ -147,8 +149,10 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param registered registered block this input is for
    * @param position position of the input field, relative to the content group (in svg units)
    * @param size size of the input field (in svg units)
+   * @param editable whether the input field is editable
    * @param value current value of the input field
    * @param onChange function to call when the value changes
+   * @param singleLine whether the input enforces a single line input
    * @param props context properties to be passed down the block tree
    * @returns SVG template result for the editable code input
    */
@@ -156,6 +160,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: string,
     onChange: (value: string) => void,
     singleLine: boolean,
@@ -170,6 +175,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       ref => this.renderInputCode(registered, value, onChange, singleLine, ref),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
+      editable,
       props
     )
   }
@@ -188,6 +194,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: string,
     onChange: (value: string) => void,
     placeholder: string,
@@ -210,6 +217,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         ),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
+      editable,
       props
     )
   }
@@ -228,11 +236,13 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: boolean,
     onChange: (value: boolean) => void,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const onClick = (e: MouseEvent | TouchEvent | KeyboardEvent) => {
+      if (!editable) return
       if (
         typeof KeyboardEvent !== "undefined" &&
         ((!(e instanceof KeyboardEvent) && e.isTrusted) ||
@@ -274,6 +284,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     type: T,
+    editable: boolean,
     values: TsTypeByDataType<T>[],
     onChange: (value: TsTypeByDataType<T>[]) => void,
     props: InternalBlockRenderProps
@@ -304,6 +315,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         },
       },
       undefined,
+      editable,
       props
     )
   }
@@ -343,6 +355,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     widgetSize: Coordinates,
+    editable: boolean,
     values: { id: string; display: string }[],
     selected: string,
     onSelected: (id: string) => void,
@@ -365,6 +378,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         },
       },
       undefined,
+      editable,
       props
     )
   }
@@ -389,8 +403,6 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
 
   /**
    * Renders an input field for a block
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
    * @param onKeydown function to call when a key is pressed
@@ -409,8 +421,6 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   /**
    * Renders a boolean input for a block
    * Defaults to a string input with true/false values
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
    * @param props context properties to be passed down the block tree
@@ -423,8 +433,6 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   /**
    * Renders a selector input // todo make protected and expose inputSelector Wrapper
    * The input may display a widget to facilitate selecting from a list of values
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param values list of ids and values to select from
    * @param selected id of the currently selected value
    * @param props context properties to be passed down the block tree
