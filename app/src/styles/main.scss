@@ -175,6 +175,12 @@ html {
     }
   }
 
+  .text-sideways {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+  }
+
   .animate-bg-up {
     &::before {
       position: absolute;

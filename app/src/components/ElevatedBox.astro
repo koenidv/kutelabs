@@ -3,10 +3,11 @@ interface Props {
   elevation?: number
   hoverable?: boolean
   label?: string
+  onClick?: () => void
   class?: string
   style?: string
 }
-const { elevation = 4, hoverable = false, label, class: className, style } = Astro.props
+const { elevation = 4, hoverable = false, label, class: className, style, onClick } = Astro.props
 ---
 
 <div
@@ -17,7 +18,9 @@ const { elevation = 4, hoverable = false, label, class: className, style } = Ast
     className,
   ]}
   style={style}
-  tabindex="0"
+  tabindex="${hoverable ? 0 : -1}"
+  onclick="{onClick}"
+  onkeydown="{(e) => e.key === 'Enter' && onClick && onClick()}"
   aria-label={label}>
   <div class:list={["h-full w-full border-l-4 border-t-4 border-r-2 border-b-2 border-black"]}>
     <slot />

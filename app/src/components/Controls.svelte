@@ -1,10 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte"
   import { ExecutionWrapper } from "../execution/MixedExecutionWrapper"
+  import CaretUp from "../icons/caret-up.svelte"
+  import PlayIcon from "../icons/play.svelte"
   import FastIcon from "../icons/speed-fast.svelte"
   import MediumIcon from "../icons/speed-medium.svelte"
   import SlowIcon from "../icons/speed-slow.svelte"
+  import StopIcon from "../icons/stop.svelte"
   import type { Challenge } from "../schema/challenge"
+  import ElevatedBox from "./ElevatedBox.svelte"
 
   const {
     tests,
@@ -15,6 +19,8 @@
   const speed = execution.speed
   const executionRunning = execution.running
 
+  let debugMenuOpen = $state(false)
+
   onMount(() => {
     // set default on client only to prevent ssr flash
     if ($speed == undefined) speed.set("medium")
@@ -22,58 +28,142 @@
 </script>
 
 <div class="flex flex-col gap-4 py-4 justify-between">
-  <div class="flex flex-row lg:flex-col gap-4 items-center">
-    {#if !$executionRunning}
-      <button
-        onclick={execution.run.bind(execution)}
-        aria-label="Run your code" 
-        class="bg-purp-400 rounded-full w-20 h-20 hover:bg-lime-400 transition-colors flex justify-center items-center text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="50%" height="50%" viewBox="0 0 24 24"
-          ><path
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M7 17.259V6.741a1 1 0 0 1 1.504-.864l9.015 5.26a1 1 0 0 1 0 1.727l-9.015 5.259A1 1 0 0 1 7 17.259" /></svg
-        ></button>
-    {:else}
-      <button
-        onclick={execution.stop.bind(execution)}
-        class="bg-rose-400 rounded-full w-20 h-20 hover:bg-red-500 transition-colors">Stop</button>
-    {/if}
-    <button
-      onclick={() => execution.setSpeed("fast")}
-      class={`grou w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$speed == "fast" ? "border-black" : "border-transparent"}`}>
-      <FastIcon />
-    </button>
-    <button
-      onclick={() => execution.setSpeed("medium")}
-      class={`group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$speed == "medium" ? "border-black" : "border-transparent"}`}>
-      <MediumIcon />
-    </button>
-    <button
-      onclick={() => execution.setSpeed("slow")}
-      class={`group w-16 h-16 rounded-full hover:bg-beige-300 flex items-center justify-center transition-colors border-2 ${$speed == "slow" ? "border-black" : "border-transparent"}`}>
-      <SlowIcon />
-    </button>
+  <div class="flex flex-row lg:flex-col gap-4 justify-center items-center">
+    <div
+      class="w-[5rem] h-[5rem] {$executionRunning
+        ? 'pt-1 pl-1'
+        : ''} transition-[padding] duration-100 ease-out">
+      <ElevatedBox
+        elevation={$executionRunning ? 1 : 2}
+        hoverable={true}
+        label="Run your code"
+        className="w-[4.5rem] h-[4.5rem]"
+        onClick={$executionRunning
+          ? execution.stop.bind(execution)
+          : execution.run.bind(execution)}>
+        <div
+          class="flex items-center justify-center w-full h-full {$executionRunning
+            ? 'bg-rose-300'
+            : 'bg-beige-300'} transition-colors">
+          {#if $executionRunning}
+            <StopIcon></StopIcon>
+          {:else}
+            <PlayIcon></PlayIcon>
+          {/if}
+        </div>
+      </ElevatedBox>
+    </div>
+
+    <div
+      class="h-16 w-16 {$speed == 'fast'
+        ? 'pt-1 pl-1'
+        : ''} transition-[padding] duration-100 ease-out">
+      <ElevatedBox
+        elevation={$speed == "fast" ? 1 : 2}
+        hoverable={true}
+        label="Run your code"
+        className="w-14 h-14"
+        onClick={() => execution.setSpeed("fast")}>
+        <div
+          class="flex items-center justify-center w-full h-full {$speed == 'fast'
+            ? 'bg-beige-100'
+            : 'bg-beige-300'} transition-colors">
+          <FastIcon />
+        </div>
+      </ElevatedBox>
+    </div>
+    <div
+      class="h-16 w-16 {$speed == 'medium'
+        ? 'pt-1 pl-1'
+        : ''} transition-[padding] duration-100 ease-out">
+      <ElevatedBox
+        elevation={$speed == "medium" ? 1 : 2}
+        hoverable={true}
+        label="Run your code"
+        className="w-14 h-14"
+        onClick={() => execution.setSpeed("medium")}>
+        <div
+          class="flex items-center justify-center w-full h-full {$speed == 'medium'
+            ? 'bg-beige-100'
+            : 'bg-beige-300'} transition-colors">
+          <MediumIcon />
+        </div>
+      </ElevatedBox>
+    </div>
+    <div
+      class="h-16 w-16 {$speed == 'slow'
+        ? 'pt-1 pl-1'
+        : ''} transition-[padding] duration-100 ease-out">
+      <ElevatedBox
+        elevation={$speed == "slow" ? 1 : 2}
+        hoverable={true}
+        label="Run your code"
+        className="w-14 h-14"
+        onClick={() => execution.setSpeed("slow")}>
+        <div
+          class="flex items-center justify-center w-full h-full {$speed == 'slow'
+            ? 'bg-beige-100'
+            : 'bg-beige-300'} transition-colors">
+          <SlowIcon />
+        </div>
+      </ElevatedBox>
+    </div>
   </div>
-  <div class="flex flex-row lg:flex-col gap-4">
-    <button
-      onclick={execution.printJs.bind(execution)}
-      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
-      >print JS</button>
-    <button
-      onclick={execution.printKt.bind(execution)}
-      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
-      >print Kt</button>
-    <button
-      onclick={execution.runJs.bind(execution)}
-      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
-      >run Js</button>
-    <button
-      onclick={execution.runKt.bind(execution)}
-      class="bg-purple-200 rounded-full w-20 h-20 hover:bg-green-300 transition-colors"
-      >run Kt</button>
+
+  {#if !debugMenuOpen}
+    <div class="hidden lg:flex h-44 justify-center">
+      <p class="font-gamja text-2xl text-sideways">Speed →</p>
+    </div>
+  {/if}
+
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div class="hidden lg:flex h-full flex-row justify-center items-end">
+    <div
+      class="hover:bg-beige-200 w-full rounded-lg flex justify-center {debugMenuOpen
+        ? 'transform rotate-180'
+        : ''}"
+      role="button"
+      aria-label="Toggle dev menu"
+      tabindex="0"
+      onclick={() => (debugMenuOpen = !debugMenuOpen)}>
+      <CaretUp></CaretUp>
+    </div>
   </div>
+
+  {#if debugMenuOpen}
+    <div class="flex flex-row lg:flex-col gap-4 items-center">
+      <ElevatedBox
+        elevation={1}
+        hoverable={true}
+        label="Print JS"
+        className="w-14 h-14 bg-beige-300"
+        onClick={execution.printJs.bind(execution)}>
+        <p>Print JS</p>
+      </ElevatedBox>
+      <ElevatedBox
+        elevation={1}
+        hoverable={true}
+        label="Print Kt"
+        className="w-14 h-14 bg-beige-300"
+        onClick={execution.printKt.bind(execution)}>
+        <p>Print Kt</p>
+      </ElevatedBox>
+      <ElevatedBox
+        elevation={1}
+        hoverable={true}
+        label="Run JS"
+        className="w-14 h-14 bg-beige-300"
+        onClick={execution.runJs.bind(execution)}>
+        <p>Run JS</p>
+      </ElevatedBox>
+      <ElevatedBox
+        elevation={1}
+        hoverable={true}
+        label="Run Kt"
+        className="w-14 h-14 bg-beige-300"
+        onClick={execution.runKt.bind(execution)}>
+        <p>Run <br />Kt</p>
+      </ElevatedBox>
+    </div>
+  {/if}
 </div>

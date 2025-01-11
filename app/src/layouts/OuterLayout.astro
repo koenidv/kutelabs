@@ -1,28 +1,27 @@
 ---
-import PostHog from "../components/PostHog.astro";
-import "../styles/main.scss";
+import PostHog from "../components/PostHog.astro"
+import "../styles/main.scss"
 
 interface Props {
-  title: string;
+  title: string
 }
-const { title } = Astro.props;
-
+const { title } = Astro.props
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>{ title } | kutelabs</title>
+    <title>{title} | kutelabs</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap"
-			rel="stylesheet"
-		/>
-    <link rel="dns-prefetch" href="https://api.kutelabs.koeni.dev/">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Poppins:ital,wght@0,500;0,600;0,700;0,900;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="dns-prefetch" href="https://api.kutelabs.koeni.dev/" />
     <PostHog />
   </head>
   <body>

@@ -6,7 +6,8 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				poppins: ["Poppins", ...defaultTheme.fontFamily.sans]
+				poppins: ["Poppins", ...defaultTheme.fontFamily.sans],
+				gamja: ["Gamja Flower", ...defaultTheme.fontFamily.sans],
 			},
 			colors: {
 				beige: {
@@ -23,5 +24,12 @@ export default {
 			}
 		},
 	},
+	safelist: [
+		"elevated-0",
+		"elevated-1",
+		"elevated-2",
+		"elevated-3",
+		"elevated-4",
+	],
 	plugins: [],
 }
