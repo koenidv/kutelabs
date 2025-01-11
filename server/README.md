@@ -46,24 +46,25 @@ or use the provided compose file.
 
 ## Env
 
-| Variable                   | Description                                                                          | Default                    |
-| -------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
-| `DATA_VOLUME_NAME`         | Name of the volume used for shared data between server and transpiler.               | _undefined_                |
-| `DATA_DIR`                 | Absolute path instead of docker volume. Will be used if `DATA_VOLUME NAME` is unset. | `$(pwd)/data`              |
-| `PORT`                     | The port to listen on.                                                               | `3000`                     |
-| `ENV`                      | Environment hint: `development` or `production`.                                     | _undefined_                |
-| `TRANSPILER_NAME`          | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`      |
-| `TRANSPILER_MEMORY`        | Memory limit for the transpiler container.                                           | `768m`                     |
-| `TRANSPILER_MEMORY_SWAP`   | Memory swap limit for the transpiler container.                                      | `768m`                     |
-| `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | `0.5`                      |
-| `TRANSPILER_TIMEOUT`       | Timeout for transpilation in milliseconds.                                           | `60000`                    |
-| `TRANSPILER_COROUTINE_LIB` | Enable coroutine library in transpiler.                                              | `true`                     |
-| `TRANSPILER_GVISOR`        | Enable gVisor sandbox for transpiler.                                                | `true`                     |
-| `CACHE_ENABLED`            | Enable caching of transpiled code.                                                   | `true`                     |
-| `POSTHOG_API_KEY`          | PostHog API key for analytics.                                                       | _undefined_                |
-| `POSTHOG_HOST`             | PostHog host URL.                                                                    | `https://eu.i.posthog.com` |
-| `POSTHOG_IDENTIFIER`       | Server identifier for PostHog.                                                       | `local`                    |
-| `SENTRY_DSN`               | Sentry DSN for error tracking.                                                       | _undefined_                |
+| Variable                   | Description                                                                          | Default                      |
+| -------------------------- | ------------------------------------------------------------------------------------ | ---------------------------- |
+| `DATA_VOLUME_NAME`         | Name of the volume used for shared data between server and transpiler.               | _undefined_                  |
+| `DATA_DIR`                 | Absolute path instead of docker volume. Will be used if `DATA_VOLUME NAME` is unset. | `$(pwd)/data`                |
+| `PORT`                     | The port to listen on.                                                               | `3000`                       |
+| `ENV`                      | Environment hint: `development` or `production`.                                     | _undefined_                  |
+| `APP_ORIGIN`               | Origin of the app for CORS and CSRF.                                                 | `https://kutelabs.koeni.dev` |
+| `TRANSPILER_NAME`          | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`        |
+| `TRANSPILER_MEMORY`        | Memory limit for the transpiler container.                                           | `768m`                       |
+| `TRANSPILER_MEMORY_SWAP`   | Memory swap limit for the transpiler container.                                      | `768m`                       |
+| `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | `0.5`                        |
+| `TRANSPILER_TIMEOUT`       | Timeout for transpilation in milliseconds.                                           | `60000`                      |
+| `TRANSPILER_COROUTINE_LIB` | Enable coroutine library in transpiler.                                              | `true`                       |
+| `TRANSPILER_GVISOR`        | Enable gVisor sandbox for transpiler.                                                | `true`                       |
+| `CACHE_ENABLED`            | Enable caching of transpiled code.                                                   | `true`                       |
+| `POSTHOG_API_KEY`          | PostHog API key for analytics.                                                       | _undefined_                  |
+| `POSTHOG_HOST`             | PostHog host URL.                                                                    | `https://eu.i.posthog.com`   |
+| `POSTHOG_IDENTIFIER`       | Server identifier for PostHog.                                                       | `local`                      |
+| `SENTRY_DSN`               | Sentry DSN for error tracking.                                                       | _undefined_                  |
 
 ## Tests
 
