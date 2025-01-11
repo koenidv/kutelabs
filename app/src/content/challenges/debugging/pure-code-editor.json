@@ -1,0 +1,35 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 4,
+    "title": "Pure Code Editor",
+    "description": "This story implements the pure code editor",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#FF91E9",
+    "dialog": {
+      "static": "whoaa this is just text, no blocks! scary shit"
+    }
+  },
+  "environment": {
+    "language": "kt"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {
+        "runAnything": {
+          "description": "Run some code",
+          "function": "() => true;"
+        }
+      }
+    }
+  ],
+  "editor": {
+    "type": "code",
+    "initialValue": "// welcome to kutelabs\n\nfun main() {\n\tprintln(\"Hello, world!\")\n}\n",
+    "invisibleCode": "",
+    "entrypoint": "main"
+  }
+}

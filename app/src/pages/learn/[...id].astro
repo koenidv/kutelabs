@@ -3,6 +3,7 @@ import { Tabs } from "astro-tabs"
 import { getCollection } from "astro:content"
 import Controls from "../../components/Controls.svelte"
 import EditorMixed from "../../components/EditorMixedWrapper.svelte"
+import EditorCode from "../../components/EditorCodeWrapper.svelte"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import Logs from "../../components/Logs.svelte"
 import NextChallengeButton from "../../components/NextChallengeButton.svelte"
@@ -93,7 +94,11 @@ console.log(baseUrl, nextId, nextUrl)
       />
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
-        <EditorMixed data={challenge.editor} client:only="svelte" />
+        {challenge.editor.type == "mixed" ? (
+          <EditorMixed data={challenge.editor} client:only="svelte" />
+        ) : (
+          <EditorCode data={challenge.editor} client:only="svelte" />
+        )}
         <Snackbar client:idle />
       </ElevatedBox>
     </div>

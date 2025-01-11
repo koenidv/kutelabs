@@ -224,7 +224,7 @@ export interface Challenge {
       }
     }
   }[]
-  editor: MixedContentEditorConfiguration | TextEditorConfiguration
+  editor: MixedContentEditorConfiguration | CodeEditorConfiguration
   [k: string]: unknown
 }
 export interface Image {
@@ -506,12 +506,24 @@ export interface LogicComparisonBlock {
   [k: string]: unknown
 }
 /**
- * Use and configure the text editor
+ * Use and configure the code editor
  */
-export interface TextEditorConfiguration {
+export interface CodeEditorConfiguration {
   /**
-   * Defines this editor as a text editor
+   * Defines this editor as a code editor
    */
-  type: "text"
+  type: "code"
+  /**
+   * The initial value of the editor
+   */
+  initialValue?: string
+  /**
+   * Additional code not visible to the user
+   */
+  invisibleCode?: string
+  /**
+   * Entrypoint to the user code, defaults to `main`
+   */
+  entrypoint?: string
   [k: string]: unknown
 }

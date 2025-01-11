@@ -165,8 +165,8 @@
           "$ref": "../../../editor-mixed/src/schema/editor.schema.json"
         },
         {
-          "description": "Use and configure the text editor",
-          "$ref": "./editor-text.schema.json"
+          "description": "Use and configure the code editor",
+          "$ref": "./editor-code.schema.json"
         }
       ]
     }
