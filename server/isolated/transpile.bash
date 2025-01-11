@@ -21,6 +21,8 @@ kotlinc-js \
   -Xreport-all-warnings \
   -Xir-produce-klib-dir
 
+[ -d "klib/" ] || { exit 1; }
+
 kotlinc-js \
   -Xinclude=klib/ \
   -ir-output-name transpiled \
