@@ -8,6 +8,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     { block }: AnyRegisteredBlock,
     value: string,
     onChange: (value: string) => void,
+    singleLine: boolean,
     reference: Ref<HTMLTextAreaElement> | undefined
   ): TemplateResult<1> {
     return html`
@@ -16,6 +17,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         .reference=${reference}
         .disableFocus=${block.isInDrawer}
         .inDrawer=${block.isInDrawer}
+        .singleLine=${singleLine}
         @input-change=${(e: CustomEvent) => onChange(e.detail.input)}>
       </prism-kotlin-editor>
   </div>

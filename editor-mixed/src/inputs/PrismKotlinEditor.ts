@@ -80,6 +80,7 @@ export class PrismKotlinEditor extends LitElement {
         width: max-content;
         height: max-content;
         white-space: pre;
+        border: none;
       }
       textarea.input {
         background: transparent;

@@ -315,6 +315,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
         block.isInDrawer ? "code()" : block.data.value,
         (value: string) => block.updateData(cur => ({ ...cur, value })),
+        true,
         props
       )
     }
@@ -371,6 +372,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         new Coordinates(registered.size.fullWidth - 12, registered.size.fullHeight - 12),
         block.isInDrawer ? "code()" : value,
         onChange,
+        false,
         props
       )
     } else {

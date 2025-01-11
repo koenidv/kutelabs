@@ -53,6 +53,11 @@ export class KuteLayouter extends BaseLayouter {
           }
         })
       }
+    } else if (block.type == BlockType.Expression && (block.data as BlockDataExpression).editable) {
+      const customExpression = (block.data as BlockDataExpression).customExpression?.get("kt")
+      const lines = customExpression?.split("\n") ?? []
+      size.addHeight(HeightProp.Head, Math.max(lines.length * 20, 60))
+      size.addWidth(WidthProp.Left, 200)
     } else {
       size.addHeight(HeightProp.Head, DEFAULT_HEAD_HEIGHT)
     }
@@ -70,8 +75,6 @@ export class KuteLayouter extends BaseLayouter {
         if (index < insets.length - 1)
           size.addHeight(HeightProp.Intermediate, DEFAULT_INTERMEDIATE_HEIGHT)
       })
-    } else if (block.type == BlockType.Expression && (block.data as BlockDataExpression).editable) {
-      size.addWidth(WidthProp.Left, 200)
     } else if (
       block.type == BlockType.Value &&
       (block.data as BlockDataValue<any>).type == DataType.String

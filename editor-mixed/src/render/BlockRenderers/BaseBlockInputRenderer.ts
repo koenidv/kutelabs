@@ -97,7 +97,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const inputRef = createRef<RefType>()
 
     return svg`
-        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="">
+        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="border-radius: 6px;">
         ${this.tapOrDragLayer(
           reference => html`
             <div
@@ -158,6 +158,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     size: Coordinates,
     value: string,
     onChange: (value: string) => void,
+    singleLine: boolean,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return this.inputInWidget<HTMLTextAreaElement>(
@@ -166,7 +167,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       size,
       undefined,
-      ref => this.renderInputCode(registered, value, onChange, ref),
+      ref => this.renderInputCode(registered, value, onChange, singleLine, ref),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
       props
@@ -379,6 +380,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     value: string,
     onChange: (value: string) => void,
+    singleLine: boolean,
     reference: Ref<HTMLTextAreaElement> | undefined
   ): TemplateResult<1>
 
