@@ -1,22 +1,19 @@
-import { SandboxTestRunner, TestResult, type TestSuite } from "@kutelabs/client-runner"
+import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
+import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
+import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { findBlockByLine } from "@kutelabs/shared/src"
+import { persistentAtom } from "@nanostores/persistent"
 import {
   addLog,
   clearMessages,
   displayMessage,
   editorLoadingState,
-  editorRef,
-  setTestResult,
+  editorRef
 } from "../state/state"
-import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
-import type { Challenge } from "../schema/challenge"
-import { persistentAtom } from "@nanostores/persistent"
-import { transpileKtJs } from "./transpile"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
-import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { findBlockByLine } from "@kutelabs/shared/src"
-import { atom } from "nanostores"
-import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { transpileKtJs } from "./transpile"
 import { validateJs } from "./validateJs"
 
 const executionDelay = {
@@ -25,61 +22,8 @@ const executionDelay = {
   slow: 2200,
 }
 
-export class ExecutionWrapper {
-  private testRunner: SandboxTestRunner
-  private environment: Challenge["environment"]
-
-  public running = atom(false)
-  public runFailed = atom(false)
-  public onSuccess = () => {}
-
-  constructor(tests: Challenge["tests"], environment: Challenge["environment"]) {
-    this.testRunner = new SandboxTestRunner(
-      this.parseTests(tests),
-      (id, result) => {
-        if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
-        setTestResult(id, result)
-      },
-      addLog,
-      (type, message) => {
-        this.running.set(false)
-        addLog([message], "error")
-        this.runFailed.set(true)
-        if (type == ErrorType.Timeout) {
-          displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
-        } else if (message.includes("SyntaxError")) {
-          displayMessage("Please make sure your blocks are correct", "error", { single: true })
-        } else {
-          displayMessage("An error occured", "info", { duration: -1, single: true })
-        }
-      },
-      this.onBlockError.bind(this),
-      () => {
-        this.running.set(false)
-        if (!this.runFailed.get()) this.onSuccess()
-      }
-    )
-    this.environment = environment
-  }
-
-  private parseTests(rawTests: Challenge["tests"]): TestSuite {
-    return (rawTests ?? []).map(set => {
-      return {
-        ...set,
-        run: Object.fromEntries(
-          Object.entries(set.run).map(([id, test]) => {
-            return [
-              id,
-              {
-                ...test,
-                function: eval(test.function),
-              },
-            ]
-          })
-        ),
-      }
-    }) as unknown as TestSuite
-  }
+export class MixedExecutionWrapper extends BaseExecutionWrapper {
+  lastRunCode: string | null = null
 
   public speed = persistentAtom<"fast" | "medium" | "slow">("execSpeed")
   public setSpeed = (speed: "fast" | "medium" | "slow") => {
@@ -97,7 +41,7 @@ export class ExecutionWrapper {
   /**
    * Run code depending on the environment language
    */
-  public run() {
+  public override run() {
     switch (this.environment.language) {
       case "js":
         this.runJs()
@@ -138,6 +82,7 @@ export class ExecutionWrapper {
       displayMessage("Please make sure your blocks are correct", "error", { single: true })
       return
     }
+    this.lastRunCode = compiled.code
 
     this.testRunner
       .execute(compiled.code, {
@@ -178,6 +123,7 @@ export class ExecutionWrapper {
         }
         editorLoadingState.set(false)
         clearMessages()
+        this.lastRunCode = transpiled.transpiledCode
 
         this.testRunner
           .execute(transpiled.transpiledCode, {
@@ -214,9 +160,22 @@ export class ExecutionWrapper {
     console.log(compiled.code)
   }
 
-  public stop() {
-    // todo stop executor
-    console.error("Stopping execution is not yet implemented")
+  protected override onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {
+    if (type == ErrorType.Timeout) {
+      displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
+    } else if (message.includes("SyntaxError")) {
+      displayMessage("Please make sure your blocks are correct", "error", { single: true })
+    } else {
+      displayMessage("An error occured", "info", { single: true })
+    }
+  }
+
+  protected override onUserCodeError(message: string, line: number, _column: number) {
+    const editor = editorRef.get()
+    if (!editor || !this.lastRunCode) throw new Error("Editor not found")
+    const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
+    if (!causingBlockId) throw new Error("No block id found")
+    this.onBlockError(causingBlockId, message)
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
@@ -242,12 +201,6 @@ export class ExecutionWrapper {
       this.runFailed.set(true)
       console.error("Transpilation failed", transpiled)
     }
-  }
-
-  private matchLineInTranspilationError(error: string): number | null {
-    const match = error.match(/code\.kt:(\d+)/)
-    if (!match) return null
-    return parseInt(match[1])
   }
 
   private onBlockError(id: string, message: string, display: string | undefined = message) {

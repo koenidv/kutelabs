@@ -42,7 +42,8 @@ export class TestRunner {
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string
   ) => void = console.error
-  private readonly onBlockError: (blockId: string, message: string) => void = console.error
+  private readonly onUserCodeError: (message: string, line: number, column: number) => void =
+    console.error
   private readonly onFinished: (() => void) | undefined
 
   private readonly executor: Executor
@@ -57,14 +58,14 @@ export class TestRunner {
     onResult: typeof this.onFinalTestResult,
     onLog?: typeof this.onLog,
     onGeneralError?: typeof this.onGeneralError,
-    onBlockError?: typeof this.onBlockError,
+    onBlockError?: typeof this.onUserCodeError,
     onFinished?: () => void
   ) {
     this.testSuite = testSuite
     this.onFinalTestResult = onResult
     if (onLog) this.onLog = onLog
     if (onGeneralError) this.onGeneralError = onGeneralError
-    if (onBlockError) this.onBlockError = onBlockError
+    if (onBlockError) this.onUserCodeError = onBlockError
     if (onFinished) this.onFinished = onFinished
 
     this.executor = new Executor(
@@ -248,29 +249,21 @@ export class TestRunner {
       return
     }
 
-    const line = this.matchLineInStack((error as LoggedError).stack)
-    if (!line) {
-      console.error("Could not find line in stack:", (error as LoggedError).stack)
-      return
-    }
-    const blockId = findBlockByLine(this.matchUserFunctionLines(), line)
-    if (!blockId) {
-      console.error("Could not find block by line:", line)
-      return
-    }
+    const linecol = this.matchLineInStack((error as LoggedError).stack)
+    if (!linecol) throw new Error(`Could not find line in stack: ${(error as LoggedError).stack}`)
     this.failRemainingTests((error as LoggedError).message)
-    this.onBlockError(blockId, (error as LoggedError).message)
+    this.onUserCodeError((error as LoggedError).message, ...linecol)
   }
 
   /**
    * Matches the line number in the stack trace of an error
    * @param stack stack trace of an error
-   * @returns line number in the user code that caused the error, or undefined if not found
+   * @returns line number and column in the user code that caused the error, or undefined if not found
    */
-  private matchLineInStack(stack: string): number | undefined {
-    const line = stack.match(/<anonymous>:(\d+):/)?.pop()
-    if (!line) return undefined
-    return Number(line)
+  private matchLineInStack(stack: string): [number, number] | undefined {
+    const linecol = stack.match(/<anonymous>:(\d+):(\d+)/)
+    if (!linecol || linecol?.length < 2) return undefined
+    return [parseInt(linecol[1]), parseInt(linecol[2])]
   }
 
   /**

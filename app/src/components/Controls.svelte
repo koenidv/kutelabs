@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte"
-  import { ExecutionWrapper } from "../execution/MixedExecutionWrapper"
+  import type JSConfetti from "js-confetti"
+  import { onMount } from "svelte"
+  import { MixedExecutionWrapper } from "../execution/MixedExecutionWrapper"
   import CaretUp from "../icons/caret-up.svelte"
   import PlayIcon from "../icons/play.svelte"
   import FastIcon from "../icons/speed-fast.svelte"
@@ -8,9 +9,8 @@
   import SlowIcon from "../icons/speed-slow.svelte"
   import StopIcon from "../icons/stop.svelte"
   import type { Challenge } from "../schema/challenge"
-  import ElevatedBox from "./ElevatedBox.svelte"
-  import type JSConfetti from "js-confetti"
   import { challengeCompleted } from "../state/state"
+  import ElevatedBox from "./ElevatedBox.svelte"
 
   const {
     tests,
@@ -22,12 +22,12 @@
     confetti: Boolean
   } = $props()
 
-  const execution = new ExecutionWrapper(tests, environment)
+  const execution = new MixedExecutionWrapper(tests, environment)
   const speed = execution.speed
   const executionRunning = execution.running
 
   let debugMenuOpen = $state(false)
-  let confetti: JSConfetti = null
+  let confetti: JSConfetti | null = null
 
   onMount(async () => {
     // set default on client only to prevent ssr flash
