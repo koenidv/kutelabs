@@ -23,6 +23,8 @@
   }
 </script>
 
+<hr />
+
 <div class="flex flex-col gap-4">
   {#each tests as test}
     <div

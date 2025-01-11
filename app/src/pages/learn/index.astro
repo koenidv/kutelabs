@@ -1,45 +1,17 @@
 ---
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
-import { getCollection } from "astro:content"
 import type { Challenge } from "../../schema/challenge"
-import type { Section } from "../../schema/section"
+import { navigationStore } from "../../navigation/NavigationStore"
 
-type ContentItem = {
-  id: string
-  collection: string
-  data: Challenge | Section
-}
-
-const challenges = sortChallenges((await getCollection("challenges")) as ContentItem[])
-
-function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" | "challenge" })[] {
-  const sectionOrder = items
-    .filter(item => item.id.endsWith("/section"))
-    .sort((a, b) => ((a.data as Section).order ?? 0) - ((b.data as Section).order ?? 0))
-    .map(item => item.id.split("/")[0])
-
-  return items
-    .sort((a, b) => {
-      const sectionComparison =
-        sectionOrder.indexOf(a.id.split("/")[0]) - sectionOrder.indexOf(b.id.split("/")[0])
-      if (sectionComparison !== 0) return sectionComparison
-
-      if (a.id.endsWith("/section")) return -1
-      if (b.id.endsWith("/section")) return 1
-
-      return ((a.data as Challenge).story.order ?? 0) - ((b.data as Challenge).story.order ?? 0)
-    })
-    .filter(item => !item.data.hideSectionHead)
-    .map(item => ({ ...item, type: item.id.endsWith("/section") ? "section" : "challenge" }))
-}
+const challenges = await navigationStore.getChallenes()
 ---
 
 <InnerLayout title="learn">
   <div class="w-full flex flex-col items-center">
     <div class="max-w-4xl w-full p-8 flex flex-col">
       <div class="pb-8">
-        <h1 class="text-5xl font-poppins text-outlined text-white">Let's start learning!</h1>
+        <h1 class="text-5xl font-poppins font-black text-outlined text-white">Let's start learning!</h1>
         <p><a href="#">Sign up</a> to save your progress.</p>
       </div>
 
@@ -51,7 +23,7 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
             return (
               <div class="pb-4 flex flex-col items-center">
                 {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
-                <h3 class="text-3xl font-poppins">{it.data.title}</h3>
+                <h3 class="text-3xl font-poppins font-black">{it.data.title}</h3>
                 <p>{it.data.description}</p>
                 {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
@@ -77,7 +49,7 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
                         <div class="w-8" />
                       )}
                       <div class="w-full flex flex-col items-start justify-center gap-2">
-                        <h1 class="text-xl font-poppins">{data.story.title}</h1>
+                        <h1 class="text-xl font-poppins font-black">{data.story.title}</h1>
                         <p set:html={data.story?.description} />
                       </div>
                       {data.story.imageEnd ? (

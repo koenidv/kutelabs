@@ -10,6 +10,7 @@
   import type { Challenge } from "../schema/challenge"
   import ElevatedBox from "./ElevatedBox.svelte"
   import type JSConfetti from "js-confetti"
+  import { challengeCompleted } from "../state/state"
 
   const {
     tests,
@@ -26,7 +27,6 @@
   const executionRunning = execution.running
 
   let debugMenuOpen = $state(false)
-  let challengeCompleted = false
   let confetti: JSConfetti = null
 
   onMount(async () => {
@@ -35,20 +35,16 @@
     if (confettiEnabled) confetti = new (await import("js-confetti")).default()
 
     execution.onSuccess = () => {
-      if (confetti && !challengeCompleted)
+      if (confetti && !challengeCompleted.get())
         confetti.addConfetti({
           emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
         })
-      challengeCompleted = true
+      challengeCompleted.set(true)
     }
-  })
-
-  onDestroy(() => {
-    if (confetti) confetti.destroyCanvas()
   })
 </script>
 
-<div class="flex flex-col gap-4 py-4 justify-between">
+<div class="flex flex-col gap-4 py-4 justify-between select-none">
   <div class="flex flex-row lg:flex-col gap-4 justify-center items-center">
     <div
       class="w-[5rem] h-[5rem] {$executionRunning

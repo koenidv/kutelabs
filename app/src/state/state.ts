@@ -43,3 +43,6 @@ export function consumedMessage(id: string) {
 export function clearMessages() {
   snackbarState.set([])
 }
+
+/* Whether the current challenge has been completed */
+export const challengeCompleted = atom(false)
