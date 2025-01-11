@@ -65,5 +65,4 @@ app.post("/kt/js", async c => {
   return c.json(dto)
 })
 
-app.route
 export default app

@@ -1,12 +1,14 @@
 import { Glob } from "bun"
 import { Hono } from "hono"
-import { cors } from "hono/cors"
 import { env } from "./env"
 
 import "@kutelabs/shared"
 import "./analytics/Sentry"
+import { applyMiddleware } from "./middleware/applyMiddleware"
 
 export const app = new Hono()
+
+applyMiddleware(app)
 
 const routes = new Glob(__dirname + "/routes/**/index.ts")
 await registerRoutes(routes)
@@ -51,8 +53,6 @@ async function importModule(path: String): Promise<Hono | null> {
 app.get("/", c => {
   return c.text("kutelabs backend")
 })
-
-app.use("*", cors()) // todo properly configure cors at some point
 
 console.info(`Starting server on port ${env.PORT}`)
 export default {
