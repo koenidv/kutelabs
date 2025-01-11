@@ -84,15 +84,18 @@ export class VariableHelper implements VariableHInterface {
       name: data.name,
       type: data.type,
       mutable: data.mutable,
-      usages: [],
+      usages: [drawerBlock],
       drawerBlock,
     })
 
     const matchingPendingUsages = this.pendingUsages.filter(
       usage => usage.data.name === block.data.name
     )
-    if (matchingPendingUsages.length > 0)
+    if (matchingPendingUsages.length > 0) {
       this.pendingUsages = this.pendingUsages.filter(usage => usage.data.name !== block.data.name)
+      if (this.pendingUsages.length == 0)
+        console.info("✓ All pending variable usages were resolved")
+    }
     matchingPendingUsages.forEach(usage => this.handleVarBlockAdded(usage), this)
 
     block.on("dataChanged", this.handleBlockDataChanged.bind(this))
@@ -118,6 +121,8 @@ export class VariableHelper implements VariableHInterface {
           usage.updateData(data => ({ ...data, name: newName }))
         })
         requestUpdate = true
+      } else {
+        changedBlock.updateData(data => ({ ...data, name: currentData.name }))
       }
     }
 

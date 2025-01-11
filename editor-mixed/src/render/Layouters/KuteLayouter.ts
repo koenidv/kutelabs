@@ -91,10 +91,12 @@ export class KuteLayouter extends BaseLayouter {
 
     if (block.type == BlockType.Variable) {
       size.addWidth(WidthProp.Left, (block.data as BlockDataVariable).name.length * 7.9 + 12)
-    } else if(block.type == BlockType.Function) {
+    } else if (block.type == BlockType.Function) {
       size.addWidth(WidthProp.Left, MIN_WIDTH - INNER_WIDTH)
       const fname = (block.data as BlockDataFunction).name
       if (fname.length > 5) size.addWidth(WidthProp.Right, (fname.length - 5) * 7.9)
+    } else if (block.type == BlockType.VarSet) {
+      // widths were set above
     } else if (size.fullWidth < MIN_WIDTH) size.addWidth(WidthProp.Left, MIN_WIDTH - size.fullWidth)
 
     const fullHeight = size.fullHeight
