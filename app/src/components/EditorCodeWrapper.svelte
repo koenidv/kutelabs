@@ -2,6 +2,15 @@
   import type { PrismEditor } from "prism-code-editor"
   import { onMount } from "svelte"
   import type { CodeEditorConfiguration } from "../schema/challenge"
+  import { editorLoadingState, editorRef } from "../state/state"
+  import { fade } from "svelte/transition"
+  import Icon, { loadIcons } from "@iconify/svelte"
+
+  export interface EditorCodeInterface {
+    code(): string
+    entrypoint(): string
+    argnames(): string[]
+  }
 
   let { data }: { data: CodeEditorConfiguration } = $props()
   let editor = $state<PrismEditor | null>(null)
@@ -39,9 +48,24 @@
     )
     setIgnoreTab(false)
   })
+
+  editorRef.set({
+    code: () => editor?.value ?? "",
+    entrypoint: () => data.entrypoint ?? "main",
+    argnames: () => data.argnames ?? [],
+  })
+
+  loadIcons(["svg-spinners:ring-resize"])
 </script>
 
 <div id="editor-code" bind:this={editor as any}></div>
+{#if $editorLoadingState}
+  <div
+    transition:fade={{ duration: 150 }}
+    class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-black border-4 bg-beige-100 bg-opacity-50 backdrop-blur-[2px]">
+    <Icon class="test-pending size-10" icon="svg-spinners:ring-resize" />
+  </div>
+{/if}
 
 <style lang="scss">
   #editor-code :global {

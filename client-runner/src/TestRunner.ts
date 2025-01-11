@@ -1,7 +1,6 @@
 import type { Callbacks } from "./Callbacks"
 import { ErrorType, Executor, type LoggedError, type LogType } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
-import { findBlockByLine } from "@kutelabs/shared"
 
 type Args = any[]
 export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
@@ -21,8 +20,8 @@ export enum TestResult {
 export type ExecutionConfig = {
   argNames: string[]
   entrypoint: string
-  executionDelay: number
   timeout: number
+  executionDelay?: number
   disallowedGlobals?: string[]
   allowedApis?: string[]
   callbacks?: Callbacks
@@ -92,7 +91,7 @@ export class TestRunner {
       return
     }
     this.resetPivotTests()
-    this.executionDelay = config.executionDelay
+    this.executionDelay = config.executionDelay ?? -1
     this.firstCallFinished = false
     this.currentScript = this.buildScript(userCode, config)
 

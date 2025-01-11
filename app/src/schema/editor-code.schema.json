@@ -21,6 +21,13 @@
     "entrypoint": {
       "description": "Entrypoint to the user code, defaults to `main`",
       "type": "string"
+    },
+    "argnames": {
+      "description": "Names of the arguments to the user code",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [

@@ -9,12 +9,13 @@ import {
   clearMessages,
   displayMessage,
   editorLoadingState,
-  editorRef
+  editorRef,
 } from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import { transpileKtJs } from "./transpile"
 import { validateJs } from "./validateJs"
+import type { Atom } from "nanostores"
 
 const executionDelay = {
   fast: 250,
@@ -24,6 +25,7 @@ const executionDelay = {
 
 export class MixedExecutionWrapper extends BaseExecutionWrapper {
   lastRunCode: string | null = null
+  editorRef = editorRef as Atom<EditorMixed>
 
   public speed = persistentAtom<"fast" | "medium" | "slow">("execSpeed")
   public setSpeed = (speed: "fast" | "medium" | "slow") => {
@@ -41,7 +43,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   /**
    * Run code depending on the environment language
    */
-  public override run() {
+  public run() {
     switch (this.environment.language) {
       case "js":
         this.runJs()
@@ -58,8 +60,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
    * Compile and run the code as JS
    */
   public runJs() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
 
@@ -102,8 +103,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
    * Compile the code as Kt, transpile and run
    */
   public async runKt() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
 
@@ -147,20 +147,18 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   }
 
   public printJs() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     const compiled = editor.compile(JsCompiler, this.getCallbacks(editor))
     console.log(compiled.code)
   }
 
   public printKt() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     const compiled = editor.compile(KtCompiler, this.getCallbacks(editor))
     console.log(compiled.code)
   }
 
-  protected override onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {
+  protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {
     if (type == ErrorType.Timeout) {
       displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
     } else if (message.includes("SyntaxError")) {
@@ -170,7 +168,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
-  protected override onUserCodeError(message: string, line: number, _column: number) {
+  protected onUserCodeError(message: string, line: number, _column: number) {
     const editor = editorRef.get()
     if (!editor || !this.lastRunCode) throw new Error("Editor not found")
     const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
@@ -209,6 +207,6 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     if (display) displayMessage(display, "error", { single: true })
     console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")
-    editorRef.get()!.getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
+    this.editorRef.get().getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
   }
 }

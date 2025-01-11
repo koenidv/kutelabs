@@ -2,6 +2,7 @@
   import type JSConfetti from "js-confetti"
   import { onMount } from "svelte"
   import { MixedExecutionWrapper } from "../execution/MixedExecutionWrapper"
+  import { CodeExecutionWrapper } from "../execution/CodeExecutionWrapper"
   import CaretUp from "../icons/caret-up.svelte"
   import PlayIcon from "../icons/play.svelte"
   import FastIcon from "../icons/speed-fast.svelte"
@@ -15,23 +16,29 @@
   const {
     tests,
     environment,
+    editorType,
     confetti: confettiEnabled,
   }: {
     tests: Challenge["tests"]
     environment: Challenge["environment"]
+    editorType: Challenge["editor"]["type"]
     confetti: Boolean
   } = $props()
 
-  const execution = new MixedExecutionWrapper(tests, environment)
-  const speed = execution.speed
+  const execution =
+    editorType == "mixed"
+      ? new MixedExecutionWrapper(tests, environment)
+      : new CodeExecutionWrapper(tests, environment)
+
   const executionRunning = execution.running
+  const speed = execution instanceof MixedExecutionWrapper ? execution.speed : undefined
 
   let debugMenuOpen = $state(false)
   let confetti: JSConfetti | null = null
 
   onMount(async () => {
     // set default on client only to prevent ssr flash
-    if ($speed == undefined) speed.set("medium")
+    if (speed && $speed == undefined) speed.set("medium")
     if (confettiEnabled) confetti = new (await import("js-confetti")).default()
 
     execution.onSuccess = () => {
@@ -71,67 +78,69 @@
       </ElevatedBox>
     </div>
 
-    <div
-      class="h-16 w-16 {$speed == 'fast'
-        ? 'pt-1 pl-1'
-        : ''} transition-[padding] duration-100 ease-out">
-      <ElevatedBox
-        elevation={$speed == "fast" ? 1 : 2}
-        hoverable={true}
-        label="Run your code"
-        className="w-14 h-14"
-        onClick={() => execution.setSpeed("fast")}>
-        <div
-          class="flex items-center justify-center w-full h-full {$speed == 'fast'
-            ? 'bg-beige-100'
-            : 'bg-beige-300'} transition-colors">
-          <FastIcon />
+    {#if execution instanceof MixedExecutionWrapper}
+      <div
+        class="h-16 w-16 {$speed == 'fast'
+          ? 'pt-1 pl-1'
+          : ''} transition-[padding] duration-100 ease-out">
+        <ElevatedBox
+          elevation={$speed == "fast" ? 1 : 2}
+          hoverable={true}
+          label="Run your code"
+          className="w-14 h-14"
+          onClick={() => execution.setSpeed("fast")}>
+          <div
+            class="flex items-center justify-center w-full h-full {$speed == 'fast'
+              ? 'bg-beige-100'
+              : 'bg-beige-300'} transition-colors">
+            <FastIcon />
+          </div>
+        </ElevatedBox>
+      </div>
+      <div
+        class="h-16 w-16 {$speed == 'medium'
+          ? 'pt-1 pl-1'
+          : ''} transition-[padding] duration-100 ease-out">
+        <ElevatedBox
+          elevation={$speed == "medium" ? 1 : 2}
+          hoverable={true}
+          label="Run your code"
+          className="w-14 h-14"
+          onClick={() => execution.setSpeed("medium")}>
+          <div
+            class="flex items-center justify-center w-full h-full {$speed == 'medium'
+              ? 'bg-beige-100'
+              : 'bg-beige-300'} transition-colors">
+            <MediumIcon />
+          </div>
+        </ElevatedBox>
+      </div>
+      <div
+        class="h-16 w-16 {$speed == 'slow'
+          ? 'pt-1 pl-1'
+          : ''} transition-[padding] duration-100 ease-out">
+        <ElevatedBox
+          elevation={$speed == "slow" ? 1 : 2}
+          hoverable={true}
+          label="Run your code"
+          className="w-14 h-14"
+          onClick={() => execution.setSpeed("slow")}>
+          <div
+            class="flex items-center justify-center w-full h-full {$speed == 'slow'
+              ? 'bg-beige-100'
+              : 'bg-beige-300'} transition-colors">
+            <SlowIcon />
+          </div>
+        </ElevatedBox>
+      </div>
+      {#if !debugMenuOpen}
+        <div class="hidden lg:flex pt-2 justify-center">
+          <p class="font-gamja text-2xl text-sideways">Speed →</p>
         </div>
-      </ElevatedBox>
-    </div>
-    <div
-      class="h-16 w-16 {$speed == 'medium'
-        ? 'pt-1 pl-1'
-        : ''} transition-[padding] duration-100 ease-out">
-      <ElevatedBox
-        elevation={$speed == "medium" ? 1 : 2}
-        hoverable={true}
-        label="Run your code"
-        className="w-14 h-14"
-        onClick={() => execution.setSpeed("medium")}>
-        <div
-          class="flex items-center justify-center w-full h-full {$speed == 'medium'
-            ? 'bg-beige-100'
-            : 'bg-beige-300'} transition-colors">
-          <MediumIcon />
-        </div>
-      </ElevatedBox>
-    </div>
-    <div
-      class="h-16 w-16 {$speed == 'slow'
-        ? 'pt-1 pl-1'
-        : ''} transition-[padding] duration-100 ease-out">
-      <ElevatedBox
-        elevation={$speed == "slow" ? 1 : 2}
-        hoverable={true}
-        label="Run your code"
-        className="w-14 h-14"
-        onClick={() => execution.setSpeed("slow")}>
-        <div
-          class="flex items-center justify-center w-full h-full {$speed == 'slow'
-            ? 'bg-beige-100'
-            : 'bg-beige-300'} transition-colors">
-          <SlowIcon />
-        </div>
-      </ElevatedBox>
-    </div>
-  </div>
+      {/if}
 
-  {#if !debugMenuOpen}
-    <div class="hidden lg:flex h-44 justify-center">
-      <p class="font-gamja text-2xl text-sideways">Speed →</p>
-    </div>
-  {/if}
+    {/if}
+  </div>
 
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div class="hidden lg:flex h-full flex-row justify-center items-end">
@@ -149,38 +158,46 @@
 
   {#if debugMenuOpen}
     <div class="flex flex-row lg:flex-col gap-4 items-center">
-      <ElevatedBox
-        elevation={1}
-        hoverable={true}
-        label="Print JS"
-        className="w-14 h-14 bg-beige-300"
-        onClick={execution.printJs.bind(execution)}>
-        <p>Print JS</p>
-      </ElevatedBox>
-      <ElevatedBox
-        elevation={1}
-        hoverable={true}
-        label="Print Kt"
-        className="w-14 h-14 bg-beige-300"
-        onClick={execution.printKt.bind(execution)}>
-        <p>Print Kt</p>
-      </ElevatedBox>
-      <ElevatedBox
-        elevation={1}
-        hoverable={true}
-        label="Run JS"
-        className="w-14 h-14 bg-beige-300"
-        onClick={execution.runJs.bind(execution)}>
-        <p>Run JS</p>
-      </ElevatedBox>
-      <ElevatedBox
-        elevation={1}
-        hoverable={true}
-        label="Run Kt"
-        className="w-14 h-14 bg-beige-300"
-        onClick={execution.runKt.bind(execution)}>
-        <p>Run <br />Kt</p>
-      </ElevatedBox>
+      {#if "printJs" in execution}
+        <ElevatedBox
+          elevation={1}
+          hoverable={true}
+          label="Print JS"
+          className="w-14 h-14 bg-beige-300"
+          onClick={execution.printJs.bind(execution)}>
+          <p>Print JS</p>
+        </ElevatedBox>
+      {/if}
+      {#if "printKt" in execution}
+        <ElevatedBox
+          elevation={1}
+          hoverable={true}
+          label="Print Kt"
+          className="w-14 h-14 bg-beige-300"
+          onClick={execution.printKt.bind(execution)}>
+          <p>Print Kt</p>
+        </ElevatedBox>
+      {/if}
+      {#if "runJs" in execution}
+        <ElevatedBox
+          elevation={1}
+          hoverable={true}
+          label="Run JS"
+          className="w-14 h-14 bg-beige-300"
+          onClick={execution.runJs.bind(execution)}>
+          <p>Run JS</p>
+        </ElevatedBox>
+      {/if}
+      {#if "runKt" in execution}
+        <ElevatedBox
+          elevation={1}
+          hoverable={true}
+          label="Run Kt"
+          className="w-14 h-14 bg-beige-300"
+          onClick={execution.runKt.bind(execution)}>
+          <p>Run <br />Kt</p>
+        </ElevatedBox>
+      {/if}
     </div>
   {/if}
 </div>

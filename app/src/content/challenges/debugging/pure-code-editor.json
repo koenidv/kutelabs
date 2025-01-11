@@ -8,7 +8,8 @@
     "color": "#FF91E9",
     "dialog": {
       "static": "whoaa this is just text, no blocks! scary shit"
-    }
+    },
+    "confetti": true
   },
   "environment": {
     "language": "kt"
@@ -28,7 +29,7 @@
   ],
   "editor": {
     "type": "code",
-    "initialValue": "// welcome to kutelabs\n\nfun main() {\n\tprintln(\"Hello, world!\")\n}\n",
+    "initialValue": "// welcome to kutelabs\n\n@JsExport\n@kotlin.js.ExperimentalJsExport\nfun main() {\n\tprintln(\"Hello, world!\")\n}\n",
     "invisibleCode": "",
     "entrypoint": "main"
   }

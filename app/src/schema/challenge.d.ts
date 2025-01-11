@@ -525,5 +525,9 @@ export interface CodeEditorConfiguration {
    * Entrypoint to the user code, defaults to `main`
    */
   entrypoint?: string
+  /**
+   * Names of the arguments to the user code
+   */
+  argnames?: string[]
   [k: string]: unknown
 }

@@ -1,8 +1,8 @@
-import type { TestResult } from "@kutelabs/client-runner"
-import type { LogType } from "@kutelabs/client-runner"
+import type { LogType, TestResult } from "@kutelabs/client-runner"
 import type { EditorMixed } from "@kutelabs/editor-mixed"
 import { IdGenerator } from "@kutelabs/shared/src"
 import { atom, map } from "nanostores"
+import type { EditorCodeInterface } from "../components/EditorCodeWrapper.svelte"
 
 /* Stores the state of the tests. The display data however is passed to the Tests component directly to enable SSR.*/
 export const testState = map<Record<string, { state: TestResult | null; message?: string }>>({})
@@ -17,9 +17,10 @@ export function addLog(log: any[], type: LogType) {
 }
 
 /* Stores a reference to the DOM element of the current editor  */
-export const editorRef = atom<null | EditorMixed>(null)
+export const editorRef = atom<null | EditorMixed | EditorCodeInterface>(null)
 /** Stores the editor loading ui state */
 export const editorLoadingState = atom(false)
+export const textEditorValue = atom("")
 
 /** Stores the snackbar display queue */
 export const snackbarState = atom<
