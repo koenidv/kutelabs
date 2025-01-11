@@ -19,6 +19,7 @@ export class DragHelper {
   private readonly workspaceRef: Ref<SVGSVGElement>
   private readonly requestRerender: (full: boolean) => void
   private readonly removeWidgets: () => void
+  private readonly drawerEnabled: boolean
   private readonly collapseDrawer: () => void
 
   constructor(
@@ -29,6 +30,7 @@ export class DragHelper {
     rerenderDrag: () => void,
     rerenderWorkspace: () => void,
     removeWidgets: () => void,
+    drawerEnabled: boolean,
     collapseDrawer: () => void
   ) {
     this.blockRegistry = blockRegistry
@@ -40,6 +42,7 @@ export class DragHelper {
       if (full) rerenderWorkspace()
     }
     this.removeWidgets = removeWidgets
+    this.drawerEnabled = drawerEnabled
     this.collapseDrawer = collapseDrawer
   }
   private dragged: AnyRegisteredBlock | null = null
@@ -319,6 +322,7 @@ export class DragHelper {
    * Tests if a position is within the referenced drawer bounds
    */
   private testTouchInDrawer(x: number, y: number): boolean {
+    if (!this.drawerEnabled) return false
     const root = this.workspaceRef.value?.getRootNode() as SVGElement | null
     const bounds = root?.querySelector("#drawer")?.getBoundingClientRect()
     if (!bounds) {
@@ -473,7 +477,11 @@ export class DragHelper {
    * @param block block to connect
    * @param upstream previous upstream block
    */
-  private connectToDrawer(block: AnyBlock, upstream: AnyBlock | null) {
+  private connectToDrawer(block: AnyBlock, upstream: AnyBlock | null, cancel: () => void) {
+    if (!this.drawerEnabled) {
+      srAnnounce(this.workspaceRef, "Drawer is not enabled")
+      return cancel()
+    }
     this.blockRegistry.attachToDrawer(block)
     if (upstream) {
       focusBlockElement(this.workspaceRef, upstream.id)

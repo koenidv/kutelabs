@@ -269,6 +269,7 @@ export class EditorMixed extends LitElement {
       () => this.dragLayerRef.value?.requestUpdate(),
       this.requestUpdate.bind(this),
       () => this.widgetRenderer?.removeWidget?.(),
+      this.data.hideDrawer != true,
       () => this.drawerRenderer?.setExpanded?.(false)
     )
   }

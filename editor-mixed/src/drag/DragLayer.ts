@@ -25,7 +25,7 @@ export class DragLayer extends PerformanceLitElement {
         width="100%"
         height="100%"
         viewBox="0 0 800 800"
-        style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges;"
+        style="position: absolute; top: 0; left: 0; shape-rendering: crispEdges; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.15));"
         pointer-events="none">
         ${this.dragRenderer!.render()}
       </svg>
