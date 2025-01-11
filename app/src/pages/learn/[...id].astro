@@ -46,7 +46,7 @@ const challenge = Astro.props.challenge as Challenge
 
               <hr />
 
-              <Tests tests={challenge.tests} client:load />
+              <Tests tests={challenge.tests} client:idle />
 
               <div class="hidden lg:flex flex-col justify-between h-full gap-6 flex-grow">
                 <hr />
@@ -75,7 +75,7 @@ const challenge = Astro.props.challenge as Challenge
         </Tabs>
       </div>
 
-      <Controls tests={challenge.tests} environment={challenge.environment} client:load />
+      <Controls tests={challenge.tests} environment={challenge.environment} confetti={challenge.story.confetti} client:load />
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
         <EditorMixed data={challenge.editor} client:only="svelte" />

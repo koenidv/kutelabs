@@ -181,6 +181,10 @@ export interface Challenge {
     color?: string
     imageStart?: Image
     imageEnd?: Image
+    /**
+     * Show confetti when the story is completed
+     */
+    confetti?: boolean
   }
   environment: {
     /**

@@ -12,7 +12,8 @@
     },
     "dialog": {
       "static": "Hey, good to see you!<br/>Really cool that you want to learn programming.<br/><br/> Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.<br/><br/><i>For now, just follow my steps:</i><br/><br/>1. Drag the text input block to that really wide blue block<br/>2. Enter your name in the input<br/>3. Click the run button<br/><br/><b>Let's see what happens!</b>"
-    }
+    },
+    "confetti": true
   },
   "environment": {
     "language": "js",

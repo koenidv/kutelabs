@@ -67,6 +67,10 @@
         },
         "imageEnd": {
           "$ref": "#/$defs/image"
+        },
+        "confetti": {
+          "type": "boolean",
+          "description": "Show confetti when the story is completed"
         }
       },
       "required": [

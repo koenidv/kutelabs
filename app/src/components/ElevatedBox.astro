@@ -19,7 +19,7 @@ const { elevation = 4, hoverable = false, label, class: className, style, onClic
   ]}
   style={style}
   tabindex="${hoverable ? 0 : -1}"
-  onclick="{onClick}"
+  onclick="{() => onClick && onClick()}"
   onkeydown="{(e) => e.key === 'Enter' && onClick && onClick()}"
   aria-label={label}>
   <div class:list={["h-full w-full border-l-4 border-t-4 border-r-2 border-b-2 border-black"]}>

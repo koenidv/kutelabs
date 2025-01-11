@@ -24,7 +24,7 @@
   {style}
   tabindex={hoverable ? 0 : -1}
   aria-label={label}
-  on:click={onClick}
+  on:click={() => onClick && onClick()}
   on:keydown={(e) => e.key === "Enter" && onClick()}
   role={hoverable ? "button" : undefined}>
   <div class="h-full w-full border-l-4 border-t-4 border-r-2 border-b-2 border-black">

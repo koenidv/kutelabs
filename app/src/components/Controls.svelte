@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onDestroy, onMount } from "svelte"
   import { ExecutionWrapper } from "../execution/MixedExecutionWrapper"
   import CaretUp from "../icons/caret-up.svelte"
   import PlayIcon from "../icons/play.svelte"
@@ -9,21 +9,42 @@
   import StopIcon from "../icons/stop.svelte"
   import type { Challenge } from "../schema/challenge"
   import ElevatedBox from "./ElevatedBox.svelte"
+  import type JSConfetti from "js-confetti"
 
   const {
     tests,
     environment,
-  }: { tests: Challenge["tests"]; environment: Challenge["environment"] } = $props()
+    confetti: confettiEnabled,
+  }: {
+    tests: Challenge["tests"]
+    environment: Challenge["environment"]
+    confetti: Boolean
+  } = $props()
 
   const execution = new ExecutionWrapper(tests, environment)
   const speed = execution.speed
   const executionRunning = execution.running
 
   let debugMenuOpen = $state(false)
+  let challengeCompleted = false
+  let confetti: JSConfetti = null
 
-  onMount(() => {
+  onMount(async () => {
     // set default on client only to prevent ssr flash
     if ($speed == undefined) speed.set("medium")
+    if (confettiEnabled) confetti = new (await import("js-confetti")).default()
+
+    execution.onSuccess = () => {
+      if (confetti && !challengeCompleted)
+        confetti.addConfetti({
+          emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
+        })
+      challengeCompleted = true
+    }
+  })
+
+  onDestroy(() => {
+    if (confetti) confetti.destroyCanvas()
   })
 </script>
 

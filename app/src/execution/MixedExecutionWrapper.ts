@@ -1,4 +1,4 @@
-import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
+import { SandboxTestRunner, TestResult, type TestSuite } from "@kutelabs/client-runner"
 import {
   addLog,
   clearMessages,
@@ -30,15 +30,21 @@ export class ExecutionWrapper {
   private environment: Challenge["environment"]
 
   public running = atom(false)
+  public runFailed = atom(false)
+  public onSuccess = () => {}
 
   constructor(tests: Challenge["tests"], environment: Challenge["environment"]) {
     this.testRunner = new SandboxTestRunner(
       this.parseTests(tests),
-      setTestResult,
+      (id, result) => {
+        if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
+        setTestResult(id, result)
+      },
       addLog,
       (type, message) => {
         this.running.set(false)
         addLog([message], "error")
+        this.runFailed.set(true)
         if (type == ErrorType.Timeout) {
           displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
         } else if (message.includes("SyntaxError")) {
@@ -50,6 +56,7 @@ export class ExecutionWrapper {
       this.onBlockError.bind(this),
       () => {
         this.running.set(false)
+        if (!this.runFailed.get()) this.onSuccess()
       }
     )
     this.environment = environment
@@ -110,6 +117,7 @@ export class ExecutionWrapper {
     const editor = editorRef.get()
     if (!editor) throw new Error("Editor not found")
     editor.clearMarkings()
+    this.runFailed.set(false)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
@@ -152,6 +160,7 @@ export class ExecutionWrapper {
     const editor = editorRef.get()
     if (!editor) throw new Error("Editor not found")
     editor.clearMarkings()
+    this.runFailed.set(false)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
@@ -230,6 +239,7 @@ export class ExecutionWrapper {
       )
     } catch {
       displayMessage("Transpilation failed", "error", { single: true })
+      this.runFailed.set(true)
       console.error("Transpilation failed", transpiled)
     }
   }
@@ -242,6 +252,7 @@ export class ExecutionWrapper {
 
   private onBlockError(id: string, message: string, display: string | undefined = message) {
     addLog([message], "error")
+    this.runFailed.set(true)
     if (display) displayMessage(display, "error", { single: true })
     console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")
