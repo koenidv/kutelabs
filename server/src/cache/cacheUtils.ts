@@ -44,12 +44,17 @@ export async function existsInCache(inputOptions: string[]) {
     return await fs.exists(join(await baseCacheDir(), hash(inputOptions.join()).toString()))
   } catch (e) {
     console.error(e)
+    return false
   }
 }
 
-export async function readTranspiledCache(input: string): Promise<ResultDTO> {
+/**
+  * Read the transpiled code from cache
+  * @param inputOptions includes all options that would be used to write the code to cache
+  */
+export async function readTranspiledCache(inputOptions: string[]): Promise<ResultDTO> {
   try {
-    const cached = await readFile(await baseCacheDir(), hash(input).toString())
+    const cached = await readFile(await baseCacheDir(), hash(inputOptions.join()).toString())
     return ResultDTO.fromJSON(cached)
   } catch (e) {
     console.error(e)

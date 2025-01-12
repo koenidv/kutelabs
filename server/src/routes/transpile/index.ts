@@ -28,8 +28,9 @@ app.post("/kt/js", async c => {
 
   const ipHash = Bun.hash(getConnInfo(c).remote.address ?? "").toString() ?? "anynomous"
   // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
+  const inputID = [code, generateSourceMap ? "sourcemap" : ""]
 
-  if (env.CACHE_ENABLED && (await existsInCache([code, generateSourceMap ? "sourcemap" : ""]))) {
+  if (env.CACHE_ENABLED && (await existsInCache(inputID))) {
     posthog.capture({
       distinctId: ipHash,
       event: "transpile_request",
@@ -42,7 +43,7 @@ app.post("/kt/js", async c => {
     })
 
     return c.json(
-      (await readTranspiledCache(code)).postProcess(code =>
+      (await readTranspiledCache(inputID)).postProcess(code =>
         restoreBlockIds(code, standardizedBlockIds)
       )
     )
@@ -52,7 +53,7 @@ app.post("/kt/js", async c => {
     await transpile(code, includeCoroutineLib, generateSourceMap)
   )
   if (shouldCache(dto.status))
-    await writeTranspiledCache([code, generateSourceMap ? "sourcemap" : ""], dto)
+    await writeTranspiledCache(inputID, dto)
 
   posthog.capture({
     distinctId: ipHash,
