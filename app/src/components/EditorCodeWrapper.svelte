@@ -59,7 +59,7 @@
 {#if $editorLoadingState}
   <div
     transition:fade={{ duration: 150 }}
-    class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-black border-4 bg-beige-100 bg-opacity-50 backdrop-blur-[2px]">
+    class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-beige-600 border-4 bg-beige-800 text-white bg-opacity-50 backdrop-blur-[2px]">
     <Icon class="test-pending size-10" icon="svg-spinners:ring-resize" />
   </div>
 {/if}

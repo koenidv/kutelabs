@@ -1,15 +1,23 @@
+import { Callbacks } from "@kutelabs/client-runner/src/Callbacks"
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
+import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
 import type { Atom } from "nanostores"
 import type { EditorCodeInterface } from "../components/EditorCodeWrapper.svelte"
-import { clearMessages, displayMessage, editorLoadingState, editorRef } from "../state/state"
+import {
+  addLog,
+  clearMessages,
+  displayMessage,
+  editorLoadingState,
+  editorRef,
+} from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { transpileKtJs } from "./transpile"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
-import { Callbacks } from "@kutelabs/client-runner/src/Callbacks"
-import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
+import { SourceMapConsumer } from "source-map-js"
 
 export class CodeExecutionWrapper extends BaseExecutionWrapper {
   editorRef = editorRef as Atom<EditorCodeInterface>
+  lastSourceMap: string | null = null
 
   public run(): void {
     const editor = this.editorRef.get()
@@ -17,7 +25,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     displayMessage("Processing", "info", { duration: -1, single: true })
     editorLoadingState.set(true)
 
-    transpileKtJs(editor.code()) // todo kotlin code has to be preprocessed to include DCE annotations
+    transpileKtJs(editor.code(), false, true) // todo kotlin code has to be preprocessed to include DCE annotations
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -29,9 +37,9 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         editorLoadingState.set(false)
         clearMessages()
         this.runFailed.set(false)
-
         console.log(transpiled.transpiledCode)
 
+        this.lastSourceMap = transpiled.sourceMap
         this.testRunner.execute(transpiled.transpiledCode, {
           argNames: editor.argnames(),
           entrypoint: `transpiled.${editor.entrypoint()}`,
@@ -76,25 +84,39 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
-  protected onUserCodeError(message: string, line: number, column: number): void {
-    console.error("User code error", message, `${line}:${column}`)
-    displayMessage(`An error occured in line ${line}`, "error", { single: true }) // todo get the kotlin code line number from sourcemap
+  protected async onUserCodeError(message: string, line: number, column: number) {
+    console.error("User code error", message, `transpiled:${line}:${column}`)
+    if (!this.lastSourceMap) {
+      displayMessage("An error occured", "error", { single: true })
+      return
+    }
+    const consumer = new SourceMapConsumer(JSON.parse(this.lastSourceMap))
+    console.log(consumer.sources)
+    const originalPosition = consumer.originalPositionFor({ line, column })
+    console.log(originalPosition)
+    displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
+    addLog([message, `at ${originalPosition.line}:${originalPosition.column}`], "error")
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, _originalCode: string) {
     try {
       this.running.set(false)
       editorLoadingState.set(false)
+      this.runFailed.set(true)
       if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
-      // const line = this.matchLineInTranspilationError(transpiled.message)
+
+      if (transpiled.status == TranspilationStatus.CompilationError) {
+        const line = this.matchLineInTranspilationError(transpiled.message)
+        displayMessage(`Please check line ${line}`, "error", { single: true })
+        addLog([transpiled.message], "error")
+        return
+      }
 
       // todo (1) generate sourcemap on server, (2) use it to highlight the error
       displayMessage("Transpilation failed", "error", { single: true })
-      this.runFailed.set(true)
       console.error("Transpilation failed", transpiled)
     } catch {
       displayMessage("Transpilation failed", "error", { single: true })
-      this.runFailed.set(true)
       console.error("Transpilation failed", transpiled)
     }
   }

@@ -241,7 +241,6 @@ export class TestRunner {
    * @param error the error that occured
    */
   private onError(type: ErrorType, error: ErrorEvent | LoggedError) {
-    console.log("Error:", type, error)
     if (type == ErrorType.Worker || type == ErrorType.Timeout) {
       this.failRemainingTests()
       this.onGeneralError(type, error.message)
@@ -250,6 +249,7 @@ export class TestRunner {
 
     const linecol = this.matchLineInStack((error as LoggedError).stack)
     if (!linecol) throw new Error(`Could not find line in stack: ${(error as LoggedError).stack}`)
+    linecol[0] -= this.findUserFunctionStartLine()
     this.failRemainingTests((error as LoggedError).message)
     this.onUserCodeError((error as LoggedError).message, ...linecol)
   }
@@ -266,14 +266,17 @@ export class TestRunner {
   }
 
   /**
-   * Finds the user code in the worker script by matching the __startUser and __endUser markings
-   * @returns
+   * Finds the index of the first user line in the worker script
    */
-  private matchUserFunctionLines(): string[] {
-    const userFunction = this.currentScript!.match(
-      /\/\*__startUser\*\/([\s\S]*)\/\*__endUser\*\//
-    )!.pop()
-    return userFunction!.split("\n")
+  private findUserFunctionStartLine(): number {
+    // find __startUser line
+    if (!this.currentScript) return 0
+    const line = this.currentScript.split("\n").findIndex(line => line.includes("__startUser"))
+    if (line === -1) {
+      console.error("Could not find __startUser line in worker script")
+      return 0
+    }
+    return line + 1
   }
 
   /**
