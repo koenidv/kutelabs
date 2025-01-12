@@ -23,6 +23,7 @@
     entrypoint(): string
     argnames(): string[]
     highlight(line: number, column: number): void
+    clearHighlight(): void
   }
 
   let { data }: { data: CodeEditorConfiguration } = $props()
@@ -45,6 +46,8 @@
       highlightBracketPairs()
     )
     setIgnoreTab(false)
+
+    editor.addListener("update", () => clearHighlight())
   })
 
   function highlightLine(line: number): Element | null {
@@ -72,11 +75,21 @@
     if (lineElement) highlightToken(lineElement, column)
   }
 
+  function clearHighlight() {
+    editor?.wrapper
+      .querySelectorAll(".error-line")
+      .forEach((line: Element) => line.classList.remove("error-line"))
+    editor?.wrapper
+      .querySelectorAll(".error-token")
+      .forEach((token: Element) => token.classList.remove("error-token"))
+  }
+
   editorRef.set({
     code: () => editor?.value ?? "",
     entrypoint: () => data.entrypoint ?? "main",
     argnames: () => data.argnames ?? [],
     highlight: highlight,
+    clearHighlight: clearHighlight,
   })
 
   loadIcons(["svg-spinners:ring-resize"])

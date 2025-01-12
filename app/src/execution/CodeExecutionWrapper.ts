@@ -85,13 +85,11 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
 
   protected async onUserCodeError(message: string, line: number, column: number) {
     console.error("User code error", message, `transpiled:${line}:${column}`)
-    if (!this.lastSourceMap) {
-      displayMessage("An error occured", "error", { single: true })
-      return
-    }
+    if (!this.lastSourceMap) return displayMessage("An error occured", "error", { single: true })
 
     const consumer = new SourceMapConsumer(JSON.parse(this.lastSourceMap))
     const originalPosition = consumer.originalPositionFor({ line, column })
+    if (!originalPosition.line) return displayMessage("An error occured", "error", { single: true })
 
     displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
     this.editorRef.get().highlight(originalPosition.line, originalPosition.column)
