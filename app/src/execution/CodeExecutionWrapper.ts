@@ -13,11 +13,13 @@ import {
 } from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { transpileKtJs } from "./transpile"
-import { SourceMapConsumer } from "source-map-js"
+import { SourceMapConsumer, type RawSourceMap } from "source-map-js"
+import { preprocessKotlin } from "./preprocessKotlin"
 
 export class CodeExecutionWrapper extends BaseExecutionWrapper {
   editorRef = editorRef as Atom<EditorCodeInterface>
-  lastSourceMap: string | null = null
+  preprocessSourceMap: RawSourceMap | null = null
+  transpileSourceMap: string | null = null
 
   public run(): void {
     const editor = this.editorRef.get()
@@ -25,7 +27,11 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     displayMessage("Processing", "info", { duration: -1, single: true })
     editorLoadingState.set(true)
 
-    transpileKtJs(editor.code(), false, true) // todo kotlin code has to be preprocessed to include DCE annotations
+    const preprocessed = preprocessKotlin(editor.code())
+    this.preprocessSourceMap = preprocessed.sourceMap
+    console.log(preprocessed.code)
+
+    transpileKtJs(preprocessed.code, false, true)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -38,7 +44,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         clearMessages()
         this.runFailed.set(false)
 
-        this.lastSourceMap = transpiled.sourceMap
+        this.transpileSourceMap = transpiled.sourceMap
         this.testRunner.execute(transpiled.transpiledCode, {
           argNames: editor.argnames(),
           entrypoint: `transpiled.${editor.entrypoint()}`,
@@ -84,16 +90,23 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
   }
 
   protected async onUserCodeError(message: string, line: number, column: number) {
-    console.error("User code error", message, `transpiled:${line}:${column}`)
-    if (!this.lastSourceMap) return displayMessage("An error occured", "error", { single: true })
+    if (!this.transpileSourceMap || !this.preprocessSourceMap)
+      return displayMessage("An error occured", "error", { single: true })
 
-    const consumer = new SourceMapConsumer(JSON.parse(this.lastSourceMap))
-    const originalPosition = consumer.originalPositionFor({ line, column })
-    if (!originalPosition.line) return displayMessage("An error occured", "error", { single: true })
+    const intermediatePosition = new SourceMapConsumer(
+      JSON.parse(this.transpileSourceMap)
+    ).originalPositionFor({ line, column })
+    if (!intermediatePosition.line)
+      return displayMessage("An error occured", "error", { single: true })
+
+    const originalPosition = new SourceMapConsumer(this.preprocessSourceMap).originalPositionFor({
+      line: intermediatePosition.line,
+      column: intermediatePosition.column,
+    })
 
     displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
-    this.editorRef.get().highlight(originalPosition.line, originalPosition.column)
-    addLog([message, `at ${originalPosition.line}:${originalPosition.column}`], "error")
+    this.editorRef.get().highlight(originalPosition.line, intermediatePosition.column)
+    addLog([message, `at ${originalPosition.line}:${intermediatePosition.column}`], "error")
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, _originalCode: string) {

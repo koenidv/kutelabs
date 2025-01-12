@@ -85,7 +85,7 @@
   }
 
   editorRef.set({
-    code: () => editor?.value ?? "",
+    code: () => (editor?.value ? editor.value + "\n" + data.invisibleCode : ""),
     entrypoint: () => data.entrypoint ?? "main",
     argnames: () => data.argnames ?? [],
     highlight: highlight,
