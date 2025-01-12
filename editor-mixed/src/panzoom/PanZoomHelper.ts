@@ -103,7 +103,7 @@ export class PanZoomHelper {
     this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, 1)
 
     this.removeWidgets()
-    this.onScaleChanged(newSize / this.initialWorkspaceSize!.width)
+    this.onScaleChanged(newSize / this.initialWorkspaceSize!.width * (window.screen.width / window.innerWidth))
   }
 
   /**
