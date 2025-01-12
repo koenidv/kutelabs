@@ -17,10 +17,11 @@ export abstract class BaseExecutionWrapper {
     environment: Challenge["environment"],
     runner?: SandboxTestRunner
   ) {
+    const testsParsed = this.parseTests(tests)
     this.testRunner =
       runner ??
       new SandboxTestRunner(
-        this.parseTests(tests),
+        testsParsed,
         (id, result) => {
           if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
           setTestResult(id, result)

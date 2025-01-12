@@ -1,11 +1,11 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
-    "order": 4,
+    "order": 1,
     "title": "Pure Code Editor",
-    "description": "This story implements the pure code editor",
+    "description": "Say hello to a world of pure code",
     "published": "2024-01-01T00:00:00Z",
-    "color": "#FF91E9",
+    "color": "#be93fe",
     "dialog": {
       "static": "whoaa this is just text, no blocks! scary shit"
     },
@@ -29,7 +29,7 @@
   ],
   "editor": {
     "type": "code",
-    "initialValue": "// welcome to kutelabs\n\n@JsExport\n@kotlin.js.ExperimentalJsExport\nfun main() {\n\tprintln(\"Hello, world!\")\n}\n",
+    "initialValue": "// welcome to kutelabs!\n\nfun main() {\n\tprintln(\"Hello, world!\")\n}\n",
     "invisibleCode": "",
     "entrypoint": "main"
   }

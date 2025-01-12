@@ -23,7 +23,9 @@
   }
 </script>
 
-<hr />
+{#if tests.length}
+  <hr />
+{/if}
 
 <div class="flex flex-col gap-4">
   {#each tests as test}

@@ -40,6 +40,7 @@
     // set default on client only to prevent ssr flash
     if (speed && $speed == undefined) speed.set("medium")
     if (confettiEnabled) confetti = new (await import("js-confetti")).default()
+    if (tests.flatMap(t => Object.keys(t.run)).length == 0) challengeCompleted.set(true)
 
     execution.onSuccess = () => {
       if (confetti && !challengeCompleted.get())
@@ -138,7 +139,6 @@
           <p class="font-gamja text-2xl text-sideways">Speed →</p>
         </div>
       {/if}
-
     {/if}
   </div>
 

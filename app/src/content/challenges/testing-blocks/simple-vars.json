@@ -1,7 +1,7 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
-    "order": 2,
+    "order": 1,
     "title": "simple vars",
     "description": "let's test some variable",
     "published": "2024-01-01T00:00:00Z",

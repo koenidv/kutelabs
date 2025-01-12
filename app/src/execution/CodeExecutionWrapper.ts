@@ -42,6 +42,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         }
         editorLoadingState.set(false)
         clearMessages()
+        this.editorRef.get().clearHighlight()
         this.runFailed.set(false)
 
         this.transpileSourceMap = transpiled.sourceMap

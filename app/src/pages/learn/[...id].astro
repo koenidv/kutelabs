@@ -59,15 +59,16 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
               <Tests tests={challenge.tests} client:idle />
 
               <div class="hidden lg:flex flex-col justify-between h-full gap-6 flex-grow">
-                <hr />
                 {
                   challenge.story.imageStart ? (
+                    <hr />
                     <img
-                      src={challenge.story.imageStart.src}
-                      alt={challenge.story.title}
-                      class="w-[80%] max-w-48"
+                    src={challenge.story.imageStart.src}
+                    alt={challenge.story.title}
+                    class="w-[80%] max-w-48"
                     />
                   ) : challenge.story.imageEnd ? (
+                    <hr />
                     <img
                       src={challenge.story.imageEnd.src}
                       alt={challenge.story.title}
@@ -93,7 +94,7 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
         client:load
       />
 
-      <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
+      <ElevatedBox elevation={2} class="flex-grow-[2] max-lg:h-[80vh] flex min-w-0 w-full">
         <div
           class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-l-4 border-t-4 border-r-2 border-b-2 border-black bg-beige-100">
           <Icon name="svg-spinners:ring-resize" />

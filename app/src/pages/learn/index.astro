@@ -38,17 +38,17 @@ const challenges = await navigationStore.getChallenes()
                     hoverable
                     class="w-full bg-beige-50"
                     style={`background-color: ${data.story.color}`}>
-                    <div class="h-40 flex flex-row items-center justify-between gap-4">
+                    <div class="min-h-40 flex flex-row items-end justify-between gap-4">
                       {data.story.imageStart ? (
                         <img
                           src={data.story.imageStart.src}
                           alt={data.story.imageStart.alt}
-                          class="h-full"
+                          class="h-full max-h-32 lg:max-h-40"
                         />
                       ) : (
                         <div class="w-8" />
                       )}
-                      <div class="w-full flex flex-col items-start justify-center gap-2">
+                      <div class="w-full h-full flex flex-col items-start justify-center gap-2 py-4 min-h-40">
                         <h1 class="text-xl font-poppins font-black">{data.story.title}</h1>
                         <p set:html={data.story?.description} />
                       </div>
@@ -56,7 +56,7 @@ const challenges = await navigationStore.getChallenes()
                         <img
                           src={data.story.imageEnd.src}
                           alt={data.story.imageEnd.alt}
-                          class="h-full"
+                          class="h-full max-h-40"
                         />
                       ) : (
                         <div class="w-8" />
