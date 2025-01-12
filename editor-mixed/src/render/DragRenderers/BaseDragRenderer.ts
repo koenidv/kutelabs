@@ -25,6 +25,11 @@ export abstract class BaseDragRenderer {
   private snap: Connection | null = null
   private position = Coordinates.zero
 
+  private cached: {
+    block?: AnyBlock
+    rendered?: TemplateResult<2>
+  } = {}
+
   /**
    * Update the dragged block, position and snap connection.
    * This must be called every time the dragged block is moved,
@@ -54,9 +59,21 @@ export abstract class BaseDragRenderer {
    */
   render() {
     if (this.dragged == null) return nothing
+
+    let renderedBlock: TemplateResult<2>
+    if (this.cached.block === this.dragged.block && this.cached.rendered) {
+      renderedBlock = this.cached.rendered
+    } else {
+      renderedBlock = this.blockRenderer.renderBlock(this.dragged.block, Coordinates.zero, {
+        level: 0,
+        tabindex: -100000,
+      })
+      this.cached.rendered = renderedBlock
+    }
+
     return [
       // pointer-events="none" is required to detect dropping on the drawer
-      svg`<g pointer-events="none">${this.blockRenderer.renderBlock(this.dragged.block, this.position, { level: 0, tabindex: -100000 })}</g>`,
+      svg`<g pointer-events="none" transform="translate(${this.position.x}, ${this.position.y})">${renderedBlock}</g>`,
       this.renderSnap(),
     ]
   }
