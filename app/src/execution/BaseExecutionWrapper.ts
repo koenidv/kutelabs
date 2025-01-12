@@ -2,11 +2,13 @@ import { SandboxTestRunner, TestResult, type TestSuite } from "@kutelabs/client-
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 import { atom } from "nanostores"
 import type { Challenge } from "../schema/challenge"
-import { addLog, setTestResult } from "../state/state"
+import { addLog, editorLoadingState, setTestResult } from "../state/state"
 
 export abstract class BaseExecutionWrapper {
   protected readonly testRunner: SandboxTestRunner
   protected readonly environment: Challenge["environment"]
+
+  protected readonly abortController = new AbortController()
 
   public running = atom(false)
   public runFailed = atom(false)
@@ -47,8 +49,11 @@ export abstract class BaseExecutionWrapper {
   protected abstract onUserCodeError(message: string, line: number, column: number): void
 
   public stop() {
-    // todo stop executor
-    console.error("Stopping execution is not yet implemented")
+    this.abortController.abort("Execution stopped")
+    this.running.set(false)
+    editorLoadingState.set(false)
+    this.runFailed.set(true)
+    this.testRunner.cancel()
   }
 
   private parseTests(rawTests: Challenge["tests"]): TestSuite {

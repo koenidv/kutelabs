@@ -23,15 +23,15 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
 
   public run(): void {
     const editor = this.editorRef.get()
+    this.running.set(true)
     this.runFailed.set(false)
     displayMessage("Processing", "info", { duration: -1, single: true })
     editorLoadingState.set(true)
 
     const preprocessed = preprocessKotlin(editor.code())
     this.preprocessSourceMap = preprocessed.sourceMap
-    console.log(preprocessed.code)
 
-    transpileKtJs(preprocessed.code, false, true)
+    transpileKtJs(this.abortController, preprocessed.code, false, true)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -52,14 +52,15 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
           callbacks: new Callbacks(), // todo app features, these will also have to be defined before the kotlin code
           timeout: 1000,
         })
-        this.running.set(true)
       })
       .catch(err => {
-        console.error("Transpilation: Fetch failed", err)
         editorLoadingState.set(false)
-        displayMessage("Please check your connection", "error", { single: true })
+        this.running.set(false)
         this.runFailed.set(true)
-        return
+        clearMessages()
+        if (err == "Execution stopped") return
+        console.error("Transpilation: Fetch failed", err)
+        displayMessage("Please check your connection", "error", { single: true })
       })
   }
 
@@ -69,18 +70,21 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
 
   public printJs() {
     editorLoadingState.set(true)
-    transpileKtJs(this.editorRef.get().code())
+    this.running.set(true)
+    transpileKtJs(this.abortController, this.editorRef.get().code())
       .then(transpiled => {
         editorLoadingState.set(false)
         console.log(transpiled?.transpiledCode)
       })
-      .catch(e => {
+      .finally(() => {
         editorLoadingState.set(false)
-        throw e
+        this.running.set(false)
       })
   }
 
   protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string): void {
+    this.running.set(false)
+    this.runFailed.set(true)
     if (type == ErrorType.Timeout) {
       displayMessage("Your code took too long to execute", "error", { single: true })
     } else if (message.includes("SyntaxError")) {
@@ -91,6 +95,8 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
   }
 
   protected async onUserCodeError(message: string, line: number, column: number) {
+    this.running.set(false)
+    this.runFailed.set(true)
     if (!this.transpileSourceMap || !this.preprocessSourceMap)
       return displayMessage("An error occured", "error", { single: true })
 

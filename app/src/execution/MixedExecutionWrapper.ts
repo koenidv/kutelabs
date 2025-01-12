@@ -63,6 +63,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
+    this.running.set(true)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
@@ -96,7 +97,6 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
       ?.then(_result => {
         editor.onExecutionFinished()
       })
-    this.running.set(true)
   }
 
   /**
@@ -106,13 +106,14 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
+    this.running.set(true)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
     displayMessage("Processing", "info", { duration: -1, single: true })
     editorLoadingState.set(true)
 
-    transpileKtJs(compiled.code)
+    transpileKtJs(this.abortController, compiled.code)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -136,12 +137,15 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
           ?.then(_result => {
             editor.onExecutionFinished()
           })
-        this.running.set(true)
       })
       .catch(err => {
-        console.error("Transpilation: Fetch failed", err)
         editorLoadingState.set(false)
+        this.running.set(false)
+        this.runFailed.set(true)
+        clearMessages()
+        if (err == "Execution stopped") return
         displayMessage("Please check your connection", "error", { single: true })
+        console.error("Transpilation: Fetch failed", err)
         return
       })
   }
@@ -159,6 +163,8 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   }
 
   protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {
+    this.running.set(false)
+    this.runFailed.set(true)
     if (type == ErrorType.Timeout) {
       displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
     } else if (message.includes("SyntaxError")) {
@@ -169,6 +175,8 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   }
 
   protected onUserCodeError(message: string, line: number, _column: number) {
+    this.running.set(false)
+    this.runFailed.set(true)
     const editor = editorRef.get()
     if (!editor || !this.lastRunCode) throw new Error("Editor not found")
     const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
@@ -204,6 +212,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   private onBlockError(id: string, message: string, display: string | undefined = message) {
     addLog([message], "error")
     this.runFailed.set(true)
+    this.running.set(false)
     if (display) displayMessage(display, "error", { single: true })
     console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")

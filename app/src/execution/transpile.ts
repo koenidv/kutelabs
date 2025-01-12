@@ -2,6 +2,7 @@ import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/R
 import { PUBLIC_API_BASE_URL } from "astro:env/client"
 
 export async function transpileKtJs(
+  abortController: AbortController,
   code: string,
   coroutineLib = true,
   generateSourceMap = false
@@ -17,6 +18,7 @@ export async function transpileKtJs(
       includeCoroutineLib: coroutineLib,
       generateSourceMap: generateSourceMap,
     }),
+    signal: abortController.signal,
   })
   if (!res.ok) return null
   const json = await res.json()

@@ -15,6 +15,7 @@ export enum TestResult {
   Failed = "failed",
   Timeout = "timeout",
   Error = "error",
+  None = "none",
 }
 
 export type ExecutionConfig = {
@@ -96,6 +97,14 @@ export class TestRunner {
     this.currentScript = this.buildScript(userCode, config)
 
     return this.executor.execute(this.currentScript, config.timeout, config.callbacks)
+  }
+
+  /**
+   * Cancels the execution of the user code and all tests.
+   */
+  cancel() {
+    this.executor.cancel?.()
+    this.failRemainingTests("Execution stopped", TestResult.None)
   }
 
   /**
@@ -198,9 +207,9 @@ export class TestRunner {
   /**
    * Fails all still remaining tests. This is called when an error occurs or the execution times out.
    */
-  private failRemainingTests(message?: string) {
+  private failRemainingTests(message?: string, result = TestResult.Failed) {
     Object.entries(this.pivotTests).forEach(([testId, _]) => {
-      this.onFinalTestResult(testId, TestResult.Failed, message)
+      this.onFinalTestResult(testId, result, message)
     })
     this.onFinished?.()
   }
