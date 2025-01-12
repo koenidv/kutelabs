@@ -24,7 +24,8 @@ kotlinc-js \
   -ir-output-dir klib/ \
   -libraries $libraries \
   -Xreport-all-warnings \
-  -Xir-produce-klib-dir
+  -Xir-produce-klib-dir \
+  -opt-in=kotlin.js.ExperimentalJsExport
 
 [ -d "klib/" ] || { exit 1; }
 
