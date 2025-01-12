@@ -37,7 +37,6 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         editorLoadingState.set(false)
         clearMessages()
         this.runFailed.set(false)
-        console.log(transpiled.transpiledCode)
 
         this.lastSourceMap = transpiled.sourceMap
         this.testRunner.execute(transpiled.transpiledCode, {
@@ -90,11 +89,12 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
       displayMessage("An error occured", "error", { single: true })
       return
     }
+
     const consumer = new SourceMapConsumer(JSON.parse(this.lastSourceMap))
-    console.log(consumer.sources)
     const originalPosition = consumer.originalPositionFor({ line, column })
-    console.log(originalPosition)
+
     displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
+    this.editorRef.get().highlight(originalPosition.line, originalPosition.column)
     addLog([message, `at ${originalPosition.line}:${originalPosition.column}`], "error")
   }
 

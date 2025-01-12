@@ -22,6 +22,7 @@
     code(): string
     entrypoint(): string
     argnames(): string[]
+    highlight(line: number, column: number): void
   }
 
   let { data }: { data: CodeEditorConfiguration } = $props()
@@ -46,10 +47,36 @@
     setIgnoreTab(false)
   })
 
+  function highlightLine(line: number): Element | null {
+    const element = editor?.wrapper.querySelector(`.pce-line:nth-child(${line + 1})`)
+    element?.classList.add("error-line")
+    return element ?? null
+  }
+
+  function highlightToken(lineElement: Element, column: number) {
+    let currentColumn = 0
+    let highlighted = false
+    lineElement.querySelectorAll(".token").forEach(token => {
+      if (highlighted) return
+      const tokenLength = token.textContent?.length ?? 0
+      if (currentColumn + tokenLength >= column) {
+        token.classList.add("error-token")
+        return (highlighted = true)
+      }
+      currentColumn += tokenLength
+    })
+  }
+
+  function highlight(line: number, column: number) {
+    const lineElement = highlightLine(line)
+    if (lineElement) highlightToken(lineElement, column)
+  }
+
   editorRef.set({
     code: () => editor?.value ?? "",
     entrypoint: () => data.entrypoint ?? "main",
     argnames: () => data.argnames ?? [],
+    highlight: highlight,
   })
 
   loadIcons(["svg-spinners:ring-resize"])
@@ -72,6 +99,63 @@
     .prism-code-editor {
       height: 100%;
       width: 100%;
+    }
+    .error-line:after {
+      border: var(--widget__error-ring);
+      background: var(--widget__bg-error);
+      z-index: -2;
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+    .error-token {
+      position: relative;
+
+      // global selectors cannot refer to multiple selectors
+      &::before {
+        background: radial-gradient(
+          6px,
+          transparent,
+          transparent 1px,
+          red 1px,
+          red 3px,
+          transparent 4px
+        );
+        background-size: 10px 14px;
+
+        content: "";
+        display: block;
+        position: absolute;
+        height: 6px;
+        bottom: 0px;
+        left: 2px;
+        right: 0;
+        z-index: -1;
+      }
+      &::after {
+        background: radial-gradient(
+          6px,
+          transparent,
+          transparent 1px,
+          red 1px,
+          red 3px,
+          transparent 4px
+        );
+        background-size: 10px 14px;
+        background-position: 0px -7px;
+
+        content: "";
+        display: block;
+        position: absolute;
+        height: 6px;
+        bottom: -6px;
+        left: -3px;
+        right: 0;
+        z-index: -1;
+      }
     }
   }
 </style>
