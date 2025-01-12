@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 200,
+  "title": "Remembering Things",
+  "description": "You'll need to remember a few things, your code a few more!"
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
-    "order": 1,
+    "order": 2,
     "title": "Mixed Content Editor",
     "description": "This story implements the mixed content editor",
     "published": "2024-01-01T00:00:00Z",

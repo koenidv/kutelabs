@@ -39,8 +39,8 @@
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 100,
-          "y": 200
+          "x": 190,
+          "y": 250
         },
         "block": {
           "type": "function",
@@ -100,8 +100,8 @@
           }
         },
         "coordinates": {
-          "x": 400,
-          "y": 280
+          "x": 460,
+          "y": 320
         }
       }
     ],
