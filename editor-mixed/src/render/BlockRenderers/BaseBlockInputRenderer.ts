@@ -210,6 +210,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         this.renderInputString(
           value,
           onChange,
+          inWidget,
           () => {},
           placeholder,
           ref,
@@ -297,21 +298,13 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       registered.globalPosition.add(position).plus(0, size.y),
       size,
       new Coordinates(200, 200),
-      (ref, inWidget) =>
-        this.renderInputString(
-          values.join(", "),
-          () => {},
-          () => {},
-          undefined,
-          ref,
-          inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
-        ),
+      () => this.renderArrayTarget(type, registered.block.isInDrawer ? undefined : values),
       {
         type: "edit-list",
         values: values,
         onEdited: onChange,
         renderItem: (value, _index, onItemChange) => {
-          return inputElement(value, onItemChange)
+          return inputElement(value, onItemChange, true)
         },
       },
       undefined,
@@ -324,7 +317,8 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     type: SimpleDataType
   ): (
     value: TsTypeByDataType<T>,
-    onChange: (value: TsTypeByDataType<T>) => void
+    onChange: (value: TsTypeByDataType<T>) => void,
+    editable: boolean
   ) => TemplateResult<1> {
     switch (type) {
       case DataType.Boolean:
@@ -412,6 +406,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   protected abstract renderInputString(
     value: string,
     onChange: (value: string) => void,
+    editable?: boolean,
     onKeydown?: (e: KeyboardEvent) => void,
     placeholder?: string,
     reference?: Ref<HTMLInputElement> | undefined,
@@ -427,7 +422,8 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    */
   protected abstract renderInputBoolean(
     value: boolean,
-    onChange?: (value: boolean) => void
+    onChange?: (value: boolean) => void,
+    editable?: boolean
   ): TemplateResult<1>
 
   /**
@@ -440,5 +436,15 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   protected abstract renderInputSelector(
     values: { id: string; display: string }[],
     selected: string
+  ): TemplateResult<1>
+
+  /**
+   * Renders the element on a block that leads to the array edit widget
+   * @param type type of the array
+   * @param value current value of the array
+   */
+  protected abstract renderArrayTarget<T extends SimpleDataType>(
+    type: T,
+    value?: TsTypeByDataType<T>[]
   ): TemplateResult<1>
 }
