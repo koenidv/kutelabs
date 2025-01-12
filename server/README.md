@@ -58,7 +58,6 @@ or use the provided compose file.
 | `TRANSPILER_MEMORY_SWAP`   | Memory swap limit for the transpiler container.                                      | `768m`                       |
 | `TRANSPILER_CPU`           | CPU limit for the transpiler container.                                              | _undefined_                  |
 | `TRANSPILER_TIMEOUT`       | Timeout for transpilation in milliseconds.                                           | `60000`                      |
-| `TRANSPILER_COROUTINE_LIB` | Enable coroutine library in transpiler.                                              | `true`                       |
 | `TRANSPILER_GVISOR`        | Enable gVisor sandbox for transpiler.                                                | `true`                       |
 | `CACHE_ENABLED`            | Enable caching of transpiled code.                                                   | `true`                       |
 | `POSTHOG_API_KEY`          | PostHog API key for analytics.                                                       | _undefined_                  |

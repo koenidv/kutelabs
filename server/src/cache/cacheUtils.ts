@@ -17,12 +17,17 @@ export function shouldCache(status: TranspilationStatus) {
   )
 }
 
-export async function writeTranspiledCache(input: string, output: ResultDTO) {
-  // todo calculate chance of collision - security relevant if not quasi-impossible
+/**
+  * Write the transpiled code to cache
+  * @param inputOptions this should include all relevant inputs that led to this output, i.e. code, sourcemap
+  * @param output the transpiled code dto
+  */
+export async function writeTranspiledCache(inputOptions: string[], output: ResultDTO) {
+  // chance of collision is very low: 2^64, ~4.3bn inputs needed for a 50% chance of collision
   try {
     await writeFile(
       await baseCacheDir(),
-      hash(input).toString(),
+      hash(inputOptions.join()).toString(),
       output.setAsCached().toString()
     )
   } catch (e) {
@@ -30,9 +35,13 @@ export async function writeTranspiledCache(input: string, output: ResultDTO) {
   }
 }
 
-export async function existsInCache(input: string) {
+/**
+  * Check if the input is already in cache
+  * @param inputOptions includes all options that would be used to write the code to cache
+  */
+export async function existsInCache(inputOptions: string[]) {
   try {
-    return await fs.exists(join(await baseCacheDir(), hash(input).toString()))
+    return await fs.exists(join(await baseCacheDir(), hash(inputOptions.join()).toString()))
   } catch (e) {
     console.error(e)
   }

@@ -6,29 +6,32 @@ import { trimErrorMessage } from "../../transpile/transpileUtils"
 export class ResultDTO implements ResultDtoInterface {
   status: TranspilationStatus
   transpiledCode: string | null
+  sourceMap: string | null = null
   message: string | null = null
   cached: boolean = false
 
   private constructor(
     status: TranspilationStatus,
     transpiledCode: string | null = null,
+    sourceMap: string | null = null,
     message: string | null = null,
     cached: boolean = false
   ) {
     this.status = status
     this.transpiledCode = transpiledCode
+    this.sourceMap = sourceMap
     this.message = message
     this.cached = cached
   }
 
-  public static error(status: TranspilationStatus, message: string | null = null) {
-    return new ResultDTO(status, null, message)
+  public static error(status: TranspilationStatus, message: string | null = null): ResultDTO {
+    return new ResultDTO(status, null, null, message)
   }
 
   public static fromTranspilationResult(result: TranspilationResult): ResultDTO {
     switch (result.status) {
       case TranspilationStatus.Success:
-        return new ResultDTO(TranspilationStatus.Success, result.transpiled)
+        return new ResultDTO(TranspilationStatus.Success, result.transpiled, result.sourcemap)
       case TranspilationStatus.CompilationError:
       case TranspilationStatus.Timeout:
         console.error("Compilation error", result, result.message)
@@ -61,6 +64,7 @@ export class ResultDTO implements ResultDtoInterface {
     return new ResultDTO(
       data.status,
       data.transpiledCode,
+      data.sourceMap,
       data.message,
       data.cached
     )

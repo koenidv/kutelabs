@@ -23,11 +23,13 @@ app.post("/kt/js", async c => {
     c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
   }
   const { code, ids: standardizedBlockIds } = standardizeBlockIds(body.kotlinCode)
+  const includeCoroutineLib = body.includeCoroutineLib ?? true
+  const generateSourceMap = body.generateSourceMap ?? false
 
   const ipHash = Bun.hash(getConnInfo(c).remote.address ?? "").toString() ?? "anynomous"
   // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
 
-  if (env.CACHE_ENABLED && (await existsInCache(code))) {
+  if (env.CACHE_ENABLED && (await existsInCache([code, generateSourceMap ? "sourcemap" : ""]))) {
     posthog.capture({
       distinctId: ipHash,
       event: "transpile_request",
@@ -46,8 +48,11 @@ app.post("/kt/js", async c => {
     )
   }
 
-  const dto = ResultDTO.fromTranspilationResult(await transpile(code))
-  if (shouldCache(dto.status)) await writeTranspiledCache(code, dto) // async, not blocking response
+  const dto = ResultDTO.fromTranspilationResult(
+    await transpile(code, includeCoroutineLib, generateSourceMap)
+  )
+  if (shouldCache(dto.status))
+    await writeTranspiledCache([code, generateSourceMap ? "sourcemap" : ""], dto)
 
   posthog.capture({
     distinctId: ipHash,

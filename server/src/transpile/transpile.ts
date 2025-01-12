@@ -3,18 +3,19 @@ import { env } from "../env"
 import { checkRunscEnvironment } from "./checkRunscEnv"
 import { checkTranspilerImage } from "./checkTranspilerImage"
 import { TranspilationStatus } from "./TranspilationStatus"
-import { readOutputFile, withTempDir, writeInputFile } from "./transpileUtils"
+import { readOutputFile, readSourceMap, withTempDir, writeInputFile } from "./transpileUtils"
 
 export type TranspilationResult = {
   status: TranspilationStatus
   transpiled?: string
+  sourcemap?: string
   message?: string
 }
 
 const withRunsc = await checkRunscEnvironment()
 await checkTranspilerImage()
 
-export async function transpile(code: string): Promise<TranspilationResult> {
+export async function transpile(code: string, coroutineLib = true, sourcemap = false): Promise<TranspilationResult> {
   return withTempDir(
     async (relative, absolute) => {
       await writeInputFile(absolute, code)
@@ -23,7 +24,8 @@ export async function transpile(code: string): Promise<TranspilationResult> {
         env.DATA_DIR,
         relative,
         env.TRANSPILER_TIMEOUT,
-        env.TRANSPILER_COROUTINE_LIB,
+        coroutineLib,
+        sourcemap,
         withRunsc,
         env.TRANSPILER_MEMORY,
         env.TRANSPILER_MEMORY_SWAP,
@@ -36,6 +38,7 @@ export async function transpile(code: string): Promise<TranspilationResult> {
       return {
         status: processResult.status,
         transpiled: await readOutputFile(absolute),
+        sourcemap: sourcemap ? await readSourceMap(absolute) : undefined,
       }
     },
     {
@@ -51,6 +54,7 @@ async function transpileKtJs(
   relativeWorkDir: string,
   timeout: number,
   withCoroutineLib: boolean,
+  generateSourceMap: boolean,
   withRunsc: boolean,
   maxMemory: string,
   maxSwap: string | undefined,
@@ -67,6 +71,7 @@ async function transpileKtJs(
           : `-v=${dataDir}/${relativeWorkDir}:/data`,
         withRunsc ? "--runtime=runsc" : "",
         withCoroutineLib ? "--env=INCLUDE_COROUTINE_LIB=true" : "",
+        generateSourceMap ? "--env=GENERATE_SOURCE_MAP=true" : "",
         maxMemory ? `--memory=${maxMemory}` : "",
         maxSwap ? `--memory-swap=${maxSwap}` : "",
         cpuLimit ? `--cpus=${cpuLimit}` : "",
