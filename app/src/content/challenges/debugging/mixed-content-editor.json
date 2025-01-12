@@ -15,7 +15,7 @@
     }
   },
   "environment": {
-    "language": "js"
+    "language": "unset"
   },
   "tests": [
     {
@@ -92,17 +92,6 @@
                               "data": {
                                 "type": "boolean",
                                 "value": true
-                              }
-                            },
-                            {
-                              "on": "ifTrue",
-                              "type": "expression",
-                              "data": {
-                                "expression": "Custom",
-                                "customExpression": {
-                                  "js": "1 + 2",
-                                  "kt": "1 + 2"
-                                }
                               }
                             }
                           ]

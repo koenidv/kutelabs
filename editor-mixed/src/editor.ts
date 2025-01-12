@@ -25,6 +25,9 @@ import "@kutelabs/shared"
 import { BlockType } from "./blocks/configuration/BlockType"
 import "./drag/DragLayer"
 import { generateCallbacks } from "./environment/Environment"
+import type { BlockDataExpression, BlockDataValue } from "./blocks/configuration/BlockData"
+import { DataType } from "./blocks/configuration/DataType"
+import { DefinedExpression } from "./blocks/configuration/DefinedExpression"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -337,5 +340,16 @@ export class EditorMixed extends LitElement {
 
   public clearMarkings() {
     this.blockRegistry.clearMarked(false)
+  }
+
+  public hasCustomCode(): boolean {
+    return [...this.blockRegistry._blocks.keys()].some(
+      block =>
+        !block.isInDrawer &&
+        ((block.type == BlockType.Expression &&
+          (block.data as BlockDataExpression).expression == DefinedExpression.Custom) ||
+          (block.type == BlockType.Value &&
+            (block.data as BlockDataValue<any>).type == DataType.Dynamic))
+    )
   }
 }

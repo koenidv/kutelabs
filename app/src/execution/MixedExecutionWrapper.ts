@@ -52,7 +52,8 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
         this.runKt()
         break
       default:
-        throw new Error(`Unsupported language ${this.environment.language}`)
+        if (this.editorRef.get().hasCustomCode()) this.runKt()
+        else this.runJs()
     }
   }
 
