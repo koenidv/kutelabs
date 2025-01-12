@@ -128,7 +128,10 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
   }
 
   protected renderOverlayWidegt(widget: OverlayWidget): TemplateResult<1> {
-    return widget.content
+    return widget.content((override: OverlayWidget["content"]) => {
+      ;(this.displayedWidget as OverlayWidget).content = override
+      this.dirty = true
+    })
   }
 
   protected renderWidgetBackground(width: number, height: number): TemplateResult<2> {

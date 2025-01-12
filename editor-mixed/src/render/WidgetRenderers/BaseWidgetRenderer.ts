@@ -19,7 +19,7 @@ export type EditListWidget<T> = {
 
 export type OverlayWidget = {
   type: "overlay"
-  content: TemplateResult<1>
+  content: (update: (updated: OverlayWidget["content"]) => void) => TemplateResult<1>
 }
 
 export type Widget = SelectorWidget | EditListWidget<any> | OverlayWidget
@@ -43,7 +43,7 @@ export abstract class BaseWidgetRenderer {
     this.requestUpdate = requestUpdate
   }
 
-  public setWidget(widget: Widget, clientPosition: Coordinates, size: Coordinates) {
+  public setWidget<T extends Widget>(widget: T, clientPosition: Coordinates, size: Coordinates) {
     this.displayedWidget = widget
     this.position = clientPosition
     this.size = size

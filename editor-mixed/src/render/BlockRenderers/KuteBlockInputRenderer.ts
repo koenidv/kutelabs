@@ -26,7 +26,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   protected renderInputString(
-    value: string,
+    value: string | null,
     onChange: (value: string) => void,
     editable?: boolean,
     onKeydown?: (e: KeyboardEvent) => void,
@@ -37,13 +37,13 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     return html`
       <input
         ${reference ? ref(reference) : ""}
-        value=${value}
+        value=${value ?? ""}
         placeholder=${placeholder ?? "text"}
         type="text"
         tabindex="${editable ? "0" : "-1"}"
         style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
         (textScaling ??
-          1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px;"
+          1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px; padding: 0 4px;"
         @input=${(e: InputEvent) => editable && onChange((e.target as HTMLInputElement).value)}
         @keydown=${onKeydown}
         spellcheck="false" />
@@ -75,6 +75,107 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         <p style="font-family: monospace; font-size: 14px; font-weight: normal;">
           ${value ? "✅ Yes" : "❌ No"}
         </p>
+      </div>
+    `
+  }
+
+  protected override renderInputNumber(
+    value: number | null,
+    onChange: (value: number, skipUpdate?: boolean) => void,
+    editable?: boolean,
+    isFloat?: boolean,
+    placeholder?: string,
+    reference?: Ref<HTMLInputElement> | undefined,
+    textScaling?: number
+  ): TemplateResult<1> {
+    const decrease = (e: Event) => {
+      if (editable) {
+        onChange((value ?? 0) - (isFloat ? 0.1 : 1), false)
+        e.preventDefault()
+      }
+    }
+    const increase = (e: Event) => {
+      if (editable) {
+        onChange((value ?? 0) + (isFloat ? 0.1 : 1), false)
+        e.preventDefault()
+      }
+    }
+    const onKeydown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") increase(e)
+      if (e.key === "ArrowDown") decrease(e)
+      if (
+        !(isFloat ? /[0-9.]/ : /[0-9]/).test(e.key) &&
+        !["Backspace", "Delete", "Tab"].includes(e.key)
+      ) {
+        e.preventDefault()
+      }
+      if (e.key === "." && (e.target as HTMLInputElement).value.includes(".")) e.preventDefault()
+    }
+    const onInput = (e: InputEvent) => {
+      if (!editable) return
+      const newValue = (e.target as HTMLInputElement).value
+      if (newValue === "" || (isFloat ? /^-?\d*\.?\d*$/ : /^-?\d*$/).test(newValue)) {
+        onChange(newValue === "" ? 0 : isFloat ? parseFloat(newValue) : parseInt(newValue), true)
+      }
+    }
+    return html`
+      <div
+        style="display: flex; flex-direction: row; height: 100%; width: 100%; background-color: white; border-radius: 6px;">
+        <input
+          ${reference ? ref(reference) : ""}
+          value=${value ?? ""}
+          placeholder=${placeholder ?? "text"}
+          type="text"
+          inputmode=${isFloat ? "decimal" : "numeric"}
+          tabindex="${editable ? "0" : "-1"}"
+          style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
+          (textScaling ??
+            1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px; padding: 0 4px;"
+          @keydown=${onKeydown}
+          @input=${onInput}
+          spellcheck="false" />
+        ${editable
+          ? html` <button
+                class="edit-value-decrease"
+                style="background: transparent; border: none; padding: 0; margin: 0; outline: none; cursor: pointer; display: flex; justify-content: center; align-items: center;"
+                @pointerdown=${decrease}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (e.key === "Enter") decrease(e)
+                }}
+                tabindex="${editable ? "0" : "-1"}"
+                aria-label="Decrease value">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="${20 * (textScaling ?? 1)}"
+                  height="${24 * (textScaling ?? 1)}"
+                  viewBox="0 0 24 24">
+                  <g fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" d="M16 12H8" />
+                    <path d="M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                  </g>
+                </svg>
+              </button>
+              <button
+                class="edit-value-increase"
+                style="background: transparent; border: none; padding: 0; margin: 0; outline: none; cursor: pointer; display: flex; justify-content: center; align-items: center;"
+                @pointerdown=${increase}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (e.key === "Enter") increase(e)
+                }}
+                tabindex="${editable ? "0" : "-1"}"
+                aria-label="Increase value">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="${20 * (textScaling ?? 1)}"
+                  height="${24 * (textScaling ?? 1)}"
+                  viewBox="0 0 24 24">
+                  <g fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" d="M12 16V8m4 4H8" />
+                    <path d="M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                  </g>
+                </svg>
+              </button>`
+          : ""}
       </div>
     `
   }
@@ -111,10 +212,10 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         itemText = "string"
         break
       case "int":
-        itemText = "integer"
+        itemText = "number"
         break
       case "float":
-        itemText = "number"
+        itemText = "decimal"
         break
       case "boolean":
         itemText = "boolean"

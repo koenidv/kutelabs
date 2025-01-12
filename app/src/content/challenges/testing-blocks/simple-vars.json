@@ -101,8 +101,7 @@
       {
         "type": "value",
         "data": {
-          "type": "string",
-          "value": ""
+          "type": "string"
         }
       },
       {
@@ -115,15 +114,13 @@
       {
         "type": "value",
         "data": {
-          "type": "int",
-          "value": 0
+          "type": "int"
         }
       },
       {
         "type": "value",
         "data": {
-          "type": "float",
-          "value": 0
+          "type": "float"
         }
       },
       {

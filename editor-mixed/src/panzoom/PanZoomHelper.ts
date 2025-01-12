@@ -1,5 +1,6 @@
 import type { Ref } from "lit/directives/ref.js"
 import { ScrollInputHelper, ScrollInputType } from "./ScrollInputHelper"
+import { isSafari } from "../util/browserCheck"
 
 const MotionKeys: Record<string, true> = {
   w: true,
@@ -103,7 +104,7 @@ export class PanZoomHelper {
     this.pan(percentX * oldSize * appliedFactor, percentY * oldSize * appliedFactor, 1)
 
     this.removeWidgets()
-    this.onScaleChanged(newSize / this.initialWorkspaceSize!.width * (window.screen.width / window.innerWidth))
+    this.onScaleChanged(newSize / this.initialWorkspaceSize!.width * (isSafari ? (window.screen.width / window.innerWidth) : 1))
   }
 
   /**
