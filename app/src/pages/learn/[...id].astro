@@ -12,6 +12,7 @@ import Tests from "../../components/Tests.svelte"
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
+import { Icon } from "astro-icon/components"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -29,8 +30,6 @@ const { url } = Astro
 const baseUrl = url.pathname.split(`/${id}`)[0]
 const nextId = (await navigationStore.getNext(id))?.id
 const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
-
-console.log(baseUrl, nextId, nextUrl)
 ---
 
 <InnerLayout
@@ -95,11 +94,17 @@ console.log(baseUrl, nextId, nextUrl)
       />
 
       <ElevatedBox elevation={2} class="w-full flex-grow-[2] max-lg:h-[80vh]">
-        {challenge.editor.type == "mixed" ? (
-          <EditorMixed data={challenge.editor} client:only="svelte" />
-        ) : (
-          <EditorCode data={challenge.editor} client:only="svelte" />
-        )}
+        <div
+          class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-l-4 border-t-4 border-r-2 border-b-2 border-black bg-beige-100">
+          <Icon name="svg-spinners:ring-resize" />
+        </div>
+        {
+          challenge.editor.type == "mixed" ? (
+            <EditorMixed data={challenge.editor} client:only="svelte" />
+          ) : (
+            <EditorCode data={challenge.editor} client:only="svelte" />
+          )
+        }
         <Snackbar client:idle />
       </ElevatedBox>
     </div>

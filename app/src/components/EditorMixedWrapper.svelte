@@ -17,7 +17,7 @@
   loadIcons(["svg-spinners:ring-resize"])
 </script>
 
-<editor-mixed {data} useDefaultConfig bind:this={ref}></editor-mixed>
+<editor-mixed {data} useDefaultConfig bind:this={ref}  transition:fade={{ duration: 60 }}></editor-mixed>
 {#if $editorLoadingState}
   <div
     transition:fade={{ duration: 150 }}

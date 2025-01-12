@@ -6,6 +6,18 @@
   import { fade } from "svelte/transition"
   import Icon, { loadIcons } from "@iconify/svelte"
 
+  import { createEditor } from "prism-code-editor"
+  import { indentGuides } from "prism-code-editor/guides"
+  import { matchTags } from "prism-code-editor/match-tags"
+  import { matchBrackets } from "prism-code-editor/match-brackets"
+  import { defaultCommands, editHistory, setIgnoreTab } from "prism-code-editor/commands"
+  import { highlightBracketPairs } from "prism-code-editor/highlight-brackets"
+
+  import "prism-code-editor/prism/languages/kotlin"
+  import "prism-code-editor/layout.css"
+  import "prism-code-editor/scrollbar.css"
+  import "prism-code-editor/themes/github-dark.css"
+
   export interface EditorCodeInterface {
     code(): string
     entrypoint(): string
@@ -16,21 +28,6 @@
   let editor = $state<PrismEditor | null>(null)
 
   onMount(async () => {
-    const { createEditor } = await import("prism-code-editor")
-    const { indentGuides } = await import("prism-code-editor/guides")
-    const { matchTags } = await import("prism-code-editor/match-tags")
-    const { matchBrackets } = await import("prism-code-editor/match-brackets")
-    const { defaultCommands, editHistory, setIgnoreTab } = await import(
-      "prism-code-editor/commands"
-    )
-    const { highlightBracketPairs } = await import("prism-code-editor/highlight-brackets")
-
-    await import("prism-code-editor/prism/languages/kotlin")
-
-    await import("prism-code-editor/layout.css")
-    await import("prism-code-editor/scrollbar.css")
-    await import("prism-code-editor/themes/github-dark.css")
-
     editor = createEditor(
       "#editor-code",
       {
@@ -58,7 +55,7 @@
   loadIcons(["svg-spinners:ring-resize"])
 </script>
 
-<div id="editor-code" bind:this={editor as any}></div>
+<div id="editor-code" bind:this={editor as any} transition:fade={{ duration: 60 }}></div>
 {#if $editorLoadingState}
   <div
     transition:fade={{ duration: 150 }}
