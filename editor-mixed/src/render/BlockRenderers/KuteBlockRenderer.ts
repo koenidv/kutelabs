@@ -18,6 +18,7 @@ import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { BlockMarking, type InternalBlockRenderProps, type SvgResult } from "./BlockRendererTypes"
 import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
+import { guard } from "lit/directives/guard.js"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected readonly inputRenderer: KuteBlockInputRenderer
@@ -36,20 +37,21 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     { block, size, globalPosition, marking }: AnyRegisteredBlock,
     _props: InternalBlockRenderProps
   ): SvgResult {
-    const rectangle = new RectBuilder({
-      width: size.fullWidth,
-      height: size.fullHeight,
-      radius: 8,
-    })
+    return guard([block.id, JSON.stringify(size), globalPosition.x, globalPosition.y], () => {
+      const rectangle = new RectBuilder({
+        width: size.fullWidth,
+        height: size.fullHeight,
+        radius: 8,
+      })
 
-    this.addContainerInsets(rectangle, size)
-    this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
-    this.addContainerCutouts(rectangle, size)
+      this.addContainerInsets(rectangle, size)
+      this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
+      this.addContainerCutouts(rectangle, size)
 
-    const path = rectangle.generatePath()
-    const stroke = this.determineContainerStroke(marking)
+      const path = rectangle.generatePath()
+      const stroke = this.determineContainerStroke(marking)
 
-    return svg`
+      return svg`
       <path
         id="bg-${block.id}"
         class="highlight-target"
@@ -59,6 +61,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         stroke-width=${stroke.width}
         d=${path}></path>
     `
+    }) as SvgResult
   }
 
   private addContainerInsets(rectangle: RectBuilder, size: SizeProps): void {
@@ -341,7 +344,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         block.isInDrawer ? null : block.data.value,
         (value: number) => block.updateData(cur => ({ ...cur, value })),
         block.data.type == DataType.Float,
-        block.data.placeholder ?? block.data.type == DataType.Int ? "number" : "decimal",
+        (block.data.placeholder ?? block.data.type == DataType.Int) ? "number" : "decimal",
         props
       )
     } else if (isArrayType(block.data.type)) {

@@ -6,6 +6,7 @@ import {
   type OverlayWidget,
   type SelectorWidget,
 } from "./BaseWidgetRenderer"
+import { map } from "lit-html/directives/map.js"
 
 export class KuteWidgetRenderer extends BaseWidgetRenderer {
   containerPadding = { top: 2.75, right: 0, bottom: 0.5, left: 0 }
@@ -13,7 +14,8 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
   renderSelectorWidget(widget: SelectorWidget): TemplateResult<1> {
     return html`
       <div style="display: flex; flex-direction: column; gap: 0.25rem; padding: 4%;" role="list">
-        ${widget.options.map(
+        ${map(
+          widget.options,
           option => html`
             <button
               class="${option.id === widget.selected ? "selected" : ""}"
@@ -69,7 +71,8 @@ export class KuteWidgetRenderer extends BaseWidgetRenderer {
 
     return html`
       <div style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem;">
-        ${values.map(
+        ${map(
+          values,
           (value, index) => html`
             <div style="display: flex; flex-direction: row; height: 2rem;">
               ${renderItem(value, index, newValue => {

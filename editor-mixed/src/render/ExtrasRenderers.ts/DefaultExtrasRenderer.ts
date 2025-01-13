@@ -1,10 +1,13 @@
 import { html, svg, type TemplateResult } from "lit"
 import type { ExtrasRendererInterface } from "./ExtrasRendererInterface"
 import type { PanZoomHelper } from "../../panzoom/PanZoomHelper"
+import { guard } from "lit/directives/guard.js"
 
 export class ExtrasRenderer implements ExtrasRendererInterface {
   renderBackground(): TemplateResult<2> {
-    return svg`
+    return guard(
+      null,
+      () => svg`
     <pattern
       id="pattern-circles"
       x="0"
@@ -17,10 +20,11 @@ export class ExtrasRenderer implements ExtrasRendererInterface {
     </pattern>
     <rect id="workspace-background" id="rect" x="-500%" y="-500%" width="1000%" height="1000%" fill="url(#pattern-circles)"></rect>
   `
+    ) as TemplateResult<2>
   }
 
   renderZoomButtons(panzoom: PanZoomHelper | undefined): TemplateResult<1> {
-    return html`
+    return guard(null, () => html`
       <div style="display: flex; flex-direction: column; padding: 0 0.5rem 0.5rem 0; gap: 0.25rem;">
         <div
           id="control-zoom-larger"
@@ -97,6 +101,6 @@ export class ExtrasRenderer implements ExtrasRendererInterface {
           }
         </style>
       </div>
-    `
+    `) as TemplateResult<1>
   }
 }
