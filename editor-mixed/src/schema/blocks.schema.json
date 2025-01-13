@@ -438,8 +438,7 @@
             }
           ],
           "required": [
-            "type",
-            "value"
+            "type"
           ]
         },
         "connectedBlocks": {

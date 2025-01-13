@@ -316,43 +316,52 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         registered,
         new Coordinates(6, 6),
         new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
-        block.data.editable ?? true,
+        !block.isInDrawer && (block.data.editable ?? true),
         block.isInDrawer ? "code()" : block.data.value,
         (value: string) => block.updateData(cur => ({ ...cur, value })),
         true,
         props
       )
-    }
-    if (block.data.type == DataType.Boolean) {
+    } else if (block.data.type == DataType.Boolean) {
       return this.inputRenderer.inputBoolean(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
-        block.data.editable ?? true,
+        !block.isInDrawer && (block.data.editable ?? true),
         Boolean(block.data.value),
         (value: boolean) => block.updateData(cur => ({ ...cur, value })),
         props
       )
-    }
-    if (isArrayType(block.data.type)) {
+    } else if (block.data.type == DataType.Int || block.data.type == DataType.Float) {
+      return this.inputRenderer.inputNumber(
+        registered,
+        new Coordinates(5, 5),
+        new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
+        !block.isInDrawer && (block.data.editable ?? true),
+        block.isInDrawer ? null : block.data.value,
+        (value: number) => block.updateData(cur => ({ ...cur, value })),
+        block.data.type == DataType.Float,
+        block.data.placeholder ?? block.data.type == DataType.Int ? "number" : "decimal",
+        props
+      )
+    } else if (isArrayType(block.data.type)) {
       return this.inputRenderer.inputArray(
         registered,
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
         simpleTypeFromArrayType(block.data.type),
-        block.data.editable ?? true,
+        !block.isInDrawer && (block.data.editable ?? true),
         block.data.value,
         (value: any[]) => block.updateData(cur => ({ ...cur, value })),
         props
       )
     }
-
     return this.inputRenderer.inputString(
       registered,
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
-      block.data.editable ?? true,
-      block.isInDrawer ? "text" : block.data.value.toString(),
+      !block.isInDrawer && (block.data.editable ?? true),
+      block.isInDrawer ? null : block.data.value,
       (value: string) => block.updateData(cur => ({ ...cur, value })),
       block.data.placeholder ?? "text",
       props

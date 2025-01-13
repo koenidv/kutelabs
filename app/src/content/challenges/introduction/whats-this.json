@@ -7,7 +7,7 @@
     "published": "2024-01-01T00:00:00Z",
     "color": "#FFD203",
     "imageEnd": {
-      "src": "/images/character_boozle_rainbow.png",
+      "src": "/images/character_boozle_rainbow.webp",
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     },
     "dialog": {
@@ -39,8 +39,8 @@
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 100,
-          "y": 200
+          "x": 190,
+          "y": 250
         },
         "block": {
           "type": "function",
@@ -100,8 +100,8 @@
           }
         },
         "coordinates": {
-          "x": 400,
-          "y": 280
+          "x": 460,
+          "y": 320
         }
       }
     ],

@@ -13,6 +13,7 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
 import { Icon } from "astro-icon/components"
+import { Image } from "astro:assets"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -62,17 +63,21 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
                 {
                   challenge.story.imageStart ? (
                     <hr />
-                    <img
-                    src={challenge.story.imageStart.src}
-                    alt={challenge.story.title}
-                    class="w-[80%] max-w-48"
+                    <Image
+                      src={challenge.story.imageStart.src}
+                      alt={challenge.story.imageStart.alt}
+                      width={192}
+                      height={192}
+                      class="w-[80%] max-w-48 aspect-square object-fill"
                     />
                   ) : challenge.story.imageEnd ? (
                     <hr />
-                    <img
+                    <Image
                       src={challenge.story.imageEnd.src}
-                      alt={challenge.story.title}
-                      class="w-[80%] max-w-48 scale-x-[-1]"
+                      alt={challenge.story.imageEnd.alt}
+                      width={192}
+                      height={192}
+                      class="w-[80%] max-w-48 scale-x-[-1] aspect-square object-fill"
                     />
                   ) : undefined
                 }

@@ -17,7 +17,13 @@ export default defineConfig({
     },
   }), tailwind(), icon(), svelte(), compress()],
   output: "static",
-  adapter: netlify(),
+  adapter: netlify({
+    imageCDN: true,
+  }),
+  compressHTML: true,
+  publicDir: "public",
+  srcDir: "src",
+  site: "https://kutelabs.koeni.dev",
   env: {
     schema: {
       PUBLIC_API_BASE_URL: envField.string({ context: "client", access: "public", optional: false, default: "https://api.kutelabs.koeni.dev", url: true }),

@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/section.schema.json",
-  "order": 3,
+  "order": 400,
   "title": "Pure Code Editor",
   "description": "Explore the editor for more advanced learners"
 }

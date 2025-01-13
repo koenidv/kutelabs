@@ -221,6 +221,7 @@ export class DefaultConnectors {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
       remote => remote.role === ConnectorRole.Input && remote.type !== ConnectorType.Before,
       remote => remote.role === ConnectorRole.Conditional && remote.type !== ConnectorType.Before,
+      remote => remote.role === ConnectorRole.Output,
     ])
   }
 

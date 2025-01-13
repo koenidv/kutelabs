@@ -3,6 +3,7 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import type { Challenge } from "../../schema/challenge"
 import { navigationStore } from "../../navigation/NavigationStore"
+import { Image } from "astro:assets"
 
 const challenges = await navigationStore.getChallenes()
 ---
@@ -23,7 +24,7 @@ const challenges = await navigationStore.getChallenes()
             return (
               <div class="pb-4 flex flex-col items-center">
                 {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
-                <h3 class="text-3xl font-poppins font-black">{it.data.title}</h3>
+                <h3 class="text-3xl font-poppins font-black pb-1">{it.data.title}</h3>
                 <p>{it.data.description}</p>
                 {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
@@ -40,10 +41,12 @@ const challenges = await navigationStore.getChallenes()
                     style={`background-color: ${data.story.color}`}>
                     <div class="min-h-40 flex flex-row items-end justify-between gap-4">
                       {data.story.imageStart ? (
-                        <img
+                        <Image
                           src={data.story.imageStart.src}
                           alt={data.story.imageStart.alt}
-                          class="h-full max-h-32 lg:max-h-40"
+                          width={160}
+                          height={160}
+                          class="h-full max-h-32 lg:max-h-40 aspect-square object-fill"
                         />
                       ) : (
                         <div class="w-8" />
@@ -53,10 +56,12 @@ const challenges = await navigationStore.getChallenes()
                         <p set:html={data.story?.description} />
                       </div>
                       {data.story.imageEnd ? (
-                        <img
+                        <Image
                           src={data.story.imageEnd.src}
                           alt={data.story.imageEnd.alt}
-                          class="h-full max-h-40"
+                          width={160}
+                          height={160}
+                          class="h-full max-h-32 lg:max-h-40 aspect-square object-fill"
                         />
                       ) : (
                         <div class="w-8" />

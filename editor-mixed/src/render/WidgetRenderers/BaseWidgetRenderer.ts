@@ -19,22 +19,22 @@ export type EditListWidget<T> = {
 
 export type OverlayWidget = {
   type: "overlay"
-  content: TemplateResult<1>
+  content: (update: (updated: OverlayWidget["content"]) => void) => TemplateResult<1>
 }
 
 export type Widget = SelectorWidget | EditListWidget<any> | OverlayWidget
 
 export abstract class BaseWidgetRenderer {
-  private readonly requestUpdate: () => void
+  protected readonly requestUpdate: () => void
   private readonly workspaceRef: Ref<SVGSVGElement>
 
   private readonly widgetRef = createRef<HTMLElement>()
   private readonly focusTrap = new FocusTrap(this.widgetRef, this.removeWidget.bind(this))
 
-  private displayedWidget: Widget | null = null
+  protected displayedWidget: Widget | null = null
   private position: Coordinates = Coordinates.zero
   private size: Coordinates = Coordinates.zero
-  private dirty = false
+  protected dirty = false
 
   abstract containerPadding: { top: number; right: number; bottom: number; left: number }
 
@@ -43,7 +43,7 @@ export abstract class BaseWidgetRenderer {
     this.requestUpdate = requestUpdate
   }
 
-  public setWidget(widget: Widget, clientPosition: Coordinates, size: Coordinates) {
+  public setWidget<T extends Widget>(widget: T, clientPosition: Coordinates, size: Coordinates) {
     this.displayedWidget = widget
     this.position = clientPosition
     this.size = size
@@ -77,21 +77,23 @@ export abstract class BaseWidgetRenderer {
     return nothing
   }
 
-  private withBackground(content: TemplateResult<1> | TemplateResult<1>[]): TemplateResult<1> {
+  private withBackground(
+    content: TemplateResult<1> | TemplateResult<1>[],
+    fill?: string
+  ): TemplateResult<1> {
     return html`
       <svg
         style="position: absolute; top: 0; left: 0;"
         width=${this.size.x}
         height=${this.size.y}
+        color="${fill ?? "white"}"
         viewBox="0 0 ${this.size.x} ${this.size.y}">
         ${this.renderWidgetBackground(this.size.x, this.size.y)}Ì
       </svg>
       <div
         style="position: relative; padding: ${this.containerPadding.top}% ${this.containerPadding
           .right}% ${this.containerPadding.bottom}% ${this.containerPadding
-          .left}%; box-sizing: border-box; width: ${this.size.x}px; height: ${this.size.y}px"
-        @mousedown="${(e: MouseEvent) => e.preventDefault()}"
-        @touchstart="${(e: TouchEvent) => e.preventDefault()}">
+          .left}%; box-sizing: border-box; width: ${this.size.x}px; height: ${this.size.y}px">
         <div style="overflow-y: auto; overflow-x: hidden; width: 100%; height: 100%;">
           ${content}
         </div>
@@ -115,7 +117,7 @@ export abstract class BaseWidgetRenderer {
       case "selector":
         return this.withBackground(this.renderSelectorWidget(widget))
       case "edit-list":
-        return this.withBackground(this.renderEditListWidget(widget))
+        return this.withBackground(this.renderEditListWidget(widget), "#f5f0e5")
       case "overlay":
         return this.withoutBackground(this.renderOverlayWidegt(widget))
     }

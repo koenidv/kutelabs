@@ -101,11 +101,69 @@
       {
         "type": "value",
         "data": {
+          "type": "string"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "int"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "float"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
           "type": "array<string>",
           "value": [
             "dings",
             "dangs",
             "dongs"
+          ]
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "array<int>",
+          "value": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "array<float>",
+          "value": [
+            1.1,
+            2.2,
+            3.3
+          ]
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "array<boolean>",
+          "value": [
+            true,
+            false,
+            true
           ]
         }
       }

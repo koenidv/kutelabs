@@ -4,8 +4,9 @@ import "../styles/main.scss"
 
 interface Props {
   title: string
+  description?: string
 }
-const { title } = Astro.props
+const { title, description } = Astro.props
 ---
 
 <html lang="en">
@@ -22,6 +23,7 @@ const { title } = Astro.props
       rel="stylesheet"
     />
     <link rel="dns-prefetch" href="https://api.kutelabs.koeni.dev/" />
+    <meta name="description" content={description ?? "Learn how to code in Kotlin! We'll take you from easy blocks to proper syntax."} />
     <PostHog />
   </head>
   <body>
