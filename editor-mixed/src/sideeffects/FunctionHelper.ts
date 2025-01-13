@@ -122,13 +122,12 @@ export class FunctionHelper
    */
   private handleBlockDataChanged = (changedBlock: Block<BlockType.Function>) => {
     const currentData = this.tracked.get(changedBlock)
-    console.log("Function data changed", changedBlock.data, currentData?.name)
     if (!currentData) return
 
     let requestUpdate = false
 
     if (currentData.name !== changedBlock.data.name) {
-      const newName = changedBlock.data.name.replaceAll(/[^a-zA-Z0-9]/g, "_")
+      const newName = this.cleanName(changedBlock.data.name)
       if (this.isNameAvailable(newName)) {
         currentData.name = newName
         currentData.usages.forEach(usage => {
@@ -143,6 +142,7 @@ export class FunctionHelper
     currentData.params.forEach(param => {
       if (!changedBlock.data.params.find(p => p.registeredName === param.name)) {
         this.variableHelper.removeParameter(param.name)
+        currentData.params = currentData.params.filter(p => p.registeredName !== param.name)
         requestUpdate = true
       }
     }, this)
@@ -152,18 +152,25 @@ export class FunctionHelper
         // diff added
         const name = this.variableHelper.nextAvailableName(param.name ? param.name : "arg")
         this.variableHelper.registerParameter(name, param.type, false)
+        currentData.params.push({ name, type: param.type })
         param.name = name
         param.registeredName = name
         requestUpdate = true
       } else if (param.registeredName !== param.name) {
         // diff renamed
-        this.variableHelper.updateParameterName(param.registeredName, param.name)
-        param.registeredName = param.name
+        const newName = this.cleanName(param.name)
+        this.variableHelper.updateParameterName(param.registeredName, newName)
+        currentData.params = currentData.params.map(p =>
+          p.name === param.registeredName ? { ...p, name: newName } : p
+        )
+        param.registeredName = newName
+        changedBlock.updateData(data => data)
         requestUpdate = true
       }
-      if (param.type !== this.variableHelper.getVariableType(param.name)) {
+      if (param.type !== this.variableHelper.getVariableType(param.registeredName)) {
         // diff type changed
         this.variableHelper.updateParameterType(param.name, param.type)
+        currentData.params.find(p => p.registeredName === param.registeredName)!.type = param.type
         requestUpdate = true
       }
     }, this)
@@ -200,7 +207,7 @@ export class FunctionHelper
   /**
    * When a function block is removed from the workspace,
    * remove all uses of the function and drawer block from the drawer.
-   * // todo remove function invocation inputs before removing the invocation
+   * // todo pop function invocation inputs before removing the invocation
    * @param block VarInit block that was just removed from the workspace
    */
   private handleFunctionRemoved = (block: Block<BlockType.Function>) => {
@@ -265,6 +272,14 @@ export class FunctionHelper
     return [...this.tracked.values()].find(data => data.name === name) ?? null
   }
 
+  public cleanName(name: string): string {
+    return name
+      .replace(/^[^a-zA-Z]/, "")
+      .replaceAll(/[^a-zA-Z0-9]/g, "")
+      .substring(0, 30)
+      .padStart(1, "f")
+  }
+
   /**
    * Checks if a function name is available
    * @param name function name to test
@@ -283,11 +298,7 @@ export class FunctionHelper
    * @returns next available name
    */
   public nextAvailableName(base: string): string {
-    let name = base
-      .replace(/^[^a-zA-Z]/, "")
-      .replaceAll(/[^a-zA-Z0-9]/g, "")
-      .substring(0, 30)
-      .padStart(1, "f")
+    let name = this.cleanName(base)
     let i = 1
     while (!this.isNameAvailable(name)) {
       name = `${base}${i++}`

@@ -153,7 +153,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     enabled: boolean,
-    value: string,
+    value: string | { label: string },
     onClick: (e: Event) => void,
     iconStart: BlockInputIcon | undefined,
     props: InternalBlockRenderProps
@@ -506,7 +506,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param onClick function to call when the button is clicked
    */
   protected abstract renderInputButton(
-    value: string,
+    value: string | { label: string },
     enabled?: boolean,
     onClick?: (e: Event) => void,
     reference?: Ref<HTMLElement> | undefined,

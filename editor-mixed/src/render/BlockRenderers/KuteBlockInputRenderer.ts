@@ -53,7 +53,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   }
 
   private renderInputButton(
-    value: string,
+    value: string | { label: string },
     editable: boolean = true,
     onClick?: (e: Event) => void,
     reference?: Ref<HTMLElement> | undefined,
@@ -73,13 +73,18 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         @keydown=${(e: KeyboardEvent) => {
           if (e.key === "Enter" || e.key === " ") clickHandler(e)
         }}
-        style="width: 100%; height: 100%; display: flex; padding: 0 4px; gap: 2px; justify-content: start; align-items: center; background-color: white; border-radius: 6px; ${editable
+        style="width: 100%; height: 100%; display: flex; gap: 2px; justify-content: center; align-items: center; background-color: white; border-radius: 6px; ${editable
           ? "cursor: pointer;"
           : ""}"
         role="button"
+        aria-label="${typeof value === "object" && "label" in value ? value.label : ""}"
         tabindex=${editable ? "0" : "-1"}>
         ${iconStart ? this.renderIcon(iconStart, new Coordinates(16, 16)) : ""}
-        <p style="font-family: monospace; font-size: 13px; font-weight: normal;">${value}</p>
+        ${typeof value == "string"
+          ? html`<p style="font-family: monospace; font-size: 13px; font-weight: normal;">
+              ${value}
+            </p>`
+          : ""}
       </div>
     `
   }
@@ -272,6 +277,19 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
             stroke-linecap="round"
             stroke-width="2"
             d="M12 19V5m7 7H5" />
+        </svg>`
+      case BlockInputIcon.Remove:
+        return html`<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="${size.x}"
+          height="${size.y}"
+          viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-width="2"
+            d="M18 12H6" />
         </svg>`
     }
   }

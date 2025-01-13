@@ -257,7 +257,10 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         this.inputRenderer.inputString(
           registered,
           new Coordinates(6, accY),
-          new Coordinates((size.fullWidth - 12) / 2 - 3, (size.heads[index + 1] ?? 6) - 6),
+          new Coordinates(
+            (size.fullWidth - 8 - size.heads[index + 1]) / 2 - 3,
+            (size.heads[index + 1] ?? 6) - 6
+          ),
           !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
           param.name,
           (name: string) => {
@@ -273,8 +276,11 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       params.push(
         this.inputRenderer.inputSelector(
           registered,
-          new Coordinates(6 + (size.fullWidth - 12) / 2 + 3, accY),
-          new Coordinates((size.fullWidth - 12) / 2 - 3, (size.heads[index + 1] ?? 6) - 6),
+          new Coordinates(6 + (size.fullWidth - 8 - size.heads[index + 1]) / 2 + 1, accY),
+          new Coordinates(
+            (size.fullWidth - 8 - size.heads[index + 1]) / 2 - 3,
+            (size.heads[index + 1] ?? 6) - 6
+          ),
           new Coordinates(200, 200),
           !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
           Object.entries(DataType)
@@ -293,6 +299,24 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
               ...cur,
               params: cur.params.map((p, i) => (i == index ? { ...p, type: id as DataType } : p)),
             })),
+          props
+        )
+      )
+      params.push(
+        this.inputRenderer.inputButton(
+          registered,
+          new Coordinates(12 + (size.fullWidth - 15 - size.heads[index + 1]) + 3, accY),
+          new Coordinates((size.heads[index + 1] ?? 6) - 6, (size.heads[index + 1] ?? 6) - 6),
+          !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
+          { label: `Remove parameter ${param.name}` },
+          () => {
+            block.updateData(cur => ({
+              ...cur,
+              params: cur.params.filter((_, i) => i != index),
+            }))
+            this.requestUpdate()
+          },
+          BlockInputIcon.Remove,
           props
         )
       )

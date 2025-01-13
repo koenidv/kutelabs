@@ -110,9 +110,9 @@ export class KuteLayouter extends BaseLayouter {
       if (fname.length > 5) size.addWidth(WidthProp.Right, (fname.length - 5) * 7.9)
       if (
         (data.params.length > 0 || (data.paramsEditable ?? !data.isMain)) &&
-        size.fullWidth < 1.5 * MIN_WIDTH
+        size.fullWidth < 1.65 * MIN_WIDTH
       ) {
-        size.addWidth(WidthProp.Right, 1.5 * MIN_WIDTH - size.fullWidth)
+        size.addWidth(WidthProp.Right, 1.65 * MIN_WIDTH - size.fullWidth)
       }
     } else if (block.type == BlockType.VarSet) {
       // widths were set above

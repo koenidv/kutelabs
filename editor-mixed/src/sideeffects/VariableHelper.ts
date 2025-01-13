@@ -148,27 +148,36 @@ export class VariableHelper
    */
   private handleVarInitRemoved = (block: Block<BlockType.VarInit>) => {
     if (this.tracked.has(block as Block<BlockType.VarInit>)) {
-      // remove drawer block
       const data = this.tracked.get(block as Block<BlockType.VarInit>)!
-      if (data.drawerBlock) {
-        this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
-        data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
-      }
-
-      // remove usages after drawer deduplicated them
-      setTimeout(() => {
-        for (const usage of data.usages) {
-          if (usage.removed) continue
-          usage.disconnectSelf(null)
-          usage.remove(this.blockRegistry, this.connectorRegistry)
-        }
-        this.requestUpdate()
-      }, 0)
+      this.remoteUsages(data)
 
       block.off("dataChanged", this.handleBlockDataChanged.bind(this))
 
       this.tracked.delete(block as Block<BlockType.VarInit>)
     }
+  }
+
+  /**
+   * Removes the drawer block from the drawer, if any, and removes all usages of the variable
+   * @param data tracked data of the variable
+   */
+  private remoteUsages(data: {
+    drawerBlock?: Block<BlockType.Variable>
+    usages: Block<BlockType.Variable>[]
+  }) {
+    if (data.drawerBlock) {
+      this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
+      data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
+    }
+
+    setTimeout(() => {
+      for (const usage of data.usages) {
+        if (usage.removed) continue
+        usage.disconnectSelf(null)
+        usage.remove(this.blockRegistry, this.connectorRegistry)
+      }
+      this.requestUpdate()
+    }, 0)
   }
 
   /**
@@ -317,7 +326,7 @@ export class VariableHelper
   public updateParameterType(name: string, type: DataType) {
     const data = this.functionPropertyVariables.get(name)
     if (data) data.type = type
-    else console.error("Parameter not found", name)
+    else console.error("Parameter not found (update type)", name)
   }
 
   public updateParameterName(oldName: string, newName: string) {
@@ -329,17 +338,14 @@ export class VariableHelper
       })
       this.functionPropertyVariables.delete(oldName)
       this.functionPropertyVariables.set(newName, data)
-    } else console.error("Parameter not found", oldName)
+    } else console.error("Parameter not found (update name)", oldName)
   }
 
   public removeParameter(name: string) {
     const data = this.functionPropertyVariables.get(name)
     if (data) {
-      data.usages.forEach(usage => {
-        usage.disconnectSelf(null)
-        usage.remove(this.blockRegistry, this.connectorRegistry)
-      })
+      this.remoteUsages(data)
       this.functionPropertyVariables.delete(name)
-    } else console.error("Parameter not found", name)
+    } else console.error("Parameter not found (remove)", name)
   }
 }
