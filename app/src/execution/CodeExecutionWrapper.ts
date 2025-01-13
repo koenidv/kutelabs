@@ -23,12 +23,18 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
 
   public run(): void {
     const editor = this.editorRef.get()
-    this.running.set(true)
     this.runFailed.set(false)
     displayMessage("Processing", "info", { duration: -1, single: true })
+
+    const code = editor.code()
+    if (!code) {
+      displayMessage("Write some code first", "info", { single: true })
+      return
+    }
+    this.running.set(true)
     editorLoadingState.set(true)
 
-    const preprocessed = preprocessKotlin(editor.code())
+    const preprocessed = preprocessKotlin(code)
     this.preprocessSourceMap = preprocessed.sourceMap
 
     transpileKtJs(this.abortController, preprocessed.code, false, true)
@@ -71,7 +77,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
   public printJs() {
     editorLoadingState.set(true)
     this.running.set(true)
-    transpileKtJs(this.abortController, this.editorRef.get().code())
+    transpileKtJs(this.abortController, this.editorRef.get().code() ?? "")
       .then(transpiled => {
         editorLoadingState.set(false)
         console.log(transpiled?.transpiledCode)

@@ -23,8 +23,9 @@ export abstract class BaseCompiler {
     entrypoint: string,
     callbacks: SandboxCallbacks,
     invisibleCode: Record<string, string>
-  ): CompilationResult {
+  ): CompilationResult | null {
     const functionBlocks = root.blocks.filter(({ block }) => block.type == BlockType.Function)
+    if (functionBlocks.length == 0) return null
     let code =
       this.declareImports(callbacks) +
       "\n" +

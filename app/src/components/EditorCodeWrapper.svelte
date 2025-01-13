@@ -19,7 +19,7 @@
   import "prism-code-editor/themes/github-dark.css"
 
   export interface EditorCodeInterface {
-    code(): string
+    code(): string | null
     entrypoint(): string
     argnames(): string[]
     highlight(line: number, column: number): void
@@ -85,7 +85,7 @@
   }
 
   editorRef.set({
-    code: () => (editor?.value ? editor.value + "\n" + data.invisibleCode : ""),
+    code: () => (editor?.value ? editor.value + "\n" + data.invisibleCode : null),
     entrypoint: () => data.entrypoint ?? "main",
     argnames: () => data.argnames ?? [],
     highlight: highlight,

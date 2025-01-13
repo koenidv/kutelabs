@@ -64,10 +64,14 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
-    this.running.set(true)
-
+    
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
+    if (!compiled) {
+      displayMessage("Please add your code to a function block", "info", { single: true })
+      return
+    }
+    this.running.set(true)
 
     const parsed = validateJs(compiled.code)
     if (!parsed.valid) {
@@ -107,11 +111,15 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
-    this.running.set(true)
-
+    
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
     displayMessage("Processing", "info", { duration: -1, single: true })
+    if (!compiled) {
+      displayMessage("Please add your code to a function block", "info", { single: true })
+      return
+    }
+    this.running.set(true)
     editorLoadingState.set(true)
 
     transpileKtJs(this.abortController, compiled.code)
@@ -154,13 +162,13 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   public printJs() {
     const editor = this.editorRef.get()
     const compiled = editor.compile(JsCompiler, this.getCallbacks(editor))
-    console.log(compiled.code)
+    console.log(compiled?.code)
   }
 
   public printKt() {
     const editor = this.editorRef.get()
     const compiled = editor.compile(KtCompiler, this.getCallbacks(editor))
-    console.log(compiled.code)
+    console.log(compiled?.code)
   }
 
   protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {

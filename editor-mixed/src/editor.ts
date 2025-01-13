@@ -315,7 +315,7 @@ export class EditorMixed extends LitElement {
       new (): T extends BaseCompiler ? T : null
     },
     callbacks: SandboxCallbacks
-  ): CompilationResult {
+  ): CompilationResult | null {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 
