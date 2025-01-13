@@ -33,6 +33,7 @@ export type BlockDataFunction = {
   params: {
     name: string
     type: DataType
+    registeredName?: string
   }[]
   isMain?: true | undefined
   nameEditable?: boolean

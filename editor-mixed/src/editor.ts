@@ -90,7 +90,7 @@ export class EditorMixed extends LitElement {
       this.blockRegistry,
       this.connectorRegistry,
       this.requestUpdate.bind(this),
-      this.data?.mainFunction ?? "main"
+      this.variableHelper
     )
   }
 

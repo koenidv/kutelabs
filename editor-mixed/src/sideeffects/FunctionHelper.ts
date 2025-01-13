@@ -6,8 +6,11 @@ import type {
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
+import type { BlockRInterface } from "../registries/BlockRInterface"
+import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { BaseSideEffect, type TrackedData } from "./BaseSideEffect"
 import type { FunctionHInterface } from "./FunctionHInterface"
+import type { VariableHInterface } from "./VariableHInterface"
 
 /**
  * side effect / helper class
@@ -22,6 +25,18 @@ export class FunctionHelper
   private _entrypointName: string = "main"
   set entrypoint(name: string) {
     this._entrypointName = name
+  }
+
+  private variableHelper: VariableHInterface
+
+  constructor(
+    blockRegistry: BlockRInterface,
+    connectorRegistry: ConnectorRInterface,
+    requestUpdate: () => void,
+    variableHelper: VariableHInterface
+  ) {
+    super(blockRegistry, connectorRegistry, requestUpdate)
+    this.variableHelper = variableHelper
   }
 
   protected onBlockAddedToWorkspace = (block: AnyBlock) => {
@@ -90,6 +105,12 @@ export class FunctionHelper
     }
     matchingPendingUsages.forEach(usage => this.handleInvocationAdded(usage), this)
 
+    // register existing parameters
+    block.data.params.forEach(param => {
+      this.variableHelper.registerParameter(param.name, param.type, false)
+      param.registeredName = param.name
+    }, this)
+
     block.on("dataChanged", this.handleBlockDataChanged.bind(this))
 
     this.requestUpdate()
@@ -117,6 +138,35 @@ export class FunctionHelper
         changedBlock.updateData(data => ({ ...data, name: currentData.name }))
       }
     }
+
+    // diff removed
+    currentData.params.forEach(param => {
+      if (!changedBlock.data.params.find(p => p.registeredName === param.name)) {
+        this.variableHelper.removeParameter(param.name)
+        requestUpdate = true
+      }
+    }, this)
+
+    changedBlock.data.params.forEach(param => {
+      if (!param.registeredName) {
+        // diff added
+        const name = this.variableHelper.nextAvailableName(param.name ? param.name : "arg")
+        this.variableHelper.registerParameter(name, param.type, false)
+        param.name = name
+        param.registeredName = name
+        requestUpdate = true
+      } else if (param.registeredName !== param.name) {
+        // diff renamed
+        this.variableHelper.updateParameterName(param.registeredName, param.name)
+        param.registeredName = param.name
+        requestUpdate = true
+      }
+      if (param.type !== this.variableHelper.getVariableType(param.name)) {
+        // diff type changed
+        this.variableHelper.updateParameterType(param.name, param.type)
+        requestUpdate = true
+      }
+    }, this)
 
     if (requestUpdate) this.requestUpdate()
   }

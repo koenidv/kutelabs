@@ -197,6 +197,8 @@ export class VariableHelper
       )
   }
 
+  //#region API
+
   /**
    * Finds a variable by its name
    * @param name variable name
@@ -205,7 +207,11 @@ export class VariableHelper
   private dataByVarName(
     name: string
   ): TrackedData<Block<BlockType.VarInit, any>, Block<BlockType.Variable>> | null {
-    return [...this.tracked.values()].find(data => data.name === name) ?? null
+    return (
+      [...this.tracked.values()].find(data => data.name === name) ??
+      [...this.functionPropertyVariables.values()].find(data => data.name === name) ??
+      null
+    )
   }
 
   /**
@@ -216,6 +222,8 @@ export class VariableHelper
   public isNameAvailable(name: string): boolean {
     if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,30}$/.test(name)) return false
     for (const { name: registeredName } of this.tracked.values())
+      if (registeredName === name) return false
+    for (const registeredName of this.functionPropertyVariables.keys())
       if (registeredName === name) return false
     return true
   }
@@ -243,11 +251,13 @@ export class VariableHelper
    * @returns list of variable init data
    */
   public getVariables(): BlockDataVariableInit<any>[] {
-    return [...this.tracked.entries()].map(([_initBlock, data]) => ({
-      name: data.name,
-      type: data.type,
-      mutable: data.mutable,
-    }))
+    return [...this.tracked.entries(), ...this.functionPropertyVariables.entries()].map(
+      ([_initBlock, data]) => ({
+        name: data.name,
+        type: data.type,
+        mutable: data.mutable,
+      })
+    )
   }
 
   /**
@@ -266,5 +276,70 @@ export class VariableHelper
    */
   public getVariableMutable(name: string): boolean | undefined {
     return this.dataByVarName(name)?.mutable
+  }
+
+  //#region Function Property Variables
+
+  private functionPropertyVariables: Map<
+    string,
+    {
+      name: string
+      drawerBlock: Block<BlockType.Variable>
+      usages: Block<BlockType.Variable>[]
+      type: DataType
+      mutable: false
+    }
+  > = new Map()
+
+  public registerParameter(name: string, type: DataType, mutable: false) {
+    if (!this.functionPropertyVariables.has(name)) {
+      const drawerBlock = new Block<BlockType.Variable>(
+        BlockType.Variable,
+        { name },
+        DefaultConnectors.byBlockType(BlockType.Variable).map(connector => ({ connector })),
+        true,
+        this.blockRegistry,
+        this.connectorRegistry
+      )
+      this.blockRegistry.attachToDrawer(drawerBlock, -1)
+      this.functionPropertyVariables.set(name, {
+        name,
+        drawerBlock,
+        usages: [drawerBlock],
+        type,
+        mutable,
+      })
+    } else {
+      console.error("Parameter already registered", name)
+    }
+  }
+
+  public updateParameterType(name: string, type: DataType) {
+    const data = this.functionPropertyVariables.get(name)
+    if (data) data.type = type
+    else console.error("Parameter not found", name)
+  }
+
+  public updateParameterName(oldName: string, newName: string) {
+    const data = this.functionPropertyVariables.get(oldName)
+    if (data) {
+      data.name = newName
+      data.usages.forEach(usage => {
+        usage.updateData(data => ({ ...data, name: newName }))
+      })
+      this.functionPropertyVariables.delete(oldName)
+      this.functionPropertyVariables.set(newName, data)
+    } else console.error("Parameter not found", oldName)
+  }
+
+  public removeParameter(name: string) {
+    const data = this.functionPropertyVariables.get(name)
+    if (data) {
+      data.usages.forEach(usage => {
+        usage.disconnectSelf(null)
+        usage.remove(this.blockRegistry, this.connectorRegistry)
+      })
+      this.functionPropertyVariables.delete(name)
+    } else console.error("Parameter not found", name)
   }
 }

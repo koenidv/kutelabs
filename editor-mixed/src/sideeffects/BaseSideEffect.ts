@@ -16,11 +16,6 @@ export type TrackedData<
   usages: Usage[]
 }
 
-export type ThisTrackedData<T extends BaseSideEffect<Block<BlockType, DataType>, AnyBlock>> = 
-T extends BaseSideEffect<Block<infer BT extends BlockType, infer DT extends DataType>, infer U>
-  ? TrackedData<Block<BT, DT>, U>
-  : never
-
 /**
  * Side Effects perform additional tasks when specific blocks are added to the workspace
  */
