@@ -5,6 +5,7 @@ import type { BlockAndCoordinates } from "../../util/Coordinates"
 import type { BaseBlockRenderer } from "../BlockRenderers/BaseBlockRenderer"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import type { BlockAndSize } from "../SizeProps"
+import { guard } from "lit/directives/guard.js"
 
 export type BlockSizeCount = BlockAndSize & { count: number }
 export type BlockCoordinateCount = BlockAndCoordinates & { count: number }
@@ -46,44 +47,53 @@ export abstract class BaseDrawerRenderer {
     if (!this._enabled || !this.blockRegistry.drawer) return nothing
 
     const blocks = this.blockRegistry.drawer.blocks
-    const ordered = this.orderBlocks(blocks)
-    const withSize = this.measureAndSet(ordered)
-    const layout = this.positionAndSet(withSize)
-    const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
 
-    return html`
-      ${this.expanded
-        ? html`
-            <div
-              id="drawer-container"
-              style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
-              <svg
-                id="drawer"
-                id="drawer-content"
-                width="${width}"
-                height="${layout.fullHeight}"
-                style="min-height: 100%; display: block;"
-                role="list">
-                ${this.renderDrawer(
-                  layout.positions,
-                  width,
-                  layout.fullHeight,
-                  this.blockRenderer.renderBlock.bind(this.blockRenderer)
-                )}
-              </svg>
-            </div>
-          `
-        : nothing}
+    return guard([this.expanded, blocks.length], () => {
+      const ordered = this.orderBlocks(blocks)
+      const withSize = this.measureAndSet(ordered)
+      const layout = this.positionAndSet(withSize)
+      const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
+      return html`
+        ${
+          this.expanded
+            ? html`
+                <div
+                  id="drawer-container"
+                  style="position: absolute; top: 0; left:0; bottom: 0; overflow: auto;">
+                  <svg
+                    id="drawer"
+                    id="drawer-content"
+                    width="${width}"
+                    height="${layout.fullHeight}"
+                    style="min-height: 100%; display: block;"
+                    role="list">
+                    ${this.renderDrawer(
+                      layout.positions,
+                      width,
+                      layout.fullHeight,
+                      this.blockRenderer.renderBlock.bind(this.blockRenderer)
+                    )}
+                  </svg>
+                </div>
+              `
+            : nothing
+        }
 
-      <div id="drawer" style="position: absolute; top: 0; left: ${width}px">
-        ${this.renderExpandButton(this.expanded, (evt: Event) => {
-          if (evt.defaultPrevented) return
-          evt.preventDefault()
-          this.expanded = !this.expanded
-          this.requestUpdate()
-        })}
-      </div>
-    `
+          ${guard(
+            this.expanded,
+            () =>
+              html`<div id="drawer" style="position: absolute; top: 0; left: ${width}px">
+                ${this.renderExpandButton(this.expanded, (evt: Event) => {
+                  if (evt.defaultPrevented) return
+                  evt.preventDefault()
+                  this.expanded = !this.expanded
+                  this.requestUpdate()
+                })}
+              </div> `
+          )}
+        </div>
+      `
+    }) as TemplateResult<1>
   }
 
   private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {

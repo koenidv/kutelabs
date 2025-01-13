@@ -10,6 +10,7 @@ import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
 import type { InternalBlockRenderProps, SvgResult } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
+import { guard } from "lit/directives/guard.js"
 
 /**
  * The BlockRenderer is responsible for rendering blocks in the workspace.
@@ -112,9 +113,13 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
       block.draggable,
       props,
       () =>
-        this.renderBlockElement(this.blockRegistry.getRegistered(block), props, (next: AnyBlock) =>
-          this.renderBlock(next, block, props)
-        )
+        guard([block.id, block.connectedBlocks.downstream.map(b => b.block.id), JSON.stringify(block.data)], () =>
+          this.renderBlockElement(
+            this.blockRegistry.getRegistered(block),
+            props,
+            (next: AnyBlock) => this.renderBlock(next, block, props)
+          )
+        ) as TemplateResult<2>
     )
   }
 
@@ -290,7 +295,6 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
       )
   }
 
-
   //#region Block Contents
 
   /** Override this to customize how the content of **function** blocks is rendered */
@@ -406,7 +410,6 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     props: InternalBlockRenderProps
   ): SvgResult
-
 }
 
 export type BlockRendererConstructorType = {
