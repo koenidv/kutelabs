@@ -3,14 +3,8 @@ import type { BlockDataVariable, BlockDataVariableInit } from "../blocks/configu
 import { BlockType } from "../blocks/configuration/BlockType"
 import type { DataType } from "../blocks/configuration/DataType"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
-import type { BlockRInterface } from "../registries/BlockRInterface"
-import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
+import { BaseSideEffect, type TrackedData } from "./BaseSideEffect"
 import type { VariableHInterface } from "./VariableHInterface"
-
-type VariableData = BlockDataVariableInit<any> & {
-  drawerBlock: AnyBlock
-  usages: Block<BlockType.Variable>[]
-}
 
 /**
  * side effect / helper class
@@ -18,29 +12,11 @@ type VariableData = BlockDataVariableInit<any> & {
  * It adds variable blocks to the drawer for available variables and removes variable usages when the init block is removed
  * Variables reported here are not necessarily available in a given scope, they're just declared somewhere in the workspaces
  */
-export class VariableHelper implements VariableHInterface {
-  private variables = new Map<Block<BlockType.VarInit>, VariableData>()
-  private pendingUsages: Block<BlockType.Variable>[] = [] // stores variables that are used before the init block is added to the workspace; this should only happen during block loading
-
-  private readonly blockRegistry: BlockRInterface
-  private readonly connectorRegistry: ConnectorRInterface
-  private readonly requestUpdate: () => void
-
-  constructor(
-    blockRegistry: BlockRInterface,
-    connectorRegistry: ConnectorRInterface,
-    requestUpdate: () => void
-  ) {
-    blockRegistry.on("workspaceAdded", ({ block }) => this.onBlockAddedToWorkspace(block))
-    blockRegistry.on("workspaceRemoved", ({ block }) => this.onBlockRemovedFromWorkspace(block))
-    blockRegistry.on("registeredClone", ({ block }) => this.onRegisteredClone(block))
-
-    this.blockRegistry = blockRegistry
-    this.connectorRegistry = connectorRegistry
-    this.requestUpdate = requestUpdate
-  }
-
-  private onBlockAddedToWorkspace = (block: AnyBlock) => {
+export class VariableHelper
+  extends BaseSideEffect<Block<BlockType.VarInit, DataType>, Block<BlockType.Variable>>
+  implements VariableHInterface
+{
+  protected onBlockAddedToWorkspace = (block: AnyBlock) => {
     if (block.type === BlockType.VarInit)
       return this.handleVarInitAdded(block as Block<BlockType.VarInit>)
     if (block.type === BlockType.Variable)
@@ -59,7 +35,7 @@ export class VariableHelper implements VariableHInterface {
    * @param block VarInit block that was just added to the workspace
    */
   private handleVarInitAdded = (block: Block<BlockType.VarInit>) => {
-    if (this.variables.has(block)) {
+    if (this.tracked.has(block)) {
       console.error("Added var init block to workspace but block is already tracked:", block)
       return
     }
@@ -80,7 +56,7 @@ export class VariableHelper implements VariableHInterface {
     )
     this.blockRegistry.attachToDrawer(drawerBlock, -1)
 
-    this.variables.set(block as Block<BlockType.VarInit>, {
+    this.tracked.set(block as Block<BlockType.VarInit>, {
       name: data.name,
       type: data.type,
       mutable: data.mutable,
@@ -108,7 +84,7 @@ export class VariableHelper implements VariableHInterface {
    * @param changedBlock Variable init block that was changed
    */
   private handleBlockDataChanged = (changedBlock: Block<BlockType.VarInit>) => {
-    const currentData = this.variables.get(changedBlock)
+    const currentData = this.tracked.get(changedBlock)
     if (!currentData) return
 
     let requestUpdate = false
@@ -157,7 +133,7 @@ export class VariableHelper implements VariableHInterface {
     block.updateData(data => ({ ...data, variableHelper: new WeakRef(this) }))
   }
 
-  private onBlockRemovedFromWorkspace = (block: AnyBlock) => {
+  protected onBlockRemovedFromWorkspace = (block: AnyBlock) => {
     if (block.type === BlockType.VarInit)
       return this.handleVarInitRemoved(block as Block<BlockType.VarInit>)
     if (block.type === BlockType.Variable)
@@ -171,9 +147,9 @@ export class VariableHelper implements VariableHInterface {
    * @param block VarInit block that was just removed from the workspace
    */
   private handleVarInitRemoved = (block: Block<BlockType.VarInit>) => {
-    if (this.variables.has(block as Block<BlockType.VarInit>)) {
+    if (this.tracked.has(block as Block<BlockType.VarInit>)) {
       // remove drawer block
-      const data = this.variables.get(block as Block<BlockType.VarInit>)!
+      const data = this.tracked.get(block as Block<BlockType.VarInit>)!
       this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
       data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
 
@@ -189,7 +165,7 @@ export class VariableHelper implements VariableHInterface {
 
       block.off("dataChanged", this.handleBlockDataChanged.bind(this))
 
-      this.variables.delete(block as Block<BlockType.VarInit>)
+      this.tracked.delete(block as Block<BlockType.VarInit>)
     }
   }
 
@@ -212,7 +188,7 @@ export class VariableHelper implements VariableHInterface {
    * This is required to check compatibility of variable types when connecting blocks on the first drag
    * @param block cloned block
    */
-  private onRegisteredClone = (block: AnyBlock) => {
+  protected onRegisteredClone = (block: AnyBlock) => {
     if (block.type === BlockType.Variable)
       block.updateData(
         data => ({ ...data, variableHelper: new WeakRef(this) }) as BlockDataVariable
@@ -224,8 +200,10 @@ export class VariableHelper implements VariableHInterface {
    * @param name variable name
    * @returns variable data or null if not found
    */
-  private dataByVarName(name: string): VariableData | null {
-    return [...this.variables.values()].find(data => data.name === name) ?? null
+  private dataByVarName(
+    name: string
+  ): TrackedData<Block<BlockType.VarInit, DataType>, Block<BlockType.Variable>> | null {
+    return [...this.tracked.values()].find(data => data.name === name) ?? null
   }
 
   /**
@@ -235,7 +213,7 @@ export class VariableHelper implements VariableHInterface {
    */
   public isNameAvailable(name: string): boolean {
     if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,30}$/.test(name)) return false
-    for (const { name: registeredName } of this.variables.values())
+    for (const { name: registeredName } of this.tracked.values())
       if (registeredName === name) return false
     return true
   }
@@ -259,7 +237,7 @@ export class VariableHelper implements VariableHInterface {
    * @returns list of variable init data
    */
   public getVariables(): BlockDataVariableInit<any>[] {
-    return [...this.variables.entries()].map(([_initBlock, data]) => ({
+    return [...this.tracked.entries()].map(([_initBlock, data]) => ({
       name: data.name,
       type: data.type,
       mutable: data.mutable,

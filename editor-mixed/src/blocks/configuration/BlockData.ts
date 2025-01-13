@@ -1,23 +1,23 @@
-import type { VariableHInterface } from "../../variables/VariableHInterface"
+import type { VariableHInterface } from "../../sideeffects/VariableHInterface"
 import { BlockType } from "./BlockType"
 import { DataType, type TsTypeByDataType } from "./DataType"
 import type { DefinedExpression } from "./DefinedExpression"
 
-export type BlockDataByType<T extends BlockType, S = never> = T extends BlockType.Function
+export type BlockDataByType<T extends BlockType, D = DataType> = T extends BlockType.Function
   ? BlockDataFunction
   : T extends BlockType.Expression
     ? BlockDataExpression
     : T extends BlockType.Value
-      ? BlockDataValue<S extends DataType ? S : never>
+      ? BlockDataValue<D>
       : T extends BlockType.VarInit
-        ? BlockDataVariableInit<S extends DataType ? S : never>
+        ? BlockDataVariableInit<D>
         : T extends BlockType.Variable
           ? BlockDataVariable
           : T extends BlockType.LogicJunction
             ? BlockDataLogicJunction
             : T extends BlockType.LogicComparison
               ? BlockDataLogicComparison
-            : BlockDataEmpty
+              : BlockDataEmpty
 
 export type BlockDataEmpty = null
 
@@ -74,8 +74,18 @@ export enum LogicComparisonOperator {
   LessOrEqual = "<=",
 }
 export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator, DataType[]> = {
-  [LogicComparisonOperator.Equal]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
-  [LogicComparisonOperator.NotEqual]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
+  [LogicComparisonOperator.Equal]: [
+    DataType.Int,
+    DataType.Float,
+    DataType.String,
+    DataType.Boolean,
+  ],
+  [LogicComparisonOperator.NotEqual]: [
+    DataType.Int,
+    DataType.Float,
+    DataType.String,
+    DataType.Boolean,
+  ],
   [LogicComparisonOperator.Greater]: [DataType.Int, DataType.Float],
   [LogicComparisonOperator.GreaterOrEqual]: [DataType.Int, DataType.Float],
   [LogicComparisonOperator.Less]: [DataType.Int, DataType.Float],

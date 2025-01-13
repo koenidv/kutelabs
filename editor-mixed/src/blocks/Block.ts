@@ -16,10 +16,11 @@ import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
 import { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
+import type { DataType } from "../schema/blocks"
 
 export type AnyBlock = Block<BlockType, any>
 
-export class Block<T extends BlockType, S = never>
+export class Block<T extends BlockType, S extends DataType | never = never>
   extends Emitter<BlockEvents<T, S>>
   implements BlockContract
 {
