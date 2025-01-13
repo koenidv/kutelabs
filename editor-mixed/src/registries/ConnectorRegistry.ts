@@ -21,6 +21,14 @@ export class ConnectorRegistry implements ConnectorRInterface {
   }
 
   /**
+   * Deregister a single connector
+   * @param connector Connector to deregister
+   */
+  public deregister(connector: Connector): void {
+    this._connectors = this._connectors.filter(it => it !== connector)
+  }
+
+  /**
    * Deregister all connectors that belong to a block, used when a block is removed
    * @param block Block to deregister connectors for
    */

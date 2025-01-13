@@ -5,6 +5,7 @@ import type { Coordinates } from "../util/Coordinates"
 
 export interface ConnectorRInterface {
   register(connector: Connector): void
+  deregister(connector: Connector): void
   deregisterForBlock(block: AnyBlock): void
 
   selectConnectorForBlock(

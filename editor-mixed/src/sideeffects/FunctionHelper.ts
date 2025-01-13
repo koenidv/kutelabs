@@ -5,12 +5,16 @@ import type {
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
+import { Connector } from "../connections/Connector"
 import { DefaultConnectors } from "../connections/DefaultConnectors"
 import type { BlockRInterface } from "../registries/BlockRInterface"
 import type { ConnectorRInterface } from "../registries/ConnectorRInterface"
 import { BaseSideEffect, type TrackedData } from "./BaseSideEffect"
 import type { FunctionHInterface } from "./FunctionHInterface"
 import type { VariableHInterface } from "./VariableHInterface"
+
+type AdditionalUsageData = { _functionData: { params: { name: string; connector: Connector }[] } }
+type FullUsage = Block<BlockType.FunctionInvoke> & AdditionalUsageData
 
 /**
  * side effect / helper class
@@ -19,7 +23,11 @@ import type { VariableHInterface } from "./VariableHInterface"
  * Until scoped funs are implemented, functions are global
  */
 export class FunctionHelper
-  extends BaseSideEffect<Block<BlockType.Function>, Block<BlockType.FunctionInvoke>>
+  extends BaseSideEffect<
+    Block<BlockType.Function>,
+    Block<BlockType.FunctionInvoke>,
+    { usages: AdditionalUsageData[] }
+  >
   implements FunctionHInterface
 {
   private _entrypointName: string = "main"
@@ -76,9 +84,16 @@ export class FunctionHelper
         true,
         this.blockRegistry,
         this.connectorRegistry
-      )
+      ) as Block<BlockType.FunctionInvoke> & AdditionalUsageData
+      drawerBlock._functionData = { params: [] }
+
       if (this._entrypointName !== block.data.name)
         this.blockRegistry.attachToDrawer(drawerBlock, -1)
+
+      block.data.params.forEach(
+        param => this.addParameterConnectorToUsage(drawerBlock, param.name),
+        this
+      )
 
       this.tracked.set(block as Block<BlockType.Function>, {
         name: data.name,
@@ -143,6 +158,9 @@ export class FunctionHelper
       if (!changedBlock.data.params.find(p => p.registeredName === param.name)) {
         this.variableHelper.removeParameter(param.name)
         currentData.params = currentData.params.filter(p => p.registeredName !== param.name)
+        currentData.usages.forEach(usage => {
+          this.removeParameterConnectorFromUsage(usage as FullUsage, param.name)
+        }, this)
         requestUpdate = true
       }
     }, this)
@@ -155,6 +173,9 @@ export class FunctionHelper
         currentData.params.push({ name, type: param.type })
         param.name = name
         param.registeredName = name
+        currentData.usages.forEach(usage => {
+          this.addParameterConnectorToUsage(usage as FullUsage, name)
+        }, this)
         requestUpdate = true
       } else if (param.registeredName !== param.name) {
         // diff renamed
@@ -163,6 +184,9 @@ export class FunctionHelper
         currentData.params = currentData.params.map(p =>
           p.name === param.registeredName ? { ...p, name: newName } : p
         )
+        currentData.usages.forEach(usage => {
+          this.renameParameterConnectorInUsage(usage as FullUsage, param.registeredName!, newName)
+        }, this)
         param.registeredName = newName
         changedBlock.updateData(data => data)
         requestUpdate = true
@@ -193,6 +217,16 @@ export class FunctionHelper
       this.pendingUsages.push(block)
       return
     }
+
+    if (!("_functionData" in block)) {
+      const blockFull = block as FullUsage
+      blockFull._functionData = { params: [] }
+      data.params.forEach(param => {
+        this.addParameterConnectorToUsage(blockFull, param.name)
+      }, this)
+      this.requestUpdate()
+    }
+
     data.usages.push(block)
     block.updateData(data => ({ ...data, functionHelper: new WeakRef(this) }))
   }
@@ -219,11 +253,17 @@ export class FunctionHelper
         data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
       }
 
+      // remove params
+      block.data.params.forEach(param => {
+        this.variableHelper.removeParameter(param.name)
+      })
+
       // remove invocations after drawer deduplicated them
       setTimeout(() => {
         for (const usage of data.usages) {
           if (usage.removed) continue
           usage.disconnectSelf(null)
+          this.removeAllParameterConnectorsFromUsage(usage as FullUsage)
           usage.remove(this.blockRegistry, this.connectorRegistry)
         }
         this.requestUpdate()
@@ -260,6 +300,40 @@ export class FunctionHelper
         data => ({ ...data, functionHelper: new WeakRef(this) }) as BlockDataFunctionReference
       )
   }
+
+  //#region Parameter Connectors on Function Invocations
+
+  private addParameterConnectorToUsage(usage: FullUsage, param: string) {
+    const connector = DefaultConnectors.inputExtension()
+    connector.clonable = false
+    usage.addConnector(connector, this.connectorRegistry)
+    usage._functionData.params.push({
+      name: param,
+      connector,
+    })
+  }
+
+  private removeParameterConnectorFromUsage(usage: FullUsage, param: string) {
+    const paramConnector = usage._functionData.params.find(p => p.name === param)
+    if (!paramConnector) return console.warn("Param connector not found in usage", param)
+    usage.removeConnector(paramConnector.connector, this.connectorRegistry)
+    usage._functionData.params = usage._functionData.params.filter(p => p.name !== param)
+  }
+
+  private renameParameterConnectorInUsage(usage: FullUsage, oldName: string, newName: string) {
+    const paramConnector = usage._functionData.params.find(p => p.name === oldName)
+    if (!paramConnector) return console.warn("Param connector not found in usage", oldName)
+    paramConnector.name = newName
+  }
+
+  private removeAllParameterConnectorsFromUsage(usage: FullUsage) {
+    usage._functionData.params.forEach(param => {
+      usage.removeConnector(param.connector, this.connectorRegistry)
+    })
+    usage._functionData.params = []
+  }
+
+  //#region Interface
 
   /**
    * Finds a function by its name

@@ -8,13 +8,14 @@ import type { DataType } from "../schema/blocks"
 export type TrackedData<
   Tracked extends Block<BlockType, DataType>,
   Usage extends AnyBlock,
+  Additional = {}
 > = BlockDataByType<
   Tracked extends Block<infer T, any> ? T : never,
   Tracked extends Block<BlockType.VarInit, infer D> ? D : never
 > & {
   drawerBlock?: AnyBlock
   usages: Usage[]
-}
+} & Additional
 
 /**
  * Side Effects perform additional tasks when specific blocks are added to the workspace
@@ -22,8 +23,9 @@ export type TrackedData<
 export abstract class BaseSideEffect<
   Tracked extends Block<BlockType, DataType>,
   Usage extends AnyBlock,
+  Additional = {}
 > {
-  protected tracked = new Map<Tracked, TrackedData<Tracked, Usage>>()
+  protected tracked = new Map<Tracked, TrackedData<Tracked, Usage, Additional>>()
   protected pendingUsages: Usage[] = [] // stores variables that are used before the init block is added to the workspace; this should only happen during block loading
 
   protected readonly blockRegistry: BlockRInterface

@@ -9,6 +9,7 @@ export class Connector {
   type: ConnectorType
   role: ConnectorRole
   connectPredicates: ConnectPredicates
+  clonable = true
 
   globalPosition: Coordinates
 
@@ -30,6 +31,11 @@ export class Connector {
     this._parentBlock = parentBlock
     registry.register(this)
     return this
+  }
+
+  public deregister(registry: ConnectorRInterface): void {
+    registry.deregister(this)
+    this._parentBlock = null
   }
 
   private _parentBlock: AnyBlock | null = null
