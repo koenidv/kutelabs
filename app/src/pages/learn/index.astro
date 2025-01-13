@@ -24,8 +24,8 @@ const challenges = await navigationStore.getChallenes()
             return (
               <div class="pb-4 flex flex-col items-center">
                 {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
-                <h3 class="text-3xl font-poppins font-black pb-1">{it.data.title}</h3>
-                <p>{it.data.description}</p>
+                <h3 class="text-3xl font-poppins font-black pb-1 text-center">{it.data.title}</h3>
+                <p class="text-center">{it.data.description}</p>
                 {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
             )

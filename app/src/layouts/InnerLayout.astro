@@ -12,9 +12,9 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
 
 <OuterLayout title={title}>
   <header class="flex items-center">
-    <nav class="flex flex-row-reverse lg:flex-row justify-between lg:justify-start items-center px-4 lg:px-8 py-8 w-full max-w-7xl lg:gap-4 h-24">
+    <nav class=`flex flex-row-reverse lg:flex-row ${navigateBackText ? "justify-between": "justify-center"} lg:justify-start items-center px-4 lg:px-8 py-8 w-full max-w-7xl lg:gap-4 h-24`>
       <div>
-        <Logo class="h-8 w-fit inline" />
+        <Logo class="h-8 w- inline" />
       </div>
       {
         navigateBackText && (
@@ -32,7 +32,8 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
 
 <script is:inline define:vars={{ navigateBackDefaultUrl }}>
   document.getElementById("backButton")?.addEventListener("click", function () {
-    if (document.referrer && new URL(document.referrer).hostname === window.location.hostname) {
+    const referrer = new URL(document.referrer)
+    if (referrer && referrer.hostname === window.location.hostname && referrer.pathname == "/learn") {
       window.history.back()
     } else {
       window.location.href = navigateBackDefaultUrl ?? "/learn"
