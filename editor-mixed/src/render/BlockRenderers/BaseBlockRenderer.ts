@@ -203,65 +203,67 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     props: InternalBlockRenderProps
   ): SvgResult {
-    switch (registered.block.type) {
-      case BlockType.Function:
-        return this.renderContentFunction(
-          registered as RegisteredBlock<BlockType.Function, any>,
-          props
-        )
-      case BlockType.FunctionInvoke:
-        return this.renderContentFunctionInvocation(
-          registered as RegisteredBlock<BlockType.FunctionInvoke, any>,
-          props
-        )
-      case BlockType.Expression:
-        return this.renderContentExpression(
-          registered as RegisteredBlock<BlockType.Expression, any>,
-          props
-        )
-      case BlockType.Value:
-        return this.renderContentValue(registered as RegisteredBlock<BlockType.Value, any>, props)
-      case BlockType.Variable:
-        return this.renderContentVariable(
-          registered as RegisteredBlock<BlockType.Variable, any>,
-          props
-        )
-      case BlockType.VarInit:
-        return this.renderContentVariableInit(
-          registered as RegisteredBlock<BlockType.VarInit, any>,
-          props
-        )
-      case BlockType.VarSet:
-        return this.renderContentVariableSet(
-          registered as RegisteredBlock<BlockType.VarSet, any>,
-          props
-        )
-      case BlockType.Loop:
-        return this.renderContentLoop(registered as RegisteredBlock<BlockType.Loop, any>, props)
-      case BlockType.Conditional:
-        return this.renderContentConditional(
-          registered as RegisteredBlock<BlockType.Conditional, any>,
-          props
-        )
-      case BlockType.LogicNot:
-        return this.renderContentLogicNot(
-          registered as RegisteredBlock<BlockType.LogicNot, any>,
-          props
-        )
-      case BlockType.LogicJunction:
-        return this.renderContentLogicJunction(
-          registered as RegisteredBlock<BlockType.LogicJunction, any>,
-          props
-        )
-      case BlockType.LogicComparison:
-        return this.renderContentLogicComparison(
-          registered as RegisteredBlock<BlockType.LogicComparison, any>,
-          props
-        )
-      default:
-        console.error("No content renderer for block type", registered.block.type)
-        return this.renderDefaultContent(registered, props)
-    }
+    return this.clipContent(registered, () => {
+      switch (registered.block.type) {
+        case BlockType.Function:
+          return this.renderContentFunction(
+            registered as RegisteredBlock<BlockType.Function, any>,
+            props
+          )
+        case BlockType.FunctionInvoke:
+          return this.renderContentFunctionInvocation(
+            registered as RegisteredBlock<BlockType.FunctionInvoke, any>,
+            props
+          )
+        case BlockType.Expression:
+          return this.renderContentExpression(
+            registered as RegisteredBlock<BlockType.Expression, any>,
+            props
+          )
+        case BlockType.Value:
+          return this.renderContentValue(registered as RegisteredBlock<BlockType.Value, any>, props)
+        case BlockType.Variable:
+          return this.renderContentVariable(
+            registered as RegisteredBlock<BlockType.Variable, any>,
+            props
+          )
+        case BlockType.VarInit:
+          return this.renderContentVariableInit(
+            registered as RegisteredBlock<BlockType.VarInit, any>,
+            props
+          )
+        case BlockType.VarSet:
+          return this.renderContentVariableSet(
+            registered as RegisteredBlock<BlockType.VarSet, any>,
+            props
+          )
+        case BlockType.Loop:
+          return this.renderContentLoop(registered as RegisteredBlock<BlockType.Loop, any>, props)
+        case BlockType.Conditional:
+          return this.renderContentConditional(
+            registered as RegisteredBlock<BlockType.Conditional, any>,
+            props
+          )
+        case BlockType.LogicNot:
+          return this.renderContentLogicNot(
+            registered as RegisteredBlock<BlockType.LogicNot, any>,
+            props
+          )
+        case BlockType.LogicJunction:
+          return this.renderContentLogicJunction(
+            registered as RegisteredBlock<BlockType.LogicJunction, any>,
+            props
+          )
+        case BlockType.LogicComparison:
+          return this.renderContentLogicComparison(
+            registered as RegisteredBlock<BlockType.LogicComparison, any>,
+            props
+          )
+        default:
+          console.error("No content renderer for block type", registered.block.type)
+          return this.renderDefaultContent(registered, props)
+      }
+    })
   }
 
   //#region Utilities
@@ -273,7 +275,7 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
    * @param blockId id of the block
    * @param translate offset to the previous group
    * @param draggable whether the block should be draggable
-   * @param child Function to render the content of the group
+   * @param content Function to render the content of the group
    * @returns SVG template for block group
    */
   protected draggableContainer(
@@ -281,12 +283,31 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
     translate: Coordinates,
     draggable: boolean = true,
     _props: InternalBlockRenderProps,
-    child: () => TemplateResult<2>
+    content: () => TemplateResult<2>
   ): TemplateResult<2> {
     return svg`
     <g class="${draggable ? "dragable" : "nodrag"} block" tabindex="-1" transform="translate(${translate.x}, ${translate.y})" id="block-${blockId}">
-      ${child()}
+      ${content()}
     </g>`
+  }
+
+  /**
+   * Clips a block's content to its size
+   * @param param0 registered block to clip
+   * @param content SVG template rendering function for the block content
+   * @returns
+   */
+  protected clipContent({ block, size }: AnyRegisteredBlock, content: () => SvgResult) {
+    return svg`
+    <defs>
+      <clipPath id="clip-${block.id}">
+        <rect x="0" y="0" width=${size.fullWidth} height=${size.fullHeight} />
+      </clipPath>
+    </defs>
+    <g clip-path="url(#clip-${block.id})">
+      ${content()}
+    </g>
+    `
   }
 
   /**
