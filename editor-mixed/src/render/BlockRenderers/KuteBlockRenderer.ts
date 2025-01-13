@@ -187,22 +187,22 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     switch (block.type) {
       case BlockType.Function:
       case BlockType.FunctionInvoke:
-        return "#FFD166"
+        return "#ff9b30"
       case BlockType.Expression:
       case BlockType.VarInit:
       case BlockType.VarSet:
-        return "#1AD9FF"
+        return "#21D9D6"
       case BlockType.Conditional:
       case BlockType.Loop:
-        return "#06D6A0"
+        return "#23DE75"
       case BlockType.Value:
-        return "#DBC0FF"
+        return "#6828EF"
       case BlockType.Variable:
-        return "#FFA1BF"
+        return "#F33A6A"
       case BlockType.LogicNot:
       case BlockType.LogicJunction:
       case BlockType.LogicComparison:
-        return "#1B79DD"
+        return "#3639f5"
       default:
         return "#ffffff"
     }
