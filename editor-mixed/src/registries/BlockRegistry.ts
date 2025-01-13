@@ -174,11 +174,18 @@ export class BlockRegistry extends Emitter<BlockREvents> implements BlockRInterf
     registered.block.extensions.forEach(it => {
       this.markBlock(it, marking, false)
     }, this)
-    registered.block.connectors.inners.filter(it => it.role == ConnectorRole.Input).forEach(it => {
-      this.markBlock(registered.block.connectedBlocks.byConnector(it)!, marking, false)
-    }, this)
+    registered.block.connectors.inners
+      .filter(it => it.role == ConnectorRole.Input)
+      .forEach(it => {
+        this.markBlock(registered.block.connectedBlocks.byConnector(it)!, marking, false)
+      }, this)
 
     this.requestUpdate()
+  }
+
+  /* Gets all markinged blocks' ids */
+  public getMarkedIds(): String[] {
+    return [...this._blocks.values()].filter(it => it.marking != null).map(it => it.block.id)  
   }
 
   public clearMarked(keepErrors: boolean = true) {

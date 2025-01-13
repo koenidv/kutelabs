@@ -16,6 +16,7 @@ import "../../inputs/PrismKotlinEditor"
 import type { EditListWidget, OverlayWidget, Widget } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
+import type { BlockInputIcon } from "./InputIcon"
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   //#region Input Wrappers
@@ -145,6 +146,37 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const position = normalizePrimaryPointerPosition(evt)
     const focusPosition = approximateCaretPosition(target, position!.x, position!.y)
     target.setSelectionRange(focusPosition ?? 0, focusPosition ?? target.value.length)
+  }
+
+  public inputButton(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    enabled: boolean,
+    value: string,
+    onClick: (e: Event) => void,
+    iconStart: BlockInputIcon | undefined,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
+    return svg`
+    <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
+    ${this.tapOrDragLayer(
+      reference => html`
+        <div
+          class="donotdrag"
+          style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block
+            .isInDrawer
+            ? this._safariFixOnly
+            : this._safariTransform}"
+          tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}>
+          <div style="pointer-events: none; width: 100%; height: 100%;">
+            ${this.renderInputButton(value, enabled, onClick, reference, iconStart)}
+          </div>
+        </div>
+      `
+    )}
+    </foreignObject>
+    `
   }
 
   /**
@@ -469,6 +501,19 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   ): TemplateResult<1>
 
   /**
+   * Renders a button input for a block
+   * @param value text to display
+   * @param onClick function to call when the button is clicked
+   */
+  protected abstract renderInputButton(
+    value: string,
+    enabled?: boolean,
+    onClick?: (e: Event) => void,
+    reference?: Ref<HTMLElement> | undefined,
+    iconStart?: BlockInputIcon
+  ): TemplateResult<1>
+
+  /**
    * Renders a boolean input for a block
    * Defaults to a string input with true/false values
    * @param value current value of the input field
@@ -522,4 +567,6 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     type: T,
     value?: TsTypeByDataType<T>[]
   ): TemplateResult<1>
+
+  protected abstract renderIcon(icon: BlockInputIcon, size: Coordinates): TemplateResult<1>
 }

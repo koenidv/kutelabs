@@ -152,6 +152,10 @@
             "nameEditable": {
               "type": "boolean",
               "description": "If the name is editable, defaults to true"
+            },
+            "paramsEditable": {
+              "type": "boolean",
+              "description": "If the parameters are editable, defaults to true"
             }
           },
           "required": [

@@ -1,4 +1,5 @@
 import { svg, type TemplateResult } from "lit"
+import { guard } from "lit/directives/guard.js"
 import type { AnyBlock } from "../../blocks/Block"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import { ConnectorType } from "../../connections/ConnectorType"
@@ -10,14 +11,13 @@ import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
 import type { InternalBlockRenderProps, SvgResult } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
-import { guard } from "lit/directives/guard.js"
 
 /**
  * The BlockRenderer is responsible for rendering blocks in the workspace.
  * It will also be called from other renderers to render blocks in different contexts.
  */
 export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
-  private readonly blockRegistry: BlockRegistry
+  protected readonly blockRegistry: BlockRegistry
   private readonly layouter: BaseLayouter
 
   protected abstract readonly inputRenderer: BaseBlockInputRenderer
@@ -117,6 +117,7 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
           [
             block.id,
             block.connectedBlocks.downstream.map(b => b.block.id),
+            this.blockRegistry.getMarkedIds(),
             JSON.stringify(block.data),
           ],
           () =>

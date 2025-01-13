@@ -1,11 +1,16 @@
-import { svg } from "lit"
+import { svg, type TemplateResult } from "lit"
 import { BlockType } from "../../blocks/configuration/BlockType"
 import { Connector } from "../../connections/Connector"
 import { ConnectorType } from "../../connections/ConnectorType"
 import { Coordinates } from "../../util/Coordinates"
 
+import { guard } from "lit/directives/guard.js"
 import type { AnyBlock } from "../../blocks/Block"
-import { LogicComparisonOperator, LogicJunctionMode } from "../../blocks/configuration/BlockData"
+import {
+  LogicComparisonOperator,
+  LogicJunctionMode,
+  type BlockDataFunction,
+} from "../../blocks/configuration/BlockData"
 import { DataType, isArrayType, simpleTypeFromArrayType } from "../../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../../connections/ConnectorRole"
@@ -18,7 +23,8 @@ import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { BlockMarking, type InternalBlockRenderProps, type SvgResult } from "./BlockRendererTypes"
 import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
-import { guard } from "lit/directives/guard.js"
+import { map } from "lit/directives/map.js"
+import { BlockInputIcon } from "./InputIcon"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
   protected readonly inputRenderer: KuteBlockInputRenderer
@@ -37,21 +43,29 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     { block, size, globalPosition, marking }: AnyRegisteredBlock,
     _props: InternalBlockRenderProps
   ): SvgResult {
-    return guard([block.id, JSON.stringify(size), globalPosition.x, globalPosition.y], () => {
-      const rectangle = new RectBuilder({
-        width: size.fullWidth,
-        height: size.fullHeight,
-        radius: 8,
-      })
+    return guard(
+      [
+        block.id,
+        JSON.stringify(size),
+        globalPosition.x,
+        globalPosition.y,
+        this.blockRegistry.getMarkedIds(),
+      ],
+      () => {
+        const rectangle = new RectBuilder({
+          width: size.fullWidth,
+          height: size.fullHeight,
+          radius: 8,
+        })
 
-      this.addContainerInsets(rectangle, size)
-      this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
-      this.addContainerCutouts(rectangle, size)
+        this.addContainerInsets(rectangle, size)
+        this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
+        this.addContainerCutouts(rectangle, size)
 
-      const path = rectangle.generatePath()
-      const stroke = this.determineContainerStroke(marking)
+        const path = rectangle.generatePath()
+        const stroke = this.determineContainerStroke(marking)
 
-      return svg`
+        return svg`
       <path
         id="bg-${block.id}"
         class="highlight-target"
@@ -61,7 +75,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         stroke-width=${stroke.width}
         d=${path}></path>
     `
-    }) as SvgResult
+      }
+    ) as SvgResult
   }
 
   private addContainerInsets(rectangle: RectBuilder, size: SizeProps): void {
@@ -205,7 +220,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected renderDefaultContent({ block, size }: AnyRegisteredBlock): SvgResult {
-    return svg`<text x=${size.fullWidth / 2} y=${size.fullHeight / 2} fill="black" alignment-baseline="middle" text-anchor="middle" font-family="monospace">
+    return svg`<text x=${size.fullWidth / 2} y=${size.fullHeight / 2} fill="white" alignment-baseline="middle" text-anchor="middle" font-family="monospace">
       ${block.data && "name" in block.data ? block.data.name : block.type}
     </text>`
   }
@@ -215,16 +230,17 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
-    return svg`
-    <text x=${-size.fullHeadHeight / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging" opacity="0.6">fun</text>
+
+    const head = svg`
+    <text x=${-size.heads[0] / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging" opacity="0.65" fill="white">fun</text>
       ${
         block.data.isMain || block.data.nameEditable === false
-          ? svg`<text x="24" y=${size.fullHeadHeight / 2} fill="black" alignment-baseline="middle">${block.data.name}</text>`
+          ? svg`<text x="24" y=${size.heads[0] / 2} fill="white" alignment-baseline="middle">${block.data.name}</text>`
           : this.inputRenderer.inputString(
               registered,
               new Coordinates(24, 6),
-              new Coordinates(size.fullWidth - 48, size.fullHeadHeight - 12),
-              block.data.nameEditable ?? true,
+              new Coordinates(size.fullWidth - 32, size.heads[0] - 12),
+              !block.isInDrawer && (block.data.nameEditable ?? true),
               block.isInDrawer ? "" : block.data.name,
               (name: string) => block.updateData(cur => ({ ...cur, name })),
               "name",
@@ -232,6 +248,79 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             )
       }
     `
+
+    let params: TemplateResult<2>[] = []
+    let accY = size.heads[0]
+
+    block.data.params.map((param, index) => {
+      params.push(
+        this.inputRenderer.inputString(
+          registered,
+          new Coordinates(6, accY),
+          new Coordinates((size.fullWidth - 12) / 2 - 3, (size.heads[index + 1] ?? 6) - 6),
+          !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
+          param.name,
+          (name: string) => {
+            block.updateData(cur => ({
+              ...cur,
+              params: cur.params.map((p, i) => (i == index ? { ...p, name } : p)),
+            }))
+          },
+          "param",
+          props
+        )
+      )
+      params.push(
+        this.inputRenderer.inputSelector(
+          registered,
+          new Coordinates(6 + (size.fullWidth - 12) / 2 + 3, accY),
+          new Coordinates((size.fullWidth - 12) / 2 - 3, (size.heads[index + 1] ?? 6) - 6),
+          new Coordinates(200, 200),
+          !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
+          Object.entries(DataType)
+            .filter(
+              ([_, it]) =>
+                ![
+                  DataType.Dynamic,
+                  DataType.FunctionInvokation,
+                  DataType.FunctionReference,
+                ].includes(it)
+            )
+            .map(([display, id]) => ({ id, display })),
+          param.type,
+          (id: string) =>
+            block.updateData(cur => ({
+              ...cur,
+              params: cur.params.map((p, i) => (i == index ? { ...p, type: id as DataType } : p)),
+            })),
+          props
+        )
+      )
+      accY += size.heads[index + 1]
+    })
+
+    if (block.data.paramsEditable ?? !block.data.isMain) {
+      params.push(
+        this.inputRenderer.inputButton(
+          registered,
+          new Coordinates(6, accY),
+          new Coordinates(size.fullWidth - 12, (size.heads[block.data.params.length + 1] ?? 5) - 6),
+          !block.isInDrawer && (block.data.paramsEditable ?? !block.data.isMain),
+          "Param",
+          () => {
+            block.updateData(cur => ({
+              ...cur,
+              params: [...cur.params, { name: "", type: DataType.String }],
+            }))
+            this.requestUpdate()
+          },
+          BlockInputIcon.Add,
+          props
+        )
+      )
+    }
+
+    return [head, ...params]
   }
 
   protected override renderContentConditional(
@@ -288,12 +377,13 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates(200, 200),
             block.data.typeEditable ?? true,
             Object.entries(DataType)
-              .filter(([_, it]) =>
-                [
-                  DataType.Dynamic,
-                  DataType.FunctionInvokation,
-                  DataType.FunctionReference,
-                ].includes(it)
+              .filter(
+                ([_, it]) =>
+                  ![
+                    DataType.Dynamic,
+                    DataType.FunctionInvokation,
+                    DataType.FunctionReference,
+                  ].includes(it)
               )
               .map(([display, id]) => ({ id, display })),
             block.data.type,

@@ -62,6 +62,15 @@ export class KuteLayouter extends BaseLayouter {
       size.addHeight(HeightProp.Head, DEFAULT_HEAD_HEIGHT)
     }
 
+    if (block.type == BlockType.Function) {
+      const data = block.data as BlockDataFunction
+      if (data.params.length > 0 || (data.paramsEditable ?? !data.isMain)) {
+        data.params.map(() => size.addHeight(HeightProp.Head, (DEFAULT_HEAD_HEIGHT * 2) / 3))
+        if (data.paramsEditable ?? !data.isMain)
+          size.addHeight(HeightProp.Head, (DEFAULT_HEAD_HEIGHT * 2) / 3)
+      }
+    }
+
     const insets = block.connectors.inners.filter(it => it.role != ConnectorRole.Input)
     if (insets.length > 0) {
       size.addWidth(WidthProp.Right, INNER_WIDTH)
@@ -96,8 +105,15 @@ export class KuteLayouter extends BaseLayouter {
       size.addWidth(WidthProp.Left, (block.data as BlockDataVariable).name.length * 7.9 + 12)
     } else if (block.type == BlockType.Function) {
       size.addWidth(WidthProp.Left, MIN_WIDTH - INNER_WIDTH)
+      const data = block.data as BlockDataFunction
       const fname = (block.data as BlockDataFunction).name
       if (fname.length > 5) size.addWidth(WidthProp.Right, (fname.length - 5) * 7.9)
+      if (
+        (data.params.length > 0 || (data.paramsEditable ?? !data.isMain)) &&
+        size.fullWidth < 1.5 * MIN_WIDTH
+      ) {
+        size.addWidth(WidthProp.Right, 1.5 * MIN_WIDTH - size.fullWidth)
+      }
     } else if (block.type == BlockType.VarSet) {
       // widths were set above
     } else if (size.fullWidth < MIN_WIDTH) size.addWidth(WidthProp.Left, MIN_WIDTH - size.fullWidth)

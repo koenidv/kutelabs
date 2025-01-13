@@ -44,7 +44,17 @@
         "block": {
           "type": "function",
           "data": {
-            "name": "things"
+            "name": "things",
+            "params": [
+              {
+                "type": "int",
+                "name": "value"
+              },
+              {
+                "type": "int",
+                "name": "otherValue"
+              }
+            ]
           }
         }
       },

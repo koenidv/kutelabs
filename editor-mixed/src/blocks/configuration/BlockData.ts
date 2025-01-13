@@ -36,6 +36,7 @@ export type BlockDataFunction = {
   }[]
   isMain?: true | undefined
   nameEditable?: boolean
+  paramsEditable?: boolean
 }
 
 export type BlockDataFunctionReference = {

@@ -3,6 +3,8 @@ import { type Ref, ref } from "lit/directives/ref.js"
 import type { SimpleDataType, TsTypeByDataType } from "../../blocks/configuration/DataType"
 import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
+import { Coordinates } from "../../util/Coordinates"
+import { BlockInputIcon } from "./InputIcon"
 
 export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   protected renderInputCode(
@@ -50,33 +52,44 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     `
   }
 
+  private renderInputButton(
+    value: string,
+    editable: boolean = true,
+    onClick?: (e: Event) => void,
+    reference?: Ref<HTMLElement> | undefined,
+    iconStart?: BlockInputIcon
+  ): TemplateResult<1> {
+    const clickHandler = (e: Event) => {
+      if (editable) {
+        onClick?.(e)
+        e.preventDefault()
+      }
+    }
+    return html`
+      <div
+        ${reference ? ref(reference) : ""}
+        @mousedown=${clickHandler}
+        @touchstart=${clickHandler}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") clickHandler(e)
+        }}
+        style="width: 100%; height: 100%; display: flex; padding: 0 4px; gap: 2px; justify-content: start; align-items: center; background-color: white; border-radius: 6px; ${editable
+          ? "cursor: pointer;"
+          : ""}"
+        role="button"
+        tabindex=${editable ? "0" : "-1"}>
+        ${iconStart ? this.renderIcon(iconStart, new Coordinates(16, 16)) : ""}
+        <p style="font-family: monospace; font-size: 13px; font-weight: normal;">${value}</p>
+      </div>
+    `
+  }
+
   protected override renderInputBoolean(
     value: boolean,
     onChange?: (value: boolean) => void,
     editable?: boolean
   ): TemplateResult<1> {
-    const toggleValue = (e: Event) => {
-      if (editable) {
-        onChange?.(!value)
-        e.preventDefault()
-      }
-    }
-
-    return html`
-      <div
-        @mousedown=${toggleValue}
-        @touchstart=${toggleValue}
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") toggleValue(e)
-        }}
-        style="width: 100%; height: 100%; display: flex; padding: 0 8px; justify-content: start; align-items: center; background-color: white; border-radius: 6px;"
-        role="button"
-        tabindex=${editable ? "0" : "-1"}>
-        <p style="font-family: monospace; font-size: 14px; font-weight: normal;">
-          ${value ? "✅ Yes" : "❌ No"}
-        </p>
-      </div>
-    `
+    return this.renderInputButton(value ? "✅ Yes" : "❌ No", editable, () => onChange?.(!value))
   }
 
   protected override renderInputNumber(
@@ -243,5 +256,23 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         </svg>
       </div>
     `
+  }
+
+  protected override renderIcon(icon: BlockInputIcon, size: Coordinates): TemplateResult<1> {
+    switch (icon) {
+      case BlockInputIcon.Add:
+        return html`<svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="${size.x}"
+          height="${size.y}"
+          viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-width="2"
+            d="M12 19V5m7 7H5" />
+        </svg>`
+    }
   }
 }
