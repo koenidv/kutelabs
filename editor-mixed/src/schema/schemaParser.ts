@@ -94,14 +94,17 @@ function parseBlockRecursive(
   const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type> | undefined)
 
   // add a false branch connector if elsebranch is set to true
-  const defaultConnectors = DefaultConnectors.byBlockType(type, (blockData as BlockDataExpression | null)?.expression)
+  const defaultConnectors = DefaultConnectors.byBlockType(
+    type,
+    (blockData as BlockDataExpression | null)?.expression
+  )
   if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
     defaultConnectors.push(DefaultConnectors.conditionalFalse())
   }
 
   return new Block<typeof type>(
     type,
-    blockData,
+    blockData as any,
     mergeConnectors(connectedBlocks, defaultConnectors),
     data.draggable !== false,
     blockRegistry,
@@ -128,6 +131,15 @@ function normalizeBlockData(
       ;(data as BlockDataByType<BlockType.VarInit>).mutable =
         (data as BlockDataByType<BlockType.VarInit>).mutable ?? true
       break
+    case BlockType.Function:
+      // dafault empty params
+      ;(data as BlockDataByType<BlockType.Function>).params =
+        (data as BlockDataByType<BlockType.Function>).params ?? []
+      break
+    case BlockType.FunctionInvoke:
+      // function references are not yet implemented
+      ;(data as BlockDataByType<BlockType.FunctionInvoke>).type = DataType.FunctionInvokation
+      break
     case BlockType.LogicNot:
     case BlockType.LogicJunction:
     case BlockType.LogicComparison:
@@ -143,6 +155,7 @@ function normalizeBlockData(
         ;(data as BlockDataByType<BlockType.LogicComparison>).mode =
           (data as any)?.mode ?? LogicComparisonOperator.Equal
       }
+      break
   }
   return data
 }

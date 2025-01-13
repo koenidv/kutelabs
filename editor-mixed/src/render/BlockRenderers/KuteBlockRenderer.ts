@@ -212,12 +212,25 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   protected override renderContentFunction(
     registered: RegisteredBlock<BlockType.Function, any>,
-    _props: InternalBlockRenderProps
+    props: InternalBlockRenderProps
   ): SvgResult {
     const { block, size } = registered
     return svg`
     <text x=${-size.fullHeadHeight / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging" opacity="0.6">fun</text>
-      <text x="24" y=${size.fullHeadHeight / 2} fill="black" alignment-baseline="middle">${block.data.name}</text>
+      ${
+        block.data.isMain || block.data.nameEditable === false
+          ? svg`<text x="24" y=${size.fullHeadHeight / 2} fill="black" alignment-baseline="middle">${block.data.name}</text>`
+          : this.inputRenderer.inputString(
+              registered,
+              new Coordinates(24, 6),
+              new Coordinates(size.fullWidth - 48, size.fullHeadHeight - 12),
+              block.data.nameEditable ?? true,
+              block.isInDrawer ? "" : block.data.name,
+              (name: string) => block.updateData(cur => ({ ...cur, name })),
+              "name",
+              props
+            )
+      }
     `
   }
 

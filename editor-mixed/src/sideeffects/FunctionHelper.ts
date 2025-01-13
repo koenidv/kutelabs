@@ -72,6 +72,7 @@ export class FunctionHelper
         drawerBlock,
       })
     } else {
+      block.updateData(data => ({ ...data, isMain: true }))
       this.tracked.set(block as Block<BlockType.Function>, {
         name: data.name,
         params: data.params,
@@ -89,6 +90,8 @@ export class FunctionHelper
     }
     matchingPendingUsages.forEach(usage => this.handleInvocationAdded(usage), this)
 
+    block.on("dataChanged", this.handleBlockDataChanged.bind(this))
+
     this.requestUpdate()
   }
 
@@ -98,6 +101,7 @@ export class FunctionHelper
    */
   private handleBlockDataChanged = (changedBlock: Block<BlockType.Function>) => {
     const currentData = this.tracked.get(changedBlock)
+    console.log("Function data changed", changedBlock.data, currentData?.name)
     if (!currentData) return
 
     let requestUpdate = false
@@ -109,7 +113,6 @@ export class FunctionHelper
         currentData.usages.forEach(usage => {
           usage.updateData(data => ({ ...data, name: newName }))
         })
-        requestUpdate = true
       } else {
         changedBlock.updateData(data => ({ ...data, name: currentData.name }))
       }

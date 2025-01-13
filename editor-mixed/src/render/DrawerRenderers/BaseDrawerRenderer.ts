@@ -48,12 +48,14 @@ export abstract class BaseDrawerRenderer {
 
     const blocks = this.blockRegistry.drawer.blocks
 
-    return guard([this.expanded, blocks.length], () => {
-      const ordered = this.orderBlocks(blocks)
-      const withSize = this.measureAndSet(ordered)
-      const layout = this.positionAndSet(withSize)
-      const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
-      return html`
+    return guard(
+      [this.expanded, blocks.length, blocks.map(it => JSON.stringify(it.block.data) + it.count)],
+      () => {
+        const ordered = this.orderBlocks(blocks)
+        const withSize = this.measureAndSet(ordered)
+        const layout = this.positionAndSet(withSize)
+        const width = this.expanded ? Math.max(layout.fullWidth, this.minWidth) : 0
+        return html`
         ${
           this.expanded
             ? html`
@@ -93,7 +95,8 @@ export abstract class BaseDrawerRenderer {
           )}
         </div>
       `
-    }) as TemplateResult<1>
+      }
+    ) as TemplateResult<1>
   }
 
   private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {

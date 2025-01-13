@@ -34,10 +34,12 @@ export type BlockDataFunction = {
     name: string
     type: DataType
   }[]
+  isMain?: true | undefined
+  nameEditable?: boolean
 }
 
 export type BlockDataFunctionReference = {
-  // used for both reference and invocation
+  // used for both reference and invocation, but references are not implemented yet
   type: DataType.FunctionReference | DataType.FunctionInvokation
   name: string
   functionHelper?: WeakRef<FunctionHInterface>

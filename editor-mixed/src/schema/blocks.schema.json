@@ -29,6 +29,9 @@
               "$ref": "#/$defs/FunctionBlock"
             },
             {
+              "$ref": "#/$defs/FunctionInvokeBlock"
+            },
+            {
               "$ref": "#/$defs/ExpressionBlock"
             },
             {
@@ -129,6 +132,26 @@
             "name": {
               "description": "Name of the function",
               "type": "string"
+            },
+            "params": {
+              "type": "array",
+              "description": "Function parameters",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Name of the parameter",
+                    "type": "string"
+                  },
+                  "type": {
+                    "$ref": "#/$defs/dataType"
+                  }
+                }
+              }
+            },
+            "nameEditable": {
+              "type": "boolean",
+              "description": "If the name is editable, defaults to true"
             }
           },
           "required": [
@@ -153,6 +176,39 @@
               "type"
             ]
           }
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "FunctionInvokeBlock": {
+      "type": "object",
+      "description": "Function Invokation Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a function invocation block",
+          "type": "string",
+          "const": "function_invoke"
+        },
+        "data": {
+          "description": "Function Invocation Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the function to invoke",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "connectedBlocks": {
+          "description": "Function invocation blocks can't have downstream connected blocks",
+          "type": "null",
+          "additionalProperties": false
         }
       },
       "required": [

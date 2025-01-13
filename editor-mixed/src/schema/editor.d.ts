@@ -160,6 +160,33 @@ export interface FunctionBlock {
      * Name of the function
      */
     name: string
+    /**
+     * Function parameters
+     */
+    params?: {
+      /**
+       * Name of the parameter
+       */
+      name?: string
+      /**
+       * Value type (from ValueDataType)
+       */
+      type?:
+        | "int"
+        | "float"
+        | "string"
+        | "boolean"
+        | "array<int>"
+        | "array<float>"
+        | "array<string>"
+        | "array<boolean>"
+        | "dynamic"
+      [k: string]: unknown
+    }[]
+    /**
+     * If the name is editable, defaults to true
+     */
+    nameEditable?: boolean
     [k: string]: unknown
   }
   connectedBlocks?: {

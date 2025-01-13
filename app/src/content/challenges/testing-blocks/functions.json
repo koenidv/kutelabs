@@ -1,0 +1,99 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 30,
+    "title": "functions are fun",
+    "description": "kotlin joke very funny",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#63ADF2",
+    "dialog": {
+      "static": ""
+    }
+  },
+  "environment": {
+    "language": "js"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 400,
+          "y": 200
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          }
+        }
+      },
+      {
+        "coordinates": {
+          "x": 600,
+          "y": 300
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "things"
+          }
+        }
+      },
+      {
+        "coordinates": {
+          "x": 500,
+          "y": 100
+        },
+        "block": {
+          "type": "function_invoke",
+          "data": {
+            "name": "things"
+          }
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "test",
+          "type": "array<string>"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "string"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "int"
+        }
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "float"
+        }
+      }
+    ]
+  }
+}
