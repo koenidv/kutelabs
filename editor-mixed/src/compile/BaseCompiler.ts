@@ -4,6 +4,7 @@ import type { BlockDataExpression } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { RootBlock } from "../blocks/RootBlock"
+import type { DataType } from "../blocks/configuration/DataType"
 
 export type CompilationResult = {
   code: string
@@ -36,11 +37,21 @@ export abstract class BaseCompiler {
   }
 
   compile<T, S>(
-    block: Block<T extends BlockType ? T : never, S> | null,
+    block: Block<T extends BlockType ? T : never, S extends DataType ? S : never> | null,
     props?: InternalCompilationProps
   ): string {
     if (block == null) return ""
-    if (![BlockType.Value, BlockType.Variable, BlockType.Function, BlockType.LogicNot, BlockType.LogicJunction, BlockType.LogicComparison].includes(block.type)) {
+    if (
+      ![
+        BlockType.Value,
+        BlockType.Variable,
+        BlockType.Function,
+        BlockType.LogicNot,
+        BlockType.LogicJunction,
+        BlockType.LogicComparison,
+        BlockType.FunctionInvoke,
+      ].includes(block.type)
+    ) {
       return this.applyBlockMeta(
         block as Block<BlockType>,
         (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
@@ -62,6 +73,12 @@ export abstract class BaseCompiler {
     switch (block.type) {
       case BlockType.Function:
         return this.compileFunction(block as Block<BlockType.Function>, compileNext, props)
+      case BlockType.FunctionInvoke:
+        return this.compileFunctionInvoke(
+          block as Block<BlockType.FunctionInvoke>,
+          compileNext,
+          props
+        )
       case BlockType.Expression:
         if ((block.data as BlockDataExpression).expression == DefinedExpression.Custom) {
           return this.compileCustomExpression(
@@ -91,9 +108,17 @@ export abstract class BaseCompiler {
       case BlockType.LogicNot:
         return this.compileLogicNot(block as Block<BlockType.LogicNot>, compileNext, props)
       case BlockType.LogicJunction:
-        return this.compileLogicJunction(block as Block<BlockType.LogicJunction>, compileNext, props)
+        return this.compileLogicJunction(
+          block as Block<BlockType.LogicJunction>,
+          compileNext,
+          props
+        )
       case BlockType.LogicComparison:
-        return this.compileLogicComparison(block as Block<BlockType.LogicComparison>, compileNext, props)
+        return this.compileLogicComparison(
+          block as Block<BlockType.LogicComparison>,
+          compileNext,
+          props
+        )
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -125,6 +150,12 @@ export abstract class BaseCompiler {
    * @param block Function block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileFunction(
     block: Block<BlockType.Function>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **function invoke** block @param block Function invoke block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileFunctionInvoke(
+    block: Block<BlockType.FunctionInvoke>,
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string

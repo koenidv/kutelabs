@@ -75,13 +75,14 @@ function parseBlockRecursive(
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
+  if (!data) throw new Error("Block data is undefined")
   // parse connected blocks on each specified connector
   const connectedBlocks: { connector: Connector; connected: AnyBlock | undefined }[] = []
   if (parseConnected) {
     for (const connectedBlock of parseConnected) {
       connectedBlocks.push({
         connector: parseDefaultConnector(data.type, connectedBlock.on),
-        connected: connectedBlock.connectedBlocks
+        connected: "type" in connectedBlock
           ? parseBlockRecursive(
               connectedBlock,
               connectedBlock.connectedBlocks as

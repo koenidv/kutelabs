@@ -16,7 +16,7 @@ import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
 import { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
-import type { DataType } from "../schema/blocks"
+import type { DataType } from "./configuration/DataType"
 
 export type AnyBlock = Block<BlockType, any>
 

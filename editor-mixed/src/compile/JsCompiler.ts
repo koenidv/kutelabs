@@ -30,9 +30,14 @@ export class JsCompiler extends BaseCompiler {
       if (this.addBlockMarkings) ret += this.callFunction("markBlock", `"${block.output.id}"`)
       ret += this.wrapDelay(`return ${next(block.output)};`)
     }
+    const inputs = block.data.params.map(it => it.name).join(", ")
 
-    return `async function ${block.data.name}() {\n${this.markBlock(block.id)}\n${this.wrapDelay(inner + "\n" + ret)} }` // todo function inputs
+    return `async function ${block.data.name}(${inputs}) {\n${this.markBlock(block.id)}\n${this.wrapDelay(inner + "\n" + ret)} }` // todo function inputs
     // functions should not have after blocks; thus not compiling them here
+  }
+
+  compileFunctionInvoke(block: Block<BlockType.FunctionInvoke>, next: typeof this.compile): string {
+    return `await ${block.data.name}(${[...block.inputs.map(it => next(it))].join(", ")})`
   }
 
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
@@ -43,7 +48,7 @@ export class JsCompiler extends BaseCompiler {
       // matches placeholders like "{{0}}"
       const index = Number(match[2])
       return next(block.inputs[index])
-    }) + `\n${next(block.after)}`
+    }) + `;\n${next(block.after)}`
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
