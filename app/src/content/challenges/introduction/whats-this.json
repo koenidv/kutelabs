@@ -45,7 +45,9 @@
         "block": {
           "type": "function",
           "data": {
-            "name": "inputName"
+            "name": "inputName",
+            "nameEditable": false,
+            "paramsEditable": false
           },
           "connectedBlocks": [
             {

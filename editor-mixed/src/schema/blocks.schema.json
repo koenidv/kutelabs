@@ -92,7 +92,7 @@
               "description": "Connected Blocks",
               "type": "array",
               "items": {
-                "allOf": [
+                "anyOf": [
                   {
                     "properties": {
                       "on": {
@@ -101,15 +101,18 @@
                       }
                     },
                     "required": [
-                      "on",
-                      "type"
+                      "on"
                     ]
                   },
                   {
                     "description": "Connected Block",
                     "$ref": "#/$defs/AnyBlockConnected"
                   }
-                ]
+                ],
+                "required": [
+                  "on"
+                ],
+                "unevaluatedProperties": false
               }
             }
           }
@@ -176,8 +179,7 @@
               }
             },
             "required": [
-              "on",
-              "type"
+              "on"
             ]
           }
         }

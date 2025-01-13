@@ -54,7 +54,10 @@ function applyWorkspaceBlocks(
   for (const { block, coordinates } of data.initialBlocks) {
     const parsed = parseBlockRecursive(
       block,
-      block.connectedBlocks,
+      block.connectedBlocks as
+        | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
+        | undefined
+        | null,
       blockRegistry,
       connectorRegistry
     )
@@ -66,26 +69,29 @@ function applyWorkspaceBlocks(
 function parseBlockRecursive(
   data: AnyBlockConnected | AnyBlockSingle,
   parseConnected:
-    | ({
-        on: MixedContentEditorConnector
-      } & MixedContentEditorBlock)[]
+    | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
     | undefined
     | null,
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
   // parse connected blocks on each specified connector
-  const connectedBlocks: { connector: Connector; connected: AnyBlock }[] = []
+  const connectedBlocks: { connector: Connector; connected: AnyBlock | undefined }[] = []
   if (parseConnected) {
     for (const connectedBlock of parseConnected) {
       connectedBlocks.push({
         connector: parseDefaultConnector(data.type, connectedBlock.on),
-        connected: parseBlockRecursive(
-          connectedBlock,
-          connectedBlock.connectedBlocks,
-          blockRegistry,
-          connectorRegistry
-        ),
+        connected: connectedBlock.connectedBlocks
+          ? parseBlockRecursive(
+              connectedBlock,
+              connectedBlock.connectedBlocks as
+                | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
+                | undefined
+                | null,
+              blockRegistry,
+              connectorRegistry
+            )
+          : undefined,
       })
     }
   }

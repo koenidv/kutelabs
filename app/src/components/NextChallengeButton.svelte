@@ -9,7 +9,7 @@
   } = $props()
 </script>
 
-{#if $challengeCompleted}
+{#if $challengeCompleted && nextUrl}
   <hr />
   <a href={nextUrl} aria-label="Next Challenge" class="flex" data-astro-prefetch>
     <ElevatedBox elevation={2} hoverable={true} className="w-full">

@@ -20,7 +20,7 @@ export class DefaultConnectors {
   static byBlockType(type: BlockType, expression?: DefinedExpression): Connector[] {
     switch (type) {
       case BlockType.Function:
-        return [DefaultConnectors.inner(), DefaultConnectors.output()]
+        return [DefaultConnectors.inner()]
       case BlockType.Expression:
         if (!expression) return this.beforeAfter()
         const expressionInputs = DefinedExpressionData[expression].inputs

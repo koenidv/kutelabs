@@ -68,14 +68,18 @@ export type AnyBlockConnected = AnyBlock & {
   /**
    * Connected Blocks
    */
-  connectedBlocks?: ({
-    on: MixedContentEditorConnector
-    [k: string]: unknown
-  } & AnyBlockConnected1)[]
+  connectedBlocks?: (
+    | {
+        on: MixedContentEditorConnector
+        [k: string]: unknown
+      }
+    | AnyBlockConnected1
+  )[]
   [k: string]: unknown
 }
 export type AnyBlock = (
   | FunctionBlock
+  | FunctionInvokeBlock
   | ExpressionBlock
   | ValueBlock
   | VariableInitBlock
@@ -115,10 +119,13 @@ export type AnyBlockConnected1 = AnyBlock & {
   /**
    * Connected Blocks
    */
-  connectedBlocks?: ({
-    on: MixedContentEditorConnector
-    [k: string]: unknown
-  } & AnyBlockConnected1)[]
+  connectedBlocks?: (
+    | {
+        on: MixedContentEditorConnector
+        [k: string]: unknown
+      }
+    | AnyBlockConnected1
+  )[]
   [k: string]: unknown
 }
 /**
@@ -126,6 +133,7 @@ export type AnyBlockConnected1 = AnyBlock & {
  */
 export type AnyBlockSingle = (
   | FunctionBlock
+  | FunctionInvokeBlock
   | ExpressionBlock
   | ValueBlock
   | VariableInitBlock
@@ -280,12 +288,40 @@ export interface FunctionBlock {
      * If the name is editable, defaults to true
      */
     nameEditable?: boolean
+    /**
+     * If the parameters are editable, defaults to true
+     */
+    paramsEditable?: boolean
     [k: string]: unknown
   }
   connectedBlocks?: {
     on: "inner" | "input" | "output"
     [k: string]: unknown
   }[]
+  [k: string]: unknown
+}
+/**
+ * Function Invokation Block
+ */
+export interface FunctionInvokeBlock {
+  /**
+   * Defines this block as a function invocation block
+   */
+  type: "function_invoke"
+  /**
+   * Function Invocation Block Data
+   */
+  data: {
+    /**
+     * Name of the function to invoke
+     */
+    name: string
+    [k: string]: unknown
+  }
+  /**
+   * Function invocation blocks can't have downstream connected blocks
+   */
+  connectedBlocks?: null
   [k: string]: unknown
 }
 /**
