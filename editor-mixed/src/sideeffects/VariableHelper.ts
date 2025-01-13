@@ -13,7 +13,7 @@ import type { VariableHInterface } from "./VariableHInterface"
  * Variables reported here are not necessarily available in a given scope, they're just declared somewhere in the workspaces
  */
 export class VariableHelper
-  extends BaseSideEffect<Block<BlockType.VarInit, DataType>, Block<BlockType.Variable>>
+  extends BaseSideEffect<Block<BlockType.VarInit, any>, Block<BlockType.Variable>>
   implements VariableHInterface
 {
   protected onBlockAddedToWorkspace = (block: AnyBlock) => {
@@ -150,8 +150,10 @@ export class VariableHelper
     if (this.tracked.has(block as Block<BlockType.VarInit>)) {
       // remove drawer block
       const data = this.tracked.get(block as Block<BlockType.VarInit>)!
-      this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
-      data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
+      if (data.drawerBlock) {
+        this.blockRegistry.drawer?.removeBlock(data.drawerBlock)
+        data.drawerBlock.remove(this.blockRegistry, this.connectorRegistry)
+      }
 
       // remove usages after drawer deduplicated them
       setTimeout(() => {
@@ -202,7 +204,7 @@ export class VariableHelper
    */
   private dataByVarName(
     name: string
-  ): TrackedData<Block<BlockType.VarInit, DataType>, Block<BlockType.Variable>> | null {
+  ): TrackedData<Block<BlockType.VarInit, any>, Block<BlockType.Variable>> | null {
     return [...this.tracked.values()].find(data => data.name === name) ?? null
   }
 
@@ -225,6 +227,10 @@ export class VariableHelper
    */
   public nextAvailableName(base: string): string {
     let name = base
+      .replace(/^[^a-zA-Z]/, "")
+      .replaceAll(/[^a-zA-Z0-9]/g, "")
+      .substring(0, 30)
+      .padStart(1, "v")
     let i = 1
     while (!this.isNameAvailable(name)) {
       name = `${base}${i++}`

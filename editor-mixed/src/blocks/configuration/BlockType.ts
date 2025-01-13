@@ -1,6 +1,7 @@
 export enum BlockType {
   Root = "root",
   Function = "function",
+  FunctionInvoke = "function_invoke",
   Expression = "expression",
   Value = "value",
   Variable = "variable",

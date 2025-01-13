@@ -1,3 +1,4 @@
+import type { FunctionHInterface } from "../../sideeffects/FunctionHInterface"
 import type { VariableHInterface } from "../../sideeffects/VariableHInterface"
 import { BlockType } from "./BlockType"
 import { DataType, type TsTypeByDataType } from "./DataType"
@@ -5,19 +6,21 @@ import type { DefinedExpression } from "./DefinedExpression"
 
 export type BlockDataByType<T extends BlockType, D = DataType> = T extends BlockType.Function
   ? BlockDataFunction
-  : T extends BlockType.Expression
-    ? BlockDataExpression
-    : T extends BlockType.Value
-      ? BlockDataValue<D>
-      : T extends BlockType.VarInit
-        ? BlockDataVariableInit<D>
-        : T extends BlockType.Variable
-          ? BlockDataVariable
-          : T extends BlockType.LogicJunction
-            ? BlockDataLogicJunction
-            : T extends BlockType.LogicComparison
-              ? BlockDataLogicComparison
-              : BlockDataEmpty
+  : T extends BlockType.FunctionInvoke
+    ? BlockDataFunctionReference
+    : T extends BlockType.Expression
+      ? BlockDataExpression
+      : T extends BlockType.Value
+        ? BlockDataValue<D>
+        : T extends BlockType.VarInit
+          ? BlockDataVariableInit<D>
+          : T extends BlockType.Variable
+            ? BlockDataVariable
+            : T extends BlockType.LogicJunction
+              ? BlockDataLogicJunction
+              : T extends BlockType.LogicComparison
+                ? BlockDataLogicComparison
+                : BlockDataEmpty
 
 export type BlockDataEmpty = null
 
@@ -27,6 +30,17 @@ export type BlockDataEmpty = null
 
 export type BlockDataFunction = {
   name: string
+  params: {
+    name: string
+    type: DataType
+  }[]
+}
+
+export type BlockDataFunctionReference = {
+  // used for both reference and invocation
+  type: DataType.FunctionReference | DataType.FunctionInvokation
+  name: string
+  functionHelper?: WeakRef<FunctionHInterface>
 }
 
 export type BlockDataExpression = {

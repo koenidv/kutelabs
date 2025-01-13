@@ -139,7 +139,7 @@
       {
         "type": "function",
         "data": {
-          "name": "not-main"
+          "name": "notMain"
         },
         "count": 2
       },
@@ -196,7 +196,7 @@
       {
         "type": "logic_junction",
         "data": {
-          "type": "and"
+          "mode": "and"
         }
       }
     ]

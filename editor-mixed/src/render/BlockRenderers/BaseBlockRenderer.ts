@@ -113,12 +113,18 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
       block.draggable,
       props,
       () =>
-        guard([block.id, block.connectedBlocks.downstream.map(b => b.block.id), JSON.stringify(block.data)], () =>
-          this.renderBlockElement(
-            this.blockRegistry.getRegistered(block),
-            props,
-            (next: AnyBlock) => this.renderBlock(next, block, props)
-          )
+        guard(
+          [
+            block.id,
+            block.connectedBlocks.downstream.map(b => b.block.id),
+            JSON.stringify(block.data),
+          ],
+          () =>
+            this.renderBlockElement(
+              this.blockRegistry.getRegistered(block),
+              props,
+              (next: AnyBlock) => this.renderBlock(next, block, props)
+            )
         ) as TemplateResult<2>
     )
   }
@@ -201,6 +207,11 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
       case BlockType.Function:
         return this.renderContentFunction(
           registered as RegisteredBlock<BlockType.Function, any>,
+          props
+        )
+      case BlockType.FunctionInvoke:
+        return this.renderContentFunctionInvocation(
+          registered as RegisteredBlock<BlockType.FunctionInvoke, any>,
           props
         )
       case BlockType.Expression:
@@ -300,6 +311,14 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
   /** Override this to customize how the content of **function** blocks is rendered */
   protected renderContentFunction(
     registered: RegisteredBlock<BlockType.Function, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
+  }
+
+  /** Override this to customize how the content of **function invoke** blocks is rendered */
+  protected renderContentFunctionInvocation(
+    registered: RegisteredBlock<BlockType.FunctionInvoke, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
     return this.renderDefaultContent(registered, props)

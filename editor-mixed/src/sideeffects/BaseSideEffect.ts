@@ -12,7 +12,7 @@ export type TrackedData<
   Tracked extends Block<infer T, any> ? T : never,
   Tracked extends Block<BlockType.VarInit, infer D> ? D : never
 > & {
-  drawerBlock: AnyBlock
+  drawerBlock?: AnyBlock
   usages: Usage[]
 }
 

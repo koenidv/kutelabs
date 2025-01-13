@@ -28,6 +28,8 @@ import { generateCallbacks } from "./environment/Environment"
 import type { BlockDataExpression, BlockDataValue } from "./blocks/configuration/BlockData"
 import { DataType } from "./blocks/configuration/DataType"
 import { DefinedExpression } from "./blocks/configuration/DefinedExpression"
+import type { FunctionHInterface } from "./sideeffects/FunctionHInterface"
+import { FunctionHelper } from "./sideeffects/FunctionHelper"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -39,6 +41,7 @@ export class EditorMixed extends LitElement {
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
   variableHelper: VariableHInterface
+  functionHelper: FunctionHInterface
   declare layouter: BaseLayouter
   declare blockRenderer: BaseBlockRenderer
   declare drawerRenderer: BaseDrawerRenderer
@@ -82,6 +85,12 @@ export class EditorMixed extends LitElement {
       this.blockRegistry,
       this.connectorRegistry,
       this.requestUpdate.bind(this)
+    )
+    this.functionHelper = new FunctionHelper(
+      this.blockRegistry,
+      this.connectorRegistry,
+      this.requestUpdate.bind(this),
+      this.data?.mainFunction ?? "main"
     )
   }
 
@@ -280,8 +289,9 @@ export class EditorMixed extends LitElement {
   private handleDataChanged(newData: MixedContentEditorConfiguration) {
     this.blockRegistry.clear()
     this.connectorRegistry.clear()
-    applyData(newData, this.blockRegistry, this.connectorRegistry)
+    this.functionHelper.entrypoint = newData.mainFunction ?? "main"
     if (this.drawerRenderer) this.drawerRenderer.enabled = newData.hideDrawer != true
+    applyData(newData, this.blockRegistry, this.connectorRegistry)
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -315,7 +325,7 @@ export class EditorMixed extends LitElement {
       new (): T extends BaseCompiler ? T : null
     },
     callbacks: SandboxCallbacks
-  ): CompilationResult | null {
+  ): CompilationResult | null {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 

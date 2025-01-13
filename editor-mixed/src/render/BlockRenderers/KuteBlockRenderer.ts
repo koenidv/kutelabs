@@ -171,6 +171,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   private determineContainerFill(block: AnyBlock): string {
     switch (block.type) {
       case BlockType.Function:
+      case BlockType.FunctionInvoke:
         return "#FFD166"
       case BlockType.Expression:
       case BlockType.VarInit:
@@ -204,13 +205,9 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
   }
 
   protected renderDefaultContent({ block, size }: AnyRegisteredBlock): SvgResult {
-    return svg`
-          <text x="5" y="20" fill="black" style="user-select: none;">${block.type}</text>
-          ${
-            block.data !== null &&
-            svg`<text x="5" y="40" width=${size.fullWidth} fill="black" style="user-select: none; opacity: 0.6;">${"name" in block.data ? block.data.name : JSON.stringify(block.data)}</text>`
-          }
-        `
+    return svg`<text x=${size.fullWidth / 2} y=${size.fullHeight / 2} fill="black" alignment-baseline="middle" text-anchor="middle" font-family="monospace">
+      ${block.data && "name" in block.data ? block.data.name : block.type}
+    </text>`
   }
 
   protected override renderContentFunction(
@@ -278,7 +275,13 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
             new Coordinates(200, 200),
             block.data.typeEditable ?? true,
             Object.entries(DataType)
-              .filter(([_, it]) => it != DataType.Dynamic)
+              .filter(([_, it]) =>
+                [
+                  DataType.Dynamic,
+                  DataType.FunctionInvokation,
+                  DataType.FunctionReference,
+                ].includes(it)
+              )
               .map(([display, id]) => ({ id, display })),
             block.data.type,
             (id: string) => block.updateData(cur => ({ ...cur, type: id })),
@@ -296,16 +299,6 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       <text x=${-size.fullHeight / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">set</text>
       <text x=${-size.fullHeight / 2} y=${size.leftWidth + size.middleWidth + 4} transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">to</text>
     `
-  }
-
-  protected override renderContentVariable(
-    registered: RegisteredBlock<BlockType.Variable, any>,
-    _props: InternalBlockRenderProps
-  ): SvgResult {
-    const { block, size } = registered
-    return svg`
-          <text x=${size.fullWidth / 2} y=${size.fullHeight / 2} fill="black" alignment-baseline="middle" text-anchor="middle" font-family="monospace">${block.data.name}</text>
-        `
   }
 
   protected override renderContentValue(

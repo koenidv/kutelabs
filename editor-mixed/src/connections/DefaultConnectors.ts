@@ -50,6 +50,7 @@ export class DefaultConnectors {
         ]
       case BlockType.Value:
       case BlockType.Variable:
+      case BlockType.FunctionInvoke:
         return [DefaultConnectors.extender()]
       case BlockType.LogicNot:
         return [DefaultConnectors.extender(), DefaultConnectors.conditionalExtension()]

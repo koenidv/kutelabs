@@ -76,7 +76,8 @@ export class KuteLayouter extends BaseLayouter {
           size.addHeight(HeightProp.Intermediate, DEFAULT_INTERMEDIATE_HEIGHT)
       })
     } else if (
-      block.type == BlockType.Value
+      block.type == BlockType.Value &&
+      (block.data as BlockDataValue<any>).type != DataType.Boolean
     ) {
       size.addWidth(WidthProp.Left, 150)
     } else if (block.type == BlockType.VarInit) {
