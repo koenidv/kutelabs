@@ -25,4 +25,6 @@ export const env = cleanEnv(process.env, {
   DB_PASSWORD: str({ default: "kutelabs" }),
   DB_NAME: str({ default: "kutelabs" }),
   DB_SSL: bool({ default: false }),
+  CLERK_SECRET_KEY: str({ default: undefined }),
+  CLERK_PUBLISHABLE_KEY: str({ default: undefined }),
 })

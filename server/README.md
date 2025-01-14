@@ -73,6 +73,8 @@ or use the provided compose file.
 | `DB_PASSWORD`            | Postgres password.                                                                   | `kutelabs`                   |
 | `DB_NAME`                | Postgres database.                                                                   | `kutelabs`                   |
 | `DB_SSL`                 | Wether to use SSL for db connection                                                  | `false`                      |
+| `CLERK_PUBLISHABLE_KEY`  | Clerk publishable key for authentication.                                            | _undefined_                  |
+| `CLERK_SECRET_KEY`       | Clerk secret key for authentication.                                                 | _undefined_                  |
 
 ## Tests
 
