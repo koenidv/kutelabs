@@ -1,5 +1,6 @@
 import "dotenv/config"
 import { bool, cleanEnv, num, str } from "envalid"
+import { decodeBase64 } from "hono/utils/encode"
 
 export const env = cleanEnv(process.env, {
   PORT: str({ default: "3000" }),
@@ -20,4 +21,10 @@ export const env = cleanEnv(process.env, {
   SENTRY_DSN: str({ default: undefined }),
   CLERK_PUBLISHABLE_KEY: str({ default: undefined }),
   CLERK_SECRET_KEY: str({ default: undefined }),
+  DB_HOST: str({ default: "localhost" }),
+  DB_PORT: num({ default: 5432 }),
+  DB_USER: str({ default: "kutelabs" }),
+  DB_PASSWORD: str({ default: "kutelabs" }),
+  DB_NAME: str({ default: "kutelabs" }),
+  DB_SSL: bool({ default: false }),
 })

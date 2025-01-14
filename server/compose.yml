@@ -13,6 +13,10 @@ services:
       - TRANSPILER_NAME=koenidv/kutelabs-transpiler
       - DATA_VOLUME_NAME=kutelabs_data
       - ENV=development
+      - DB_HOST=kutelabs-postgres
+      - DB_USER=kutelabs
+      - DB_PASSWORD=kutelabs
+      - DB_NAME=kutelabs
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kutelabs.rule=Host(`test.api.kutelabs.koeni.dev`)"
@@ -27,9 +31,25 @@ services:
     runtime: runsc
     entrypoint: ["echo", "pulled transpiler"]
 
+  postgres:
+    image: postgres:17
+    container_name: kutelabs-postgres
+    ports:
+      - "5432:5432" # todo remove
+    environment:
+      POSTGRES_USER: kutelabs
+      POSTGRES_PASSWORD: kutelabs
+      POSTGRES_DB: kutelabs
+    volumes:
+      - kutelabs_db:/var/lib/postgresql/data
+    networks:
+      - default
+
 volumes:
   kutelabs_data:
     name: kutelabs_data
+  kutelabs_db:
+    name: kutelabs_db
 
 networks:
   traefik:
