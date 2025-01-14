@@ -14,6 +14,7 @@ import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
 import { Icon } from "astro-icon/components"
 import { Image } from "astro:assets"
+import SignInDialog from "../../components/SignInDialog.astro"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -37,6 +38,9 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
   title={`${challenge.story.title}`}
   navigateBackText="Back to Lessons"
   navigateBackDefaultUrl="/learn">
+
+  <SignInDialog executionLanguage={challenge.environment.language} />
+
   <div
     id="kutelabs"
     class="flex w-full flex-col justify-center"

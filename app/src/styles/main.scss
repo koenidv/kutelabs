@@ -17,6 +17,11 @@ html {
   font-weight: 600;
 }
 
+html :has(.dialog-container),
+body :has(.dialog-container) {
+  overflow: hidden;
+}
+
 /**
 * Logs
 */
