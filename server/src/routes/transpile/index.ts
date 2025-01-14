@@ -23,12 +23,12 @@ app.post("/kt/js", async c => {
 
   if (!auth?.userId) {
     c.status(401)
-    c.json(ResultDTO.error(RequestError.Unauthorized))
+    return c.json(ResultDTO.error(RequestError.Unauthorized))
   }
 
   if (!body || !body.kotlinCode) {
     c.status(400)
-    c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
+    return c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
   }
   const { code, ids: standardizedBlockIds } = standardizeBlockIds(body.kotlinCode)
   const includeCoroutineLib = body.includeCoroutineLib ?? true

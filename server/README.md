@@ -92,3 +92,7 @@ Authentication is handled by Clerk, the default authorization scope is required 
 ## Validation
 
 Due to a bug in bun with blobs. Once this is fixed, including @hono/zod-validator will simplify validation.
+
+## tRPC
+
+I planned to migrate to tRPC at some point, for a self-documenting API, hono makes this very easy. It's not implemented yet.

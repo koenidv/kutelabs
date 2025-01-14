@@ -2,7 +2,7 @@ import "dotenv/config"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { env } from "../env"
 
-const db = drizzle({
+export const db = drizzle({
   connection: {
     host: env.DB_HOST,
     port: env.DB_PORT,
