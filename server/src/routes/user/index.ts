@@ -24,12 +24,50 @@ app.post("/challenge/completed", async c => {
     return c.json({ error: "No challenge id provided" })
   }
 
-  await db.insert(completedChallenges).values({
-    userId: auth.userId,
-    challengeId: body.challengeId,
-  })
+  await db
+    .insert(completedChallenges)
+    .values({
+      userId: auth.userId,
+      challengeId: body.challengeId,
+    })
+    .onConflictDoNothing()
 
-  return c.status(200)
+  const newCompleted = await db
+    .select({ challengeId: completedChallenges.challengeId })
+    .from(completedChallenges)
+    .where(eq(completedChallenges.userId, auth.userId))
+
+  return c.json({ completedIds: newCompleted.map(c => c.challengeId) })
+})
+
+/**
+ * Marks a list of challenges as completed for a user
+ * Returns the full list of completed challenges
+ */
+app.post("/challenge/completed/bulk", async c => {
+  const body = await c.req.raw.clone().json()
+  const auth = getAuth(c)
+
+  if (!auth?.userId) {
+    c.status(401)
+    return c.json({ error: "Unauthorized" })
+  }
+  if (!body || typeof body.challengeIds === undefined) {
+    c.status(400)
+    return c.json({ error: "No challenge ids provided" })
+  }
+
+  await db
+    .insert(completedChallenges)
+    .values(body.challengeIds.map((challengeId: string) => ({ userId: auth.userId, challengeId })))
+    .onConflictDoNothing()
+
+  const newCompleted = await db
+    .select({ challengeId: completedChallenges.challengeId })
+    .from(completedChallenges)
+    .where(eq(completedChallenges.userId, auth.userId))
+
+  return c.json({ completedIds: newCompleted.map(c => c.challengeId) })
 })
 
 /**
@@ -54,7 +92,7 @@ app.get("/challenge/completed", async c => {
 /**
  * Gets if a given challenge is completed for a user
  */
-app.get("/challenge/completed/:challengeId", async c => {
+app.get("/challenge/completed/:challengeId{.+}", async c => {
   const auth = getAuth(c)
 
   if (!auth?.userId) {

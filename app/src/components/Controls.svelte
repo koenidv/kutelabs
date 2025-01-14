@@ -12,6 +12,7 @@
   import type { Challenge } from "../schema/challenge"
   import { challengeCompleted } from "../state/state"
   import ElevatedBox from "./ElevatedBox.svelte"
+  import { storeChallengeCompleted, getChallengeCompleted } from "../state/completedChallenges"
 
   const {
     id: challengeId,
@@ -50,24 +51,14 @@
         confetti.addConfetti({
           emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
         })
-      localStorage.setItem(
-        "completedChallenges",
-        JSON.stringify([
-          ...new Set([
-            ...JSON.parse(localStorage.getItem("completedChallenges") || "[]"),
-            challengeId,
-          ]),
-        ])
-      )
+      storeChallengeCompleted(challengeId)
       challengeCompleted.set(true)
     }
   })
 
-  function checkLocalChallengeCompletion() {
-    const localCompleted = JSON.parse(
-      localStorage.getItem("completedChallenges") || "[]"
-    ) as string[]
-    if (localCompleted.includes(challengeId)) { challengeCompleted.set(true)
+  async function checkLocalChallengeCompletion() {
+    if (await getChallengeCompleted(challengeId)) {
+      challengeCompleted.set(true)
       execution.passAllTests()
     }
   }

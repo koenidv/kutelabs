@@ -97,13 +97,9 @@ const challenges = await navigationStore.getChallenes()
 </InnerLayout>
 
 <script>
-  const locallyCompleted = JSON.parse(
-    localStorage.getItem("completedChallenges") || "[]"
-  ) as string[]
-  console.log("locallyCompleted", locallyCompleted)
-  locallyCompleted.forEach(id => {
+import { getCompletedChallenges } from "../../state/completedChallenges"
+  (await getCompletedChallenges()).forEach(id => {
     const container = document.querySelector(`#${CSS.escape(id)}.challenge-container`)
-    console.log("container", container)
     if (!container) return
     container.classList.add("completed")
     const title = container.querySelector("#title") as HTMLHeadingElement

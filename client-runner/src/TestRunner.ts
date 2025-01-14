@@ -164,8 +164,8 @@ export class TestRunner {
    */
   private onResult(args: Args, result: any): void {
     this.firstCallFinished = true
-    this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
     if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
+    this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
   }
 
   /**

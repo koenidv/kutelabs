@@ -25,6 +25,7 @@ services:
       - default
     depends_on:
       - pull-transpiler
+      - postgres
 
   pull-transpiler:
     image: koenidv/kutelabs-transpiler:latest
@@ -35,7 +36,7 @@ services:
     image: postgres:17
     container_name: kutelabs-postgres
     ports:
-      - "5432:5432" # todo remove
+      - "5432:5432"
     environment:
       POSTGRES_USER: kutelabs
       POSTGRES_PASSWORD: kutelabs
