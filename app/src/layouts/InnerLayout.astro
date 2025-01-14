@@ -1,6 +1,7 @@
 ---
 import OuterLayout from "./OuterLayout.astro"
 import Logo from "../svg/logo.svg"
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components'
 
 interface Props {
   title: string
@@ -12,17 +13,29 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
 
 <OuterLayout title={title}>
   <header class="flex items-center">
-    <nav class=`flex flex-row-reverse lg:flex-row ${navigateBackText ? "justify-between": "justify-center"} lg:justify-start items-center px-4 lg:px-8 py-8 w-full max-w-7xl lg:gap-4 h-24`>
+    <nav>
+    <div
+      class=`flex flex-row-reverse lg:flex-row ${navigateBackText ? "justify-between": "justify-center"} lg:justify-start items-center px-4 lg:px-8 py-8 w-full max-w-7xl lg:gap-4 h-24`>
       <div>
         <Logo class="h-8 w- inline" />
       </div>
       {
         navigateBackText && (
-          <button class="relative animate-bg-up border-2 border-transparent hover:border-black box-border px-2 lg:px-4 py-2 transition-colors" id="backButton" aria-label="Navigate back">
-          ← {navigateBackText}
+          <button
+            class="relative animate-bg-up border-2 border-transparent hover:border-black box-border px-2 lg:px-4 py-2 transition-colors"
+            id="backButton"
+            aria-label="Navigate back">
+            ← {navigateBackText}
           </button>
         )
       }
+      <SignedOut isStatic={true}>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn isStatic={true}>
+        <UserButton />
+      </SignedIn>
+    </div>
     </nav>
   </header>
   <main>
@@ -33,7 +46,11 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
 <script is:inline define:vars={{ navigateBackDefaultUrl }}>
   document.getElementById("backButton")?.addEventListener("click", function () {
     const referrer = new URL(document.referrer)
-    if (referrer && referrer.hostname === window.location.hostname && referrer.pathname == "/learn") {
+    if (
+      referrer &&
+      referrer.hostname === window.location.hostname &&
+      referrer.pathname == "/learn"
+    ) {
       window.history.back()
     } else {
       window.location.href = navigateBackDefaultUrl ?? "/learn"

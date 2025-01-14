@@ -4,6 +4,7 @@ import ElevatedBox from "../../components/ElevatedBox.astro"
 import type { Challenge } from "../../schema/challenge"
 import { navigationStore } from "../../navigation/NavigationStore"
 import { Image } from "astro:assets"
+import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/astro/components"
 
 const challenges = await navigationStore.getChallenes()
 ---
@@ -15,7 +16,16 @@ const challenges = await navigationStore.getChallenes()
         <h1 class="text-5xl font-poppins font-black text-outlined text-white">
           Let's start learning!
         </h1>
-        <p><a href="#">Sign up</a> to save your progress.</p>
+        <div class="h-4">
+        <SignedOut isStatic={true}>
+          <SignInButton mode="modal">
+            <p>Sign up to save your progress.</p>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn isStatic={true}>
+          <UserButton showName={true}/>
+        </SignedIn>
+        </div>
       </div>
 
       <div class="w-full h-0.5 bg-black opacity-10 mb-12 mt-4"></div>
@@ -87,10 +97,11 @@ const challenges = await navigationStore.getChallenes()
 </InnerLayout>
 
 <script>
-
-  const locallyCompleted = JSON.parse(localStorage.getItem("completedChallenges") || "[]") as string[]
+  const locallyCompleted = JSON.parse(
+    localStorage.getItem("completedChallenges") || "[]"
+  ) as string[]
   console.log("locallyCompleted", locallyCompleted)
-  locallyCompleted.forEach((id) => {
+  locallyCompleted.forEach(id => {
     const container = document.querySelector(`#${CSS.escape(id)}.challenge-container`)
     console.log("container", container)
     if (!container) return
@@ -99,5 +110,4 @@ const challenges = await navigationStore.getChallenes()
     if (!title) return
     title.innerText += " ✅"
   })
-
 </script>
