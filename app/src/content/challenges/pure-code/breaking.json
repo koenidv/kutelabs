@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 1,
+    "title": "Breaking Stuff",
+    "description": "Let's see what happens when our code doesn't work",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#e96272",
+    "dialog": {
+      "static": "Tests don't support failing code, but the editor will give you some hints."
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "kt"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {
+      }
+    }
+  ],
+  "editor": {
+    "type": "code",
+    "initialValue": "fun main() {\n\tval secretNumber = (1..100).random()\n\tval guess = 42\n\t\n\tif (guess < secretNumber) {\n\t\tthrow IllegalArgumentException(\"Too low! You'll never catch me.\")\n\t}\n\t\n\trequire(secretNumber != 73) { \"73 is cursed, we must throw ;)\" }\n\t\n\tval impossibleList = listOf<String>()\n\tcheck(impossibleList.isNotEmpty()) { \"Empty lists are forbidden here!\" }\n}\n",
+    "invisibleCode": "",
+    "entrypoint": "main"
+  }
+}

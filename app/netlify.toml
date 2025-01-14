@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/images/:width/:file"
+  to = "/.netlify/images?url=/images/:file&width=:width"
+  status = 200

@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 100,
+  "title": "Taking the First Steps",
+  "description": "Let's embark on a journey to learn how to code"
+}

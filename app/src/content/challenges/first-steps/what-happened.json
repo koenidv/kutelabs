@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 10,
+    "title": "What just happened?",
+    "description": "Moving blocks, inputs, confetti?? Let's understand what's going on.",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#6cf09f",
+    "imageStart": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "TODO"
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "js",
+    "appFeatures": [
+      "setUsername"
+    ]
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {
+        "entername": {
+          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
+          "description": "Enter your name"
+        }
+      }
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [],
+    "hideDrawer": true,
+    "invisibleCode": {
+      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
+      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
+    },
+    "mainFunction": "processUsername"
+  }
+}

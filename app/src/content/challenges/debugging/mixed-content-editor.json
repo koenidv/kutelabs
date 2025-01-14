@@ -1,7 +1,7 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
-    "order": 1,
+    "order": 2,
     "title": "Mixed Content Editor",
     "description": "This story implements the mixed content editor",
     "published": "2024-01-01T00:00:00Z",
@@ -15,7 +15,7 @@
     }
   },
   "environment": {
-    "language": "js"
+    "language": "unset"
   },
   "tests": [
     {
@@ -93,17 +93,6 @@
                                 "type": "boolean",
                                 "value": true
                               }
-                            },
-                            {
-                              "on": "ifTrue",
-                              "type": "expression",
-                              "data": {
-                                "expression": "Custom",
-                                "customExpression": {
-                                  "js": "1 + 2",
-                                  "kt": "1 + 2"
-                                }
-                              }
                             }
                           ]
                         }
@@ -150,7 +139,7 @@
       {
         "type": "function",
         "data": {
-          "name": "not-main"
+          "name": "notMain"
         },
         "count": 2
       },
@@ -207,7 +196,7 @@
       {
         "type": "logic_junction",
         "data": {
-          "type": "and"
+          "mode": "and"
         }
       }
     ]

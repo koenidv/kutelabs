@@ -10,8 +10,8 @@ export enum DataType {
   BooleanArray = "array<boolean>",
 
   Dynamic = "dynamic",
-
-  // todo store function reference in value and create a separate block for function output as input
+  FunctionReference = "functiion_reference",
+  FunctionInvokation = "function_invokation",
 }
 
 export type SimpleDataType = Extract<

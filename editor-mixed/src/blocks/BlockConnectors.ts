@@ -62,4 +62,11 @@ export class BlockConnectors {
   byRole(role: ConnectorRole): Connector[] {
     return this.all.filter(connector => connector.role == role)
   }
+
+  removeConnector(registry: ConnectorRInterface, connector: Connector) {
+    connector.deregister(registry)
+    this._connectors.delete(connector.type)
+    this._innerConnectors = this._innerConnectors.filter(it => it != connector)
+    this._extensionConnectors = this._extensionConnectors.filter(it => it != connector)
+  }
 }

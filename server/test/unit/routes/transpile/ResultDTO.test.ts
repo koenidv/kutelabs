@@ -1,5 +1,5 @@
 import { ResultDTO } from "@kutelabs/server/src/routes/transpile/ResultDTO"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import { describe, expect, test } from "bun:test"
 
 describe("ResultDTO", () => {

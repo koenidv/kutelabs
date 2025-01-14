@@ -18,7 +18,7 @@ export abstract class PropertiesBlockRenderer {
   public setWorkspaceScaleFactor(value: number) {
     this._workspaceScaleFactor = value
     this._safariTransform = isSafari
-      ? `position: fixed; transform: scale(${(1 / this._workspaceScaleFactor) * 0.9}); transform-origin: 0 0;`
+      ? `position: fixed; transform: scale(${(1 / this._workspaceScaleFactor)}); transform-origin: 0 0;`
       : ""
   }
 

@@ -1,13 +1,13 @@
 <script lang="ts">
+  import Icon, { loadIcons } from "@iconify/svelte"
   import "@kutelabs/editor-mixed"
   import { EditorMixed } from "@kutelabs/editor-mixed"
+  import type { MixedEditorConfig } from "@kutelabs/editor-mixed/src/util/MixedEditorConfig"
   import "lit"
-  import type { Challenge } from "../schema/challenge"
-  import { editorLoadingState, editorRef } from "../state/state"
-  import Icon, { loadIcons } from "@iconify/svelte"
   import { fade } from "svelte/transition"
+  import { editorLoadingState, editorRef } from "../state/state"
 
-  const { data }: { data: Challenge["data"] } = $props()
+  const { data }: { data: MixedEditorConfig } = $props()
 
   let ref: EditorMixed
   $effect(() => {
@@ -17,7 +17,7 @@
   loadIcons(["svg-spinners:ring-resize"])
 </script>
 
-<editor-mixed {data} useDefaultConfig bind:this={ref}></editor-mixed>
+<editor-mixed {data} useDefaultConfig bind:this={ref}  transition:fade={{ duration: 60 }}></editor-mixed>
 {#if $editorLoadingState}
   <div
     transition:fade={{ duration: 150 }}

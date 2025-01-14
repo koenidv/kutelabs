@@ -1,4 +1,4 @@
-import {
+ import {
   ComparisonOperatorTypeCompatibility,
   LogicComparisonOperator,
   type BlockDataVariable,
@@ -20,7 +20,7 @@ export class DefaultConnectors {
   static byBlockType(type: BlockType, expression?: DefinedExpression): Connector[] {
     switch (type) {
       case BlockType.Function:
-        return [DefaultConnectors.inner(), DefaultConnectors.output()]
+        return [DefaultConnectors.inner()]
       case BlockType.Expression:
         if (!expression) return this.beforeAfter()
         const expressionInputs = DefinedExpressionData[expression].inputs
@@ -50,6 +50,7 @@ export class DefaultConnectors {
         ]
       case BlockType.Value:
       case BlockType.Variable:
+      case BlockType.FunctionInvoke:
         return [DefaultConnectors.extender()]
       case BlockType.LogicNot:
         return [DefaultConnectors.extender(), DefaultConnectors.conditionalExtension()]
@@ -221,6 +222,7 @@ export class DefaultConnectors {
     return new Connector(ConnectorType.Before, ConnectorRole.Input, [
       remote => remote.role === ConnectorRole.Input && remote.type !== ConnectorType.Before,
       remote => remote.role === ConnectorRole.Conditional && remote.type !== ConnectorType.Before,
+      remote => remote.role === ConnectorRole.Output,
     ])
   }
 

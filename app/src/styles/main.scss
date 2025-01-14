@@ -17,6 +17,11 @@ html {
   font-weight: 600;
 }
 
+html :has(.dialog-container),
+body :has(.dialog-container) {
+  overflow: hidden;
+}
+
 /**
 * Logs
 */
@@ -173,6 +178,12 @@ html {
     .text-outlined {
       -webkit-text-stroke: 1.5px var(--text-outline-color);
     }
+  }
+
+  .text-sideways {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: rotate(180deg);
   }
 
   .animate-bg-up {

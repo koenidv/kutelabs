@@ -16,10 +16,11 @@ import type { BlockContract, BlockEvents } from "./BlockContract"
 import { type BlockDataByType } from "./configuration/BlockData"
 import { BlockType } from "./configuration/BlockType"
 import { ConnectedBlocks } from "./ConnectedBlocks"
+import type { DataType } from "./configuration/DataType"
 
 export type AnyBlock = Block<BlockType, any>
 
-export class Block<T extends BlockType, S = never>
+export class Block<T extends BlockType, S extends DataType | never = never>
   extends Emitter<BlockEvents<T, S>>
   implements BlockContract
 {
@@ -180,7 +181,7 @@ export class Block<T extends BlockType, S = never>
       .map(connection => this.connectedBlocks.byConnector(connection))
   }
 
-  get conditional(): Block<BlockType.Conditional, undefined> | null {
+  get conditional(): Block<BlockType.Conditional, DataType> | null {
     return (
       this.connectors
         .byRole(ConnectorRole.Conditional)
@@ -239,6 +240,22 @@ export class Block<T extends BlockType, S = never>
     return popped
   }
 
+  addConnector(connector: Connector, registry: ConnectorRInterface): void {
+    this.connectors.addConnector(this, registry, connector)
+  }
+
+  removeConnector(connector: Connector, registry: ConnectorRInterface): void {
+    const connected = this.connectedBlocks.byConnector(connector)
+    if (connected) {
+      const popped = connected.disconnectSelf(null)
+      if (!popped) throw new Error("Block failed to disconnect itself")
+      this.insertOnRoot(popped, curr => {
+        return Coordinates.addPopOffset(curr)
+      })
+    }
+    this.connectors.removeConnector(registry, connector)
+  }
+
   //#region Internals
 
   public get data(): BlockDataByType<T, S> {
@@ -267,14 +284,16 @@ export class Block<T extends BlockType, S = never>
     const clone = new Block(
       this.type,
       deepClone(this._data),
-      this.connectors.all.map(connector => ({
-        connector: new Connector(
-          connector.type,
-          connector.role,
-          connector.connectPredicates.predicates,
-          connector.globalPosition
-        ),
-      })),
+      this.connectors.all
+        .filter(c => c.clonable)
+        .map(connector => ({
+          connector: new Connector(
+            connector.type,
+            connector.role,
+            connector.connectPredicates.predicates,
+            connector.globalPosition
+          ),
+        })),
       this.isInDrawer,
       blockRegistry,
       connectorRegistry,
@@ -292,6 +311,7 @@ export class Block<T extends BlockType, S = never>
   /**
    * Removes this block from the block and connector registries, assumes that it has been disconnected from other blocks
    */
+  public removed = false
   remove(blockRegistry: BlockRInterface, connectorRegistry: ConnectorRInterface): void {
     if (this.connectedBlocks.blocks.size > 0)
       console.error("Removing block with connected blocks", this, this.connectedBlocks.blocks)
@@ -300,5 +320,6 @@ export class Block<T extends BlockType, S = never>
     this.data = null as any
     this.connectedBlocks = null as any
     this.connectors = null as any
+    this.removed = true
   }
 }

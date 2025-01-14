@@ -1,0 +1,75 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 20,
+    "title": "Your first own program",
+    "description": "Every path to programming starts at <i>Hello World</i>. This will be yours!",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#a59cf3",
+    "imageEnd": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "TODO"
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "js",
+    "appFeatures": [
+      "setUsername"
+    ]
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {
+        "entername": {
+          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
+          "description": "Enter your name"
+        }
+      }
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 190,
+          "y": 250
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          }
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "expression",
+        "data": {
+          "expression": "Println"
+        },
+        "count": -1
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "string"
+        },
+        "count": -1
+      }
+    ],
+    "invisibleCode": {
+      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
+      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
+    },
+    "mainFunction": "main"
+  }
+}

@@ -128,12 +128,12 @@ export class ScriptFactory {
   public setCode(unsafeCode: string, argNames: string[] = [], entrypoint = "main"): this {
     return this.addDefineStep(
       `/*__startUser*/const userFunction = new Function(
-      ${argNames.length > 0 ? argNames.join(",") + "," : ""}
-      String.raw\`
-        const { ${[...this.globals.keys()].join(", ")} } = this;
-        ${unsafeCode}
-        return ${entrypoint}(${argNames.join(",")});
-      \`/*__endUser*/);`
+${argNames.length > 0 ? argNames.join(",") + "," : ""}
+String.raw\`
+const { ${[...this.globals.keys()].join(", ")} } = this;
+${unsafeCode}
+return ${entrypoint}(${argNames.join(",")});
+\`/*__endUser*/);`
     )
   }
 

@@ -8,16 +8,14 @@ export class Timeout {
   private resolve: (() => void) | null = null
 
   private setTimer(ms: number, resolve: () => void) {
+    if (this.timer) clearTimeout(this.timer)
     this.timer = setTimeout(() => {
       resolve()
-      this.timer = null
-      this.remaining = 0
-      this.lastStart = 0
-      this.resolve = () => {}
+      this.reset()
     }, ms)
     this.lastStart = Date.now()
   }
-  
+
   /**
    * Start the timeout with a total running duration. Duration excludes pause time.
    * @param ms The total duration of the timeout in milliseconds.
@@ -29,6 +27,15 @@ export class Timeout {
       this.remaining = ms
       this.setTimer(ms, resolve)
     })
+  }
+
+  /** Reset the timeout */
+  public reset() {
+    this.remaining = 0
+    this.lastStart = 0
+    if (this.timer) clearTimeout(this.timer)
+    this.timer = null
+    this.resolve = () => {}
   }
 
   /**
@@ -48,7 +55,9 @@ export class Timeout {
    * @returns The remaining time of the timeout.
    */
   public resume(): number {
-    if (this.resolve == null || !this.remaining) return console.error("Timer is not initialized"), 0
+    if (this.resolve == null || this.remaining <= 0)
+      return console.error("Timer is not initialized"), 0
+    this.start(this.remaining)
     this.setTimer(this.remaining, this.resolve)
     return this.remaining
   }

@@ -5,6 +5,7 @@ import tailwind from "@astrojs/tailwind";
 import sentry from "@sentry/astro";
 import compress from "astro-compress";
 import icon from "astro-icon";
+import clerk from '@clerk/astro'
 import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
@@ -15,15 +16,23 @@ export default defineConfig({
       project: "kutelabs-astro",
       authToken: process.env["SECRET_SENTRY_AUTH_TOKEN"],
     },
-  }), tailwind(), icon(), svelte(), compress()],
+  }), clerk({ afterSignOutUrl: "/learn" }), tailwind(), icon(), svelte(), compress()],
   output: "static",
-  adapter: netlify(),
+  adapter: netlify({
+    imageCDN: true,
+  }),
+  compressHTML: true,
+  publicDir: "public",
+  srcDir: "src",
+  site: "https://kutelabs.koeni.dev",
   env: {
     schema: {
       PUBLIC_API_BASE_URL: envField.string({ context: "client", access: "public", optional: false, default: "https://api.kutelabs.koeni.dev", url: true }),
       PUBLIC_POSTHOG_API_KEY: envField.string({ context: "client", access: "public", optional: false, startsWith: "phc_" }),
       PUBLIC_SENTRY_DSN: envField.string({ context: "client", access: "public", optional: false, url: true, includes: "sentry.io" }),
       SECRET_SENTRY_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sntrys_" }),
+      PUBLIC_CLERK_PUBLISHABLE_KEY: envField.string({ context: "client", access: "public", optional: false, startsWith: "pk_" }),
+      CLERK_SECRET_KEY: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sk_" }),
     }
   },
   prefetch: {

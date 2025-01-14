@@ -54,7 +54,10 @@ function applyWorkspaceBlocks(
   for (const { block, coordinates } of data.initialBlocks) {
     const parsed = parseBlockRecursive(
       block,
-      block.connectedBlocks,
+      block.connectedBlocks as
+        | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
+        | undefined
+        | null,
       blockRegistry,
       connectorRegistry
     )
@@ -66,26 +69,30 @@ function applyWorkspaceBlocks(
 function parseBlockRecursive(
   data: AnyBlockConnected | AnyBlockSingle,
   parseConnected:
-    | ({
-        on: MixedContentEditorConnector
-      } & MixedContentEditorBlock)[]
+    | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
     | undefined
     | null,
   blockRegistry: BlockRegistry,
   connectorRegistry: ConnectorRegistry
 ): AnyBlock {
+  if (!data) throw new Error("Block data is undefined")
   // parse connected blocks on each specified connector
-  const connectedBlocks: { connector: Connector; connected: AnyBlock }[] = []
+  const connectedBlocks: { connector: Connector; connected: AnyBlock | undefined }[] = []
   if (parseConnected) {
     for (const connectedBlock of parseConnected) {
       connectedBlocks.push({
         connector: parseDefaultConnector(data.type, connectedBlock.on),
-        connected: parseBlockRecursive(
-          connectedBlock,
-          connectedBlock.connectedBlocks,
-          blockRegistry,
-          connectorRegistry
-        ),
+        connected: "type" in connectedBlock
+          ? parseBlockRecursive(
+              connectedBlock,
+              connectedBlock.connectedBlocks as
+                | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
+                | undefined
+                | null,
+              blockRegistry,
+              connectorRegistry
+            )
+          : undefined,
       })
     }
   }
@@ -94,14 +101,17 @@ function parseBlockRecursive(
   const blockData = normalizeBlockData(type, data.data as BlockDataByType<typeof type> | undefined)
 
   // add a false branch connector if elsebranch is set to true
-  const defaultConnectors = DefaultConnectors.byBlockType(type, (blockData as BlockDataExpression | null)?.expression)
+  const defaultConnectors = DefaultConnectors.byBlockType(
+    type,
+    (blockData as BlockDataExpression | null)?.expression
+  )
   if (type == BlockType.Conditional && "elsebranch" in data && data["elsebranch"] == true) {
     defaultConnectors.push(DefaultConnectors.conditionalFalse())
   }
 
   return new Block<typeof type>(
     type,
-    blockData,
+    blockData as any,
     mergeConnectors(connectedBlocks, defaultConnectors),
     data.draggable !== false,
     blockRegistry,
@@ -128,6 +138,15 @@ function normalizeBlockData(
       ;(data as BlockDataByType<BlockType.VarInit>).mutable =
         (data as BlockDataByType<BlockType.VarInit>).mutable ?? true
       break
+    case BlockType.Function:
+      // dafault empty params
+      ;(data as BlockDataByType<BlockType.Function>).params =
+        (data as BlockDataByType<BlockType.Function>).params ?? []
+      break
+    case BlockType.FunctionInvoke:
+      // function references are not yet implemented
+      ;(data as BlockDataByType<BlockType.FunctionInvoke>).type = DataType.FunctionInvokation
+      break
     case BlockType.LogicNot:
     case BlockType.LogicJunction:
     case BlockType.LogicComparison:
@@ -143,6 +162,7 @@ function normalizeBlockData(
         ;(data as BlockDataByType<BlockType.LogicComparison>).mode =
           (data as any)?.mode ?? LogicComparisonOperator.Equal
       }
+      break
   }
   return data
 }

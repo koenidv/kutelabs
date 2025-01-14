@@ -1,23 +1,21 @@
-import { SandboxTestRunner, type TestSuite } from "@kutelabs/client-runner"
+import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
+import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
+import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
+import { findBlockByLine } from "@kutelabs/shared/src"
+import { persistentAtom } from "@nanostores/persistent"
 import {
   addLog,
   clearMessages,
   displayMessage,
   editorLoadingState,
   editorRef,
-  setTestResult,
 } from "../state/state"
-import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
-import type { Challenge } from "../schema/challenge"
-import { persistentAtom } from "@nanostores/persistent"
-import { transpileKtJs } from "./transpile"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
-import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { findBlockByLine } from "@kutelabs/shared/src"
-import { atom } from "nanostores"
-import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { transpileKtJs } from "./transpile"
 import { validateJs } from "./validateJs"
+import type { Atom } from "nanostores"
 
 const executionDelay = {
   fast: 250,
@@ -25,54 +23,9 @@ const executionDelay = {
   slow: 2200,
 }
 
-export class ExecutionWrapper {
-  private testRunner: SandboxTestRunner
-  private environment: Challenge["environment"]
-
-  public running = atom(false)
-
-  constructor(tests: Challenge["tests"], environment: Challenge["environment"]) {
-    this.testRunner = new SandboxTestRunner(
-      this.parseTests(tests),
-      setTestResult,
-      addLog,
-      (type, message) => {
-        this.running.set(false)
-        addLog([message], "error")
-        if (type == ErrorType.Timeout) {
-          displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
-        } else if (message.includes("SyntaxError")) {
-          displayMessage("Please make sure your blocks are correct", "error", { single: true })
-        } else {
-          displayMessage("An error occured", "info", { duration: -1, single: true })
-        }
-      },
-      this.onBlockError.bind(this),
-      () => {
-        this.running.set(false)
-      }
-    )
-    this.environment = environment
-  }
-
-  private parseTests(rawTests: Challenge["tests"]): TestSuite {
-    return (rawTests ?? []).map(set => {
-      return {
-        ...set,
-        run: Object.fromEntries(
-          Object.entries(set.run).map(([id, test]) => {
-            return [
-              id,
-              {
-                ...test,
-                function: eval(test.function),
-              },
-            ]
-          })
-        ),
-      }
-    }) as unknown as TestSuite
-  }
+export class MixedExecutionWrapper extends BaseExecutionWrapper {
+  lastRunCode: string | null = null
+  editorRef = editorRef as Atom<EditorMixed>
 
   public speed = persistentAtom<"fast" | "medium" | "slow">("execSpeed")
   public setSpeed = (speed: "fast" | "medium" | "slow") => {
@@ -99,7 +52,8 @@ export class ExecutionWrapper {
         this.runKt()
         break
       default:
-        throw new Error(`Unsupported language ${this.environment.language}`)
+        if (this.editorRef.get().hasCustomCode()) this.runKt()
+        else this.runJs()
     }
   }
 
@@ -107,12 +61,17 @@ export class ExecutionWrapper {
    * Compile and run the code as JS
    */
   public runJs() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     editor.clearMarkings()
+    this.runFailed.set(false)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
+    if (!compiled) {
+      displayMessage("Please add your code to a function block", "info", { single: true })
+      return
+    }
+    this.running.set(true)
 
     const parsed = validateJs(compiled.code)
     if (!parsed.valid) {
@@ -130,6 +89,7 @@ export class ExecutionWrapper {
       displayMessage("Please make sure your blocks are correct", "error", { single: true })
       return
     }
+    this.lastRunCode = compiled.code
 
     this.testRunner
       .execute(compiled.code, {
@@ -142,23 +102,27 @@ export class ExecutionWrapper {
       ?.then(_result => {
         editor.onExecutionFinished()
       })
-    this.running.set(true)
   }
 
   /**
    * Compile the code as Kt, transpile and run
    */
   public async runKt() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     editor.clearMarkings()
+    this.runFailed.set(false)
 
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
     displayMessage("Processing", "info", { duration: -1, single: true })
+    if (!compiled) {
+      displayMessage("Please add your code to a function block", "info", { single: true })
+      return
+    }
+    this.running.set(true)
     editorLoadingState.set(true)
 
-    transpileKtJs(compiled.code)
+    transpileKtJs(this.abortController, compiled.code)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -169,6 +133,7 @@ export class ExecutionWrapper {
         }
         editorLoadingState.set(false)
         clearMessages()
+        this.lastRunCode = transpiled.transpiledCode
 
         this.testRunner
           .execute(transpiled.transpiledCode, {
@@ -181,33 +146,55 @@ export class ExecutionWrapper {
           ?.then(_result => {
             editor.onExecutionFinished()
           })
-        this.running.set(true)
       })
       .catch(err => {
-        console.error("Transpilation: Fetch failed", err)
         editorLoadingState.set(false)
-        displayMessage("Please check your connection", "error", { single: true })
+        this.running.set(false)
+        this.runFailed.set(true)
+        clearMessages()
+        if (err == "Execution stopped") return
+        if (err.message.includes("Unauthorized")) {
+          displayMessage("Please sign in", "error", { single: true })
+        } else {
+          displayMessage("Please check your connection", "error", { single: true })
+        }
+        console.error("Transpilation: Fetch failed", err)
         return
       })
   }
 
   public printJs() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     const compiled = editor.compile(JsCompiler, this.getCallbacks(editor))
-    console.log(compiled.code)
+    console.log(compiled?.code)
   }
 
   public printKt() {
-    const editor = editorRef.get()
-    if (!editor) throw new Error("Editor not found")
+    const editor = this.editorRef.get()
     const compiled = editor.compile(KtCompiler, this.getCallbacks(editor))
-    console.log(compiled.code)
+    console.log(compiled?.code)
   }
 
-  public stop() {
-    // todo stop executor
-    console.error("Stopping execution is not yet implemented")
+  protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string) {
+    this.running.set(false)
+    this.runFailed.set(true)
+    if (type == ErrorType.Timeout) {
+      displayMessage("Timeout. Did you create an infinite loop?", "error", { single: true })
+    } else if (message.includes("SyntaxError")) {
+      displayMessage("Please make sure your blocks are correct", "error", { single: true })
+    } else {
+      displayMessage("An error occured", "info", { single: true })
+    }
+  }
+
+  protected onUserCodeError(message: string, line: number, _column: number) {
+    this.running.set(false)
+    this.runFailed.set(true)
+    const editor = editorRef.get()
+    if (!editor || !this.lastRunCode) throw new Error("Editor not found")
+    const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
+    if (!causingBlockId) throw new Error("No block id found")
+    this.onBlockError(causingBlockId, message)
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
@@ -230,21 +217,18 @@ export class ExecutionWrapper {
       )
     } catch {
       displayMessage("Transpilation failed", "error", { single: true })
+      this.runFailed.set(true)
       console.error("Transpilation failed", transpiled)
     }
   }
 
-  private matchLineInTranspilationError(error: string): number | null {
-    const match = error.match(/code\.kt:(\d+)/)
-    if (!match) return null
-    return parseInt(match[1])
-  }
-
   private onBlockError(id: string, message: string, display: string | undefined = message) {
     addLog([message], "error")
+    this.runFailed.set(true)
+    this.running.set(false)
     if (display) displayMessage(display, "error", { single: true })
     console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")
-    editorRef.get()!.getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
+    this.editorRef.get().getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
   }
 }

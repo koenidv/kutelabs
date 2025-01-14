@@ -17,14 +17,19 @@ import type { MixedContentEditorConfiguration } from "./schema/editor"
 import { applyData } from "./schema/schemaParser"
 import { isSafari } from "./util/browserCheck"
 import { DefaultMixedEditorConfig, type MixedEditorConfig } from "./util/MixedEditorConfig"
-import { VariableHelper } from "./variables/VariableHelper"
-import type { VariableHInterface } from "./variables/VariableHInterface"
+import { VariableHelper } from "./sideeffects/VariableHelper"
+import type { VariableHInterface } from "./sideeffects/VariableHInterface"
 
 import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
 import "@kutelabs/shared"
 import { BlockType } from "./blocks/configuration/BlockType"
 import "./drag/DragLayer"
 import { generateCallbacks } from "./environment/Environment"
+import type { BlockDataExpression, BlockDataValue } from "./blocks/configuration/BlockData"
+import { DataType } from "./blocks/configuration/DataType"
+import { DefinedExpression } from "./blocks/configuration/DefinedExpression"
+import type { FunctionHInterface } from "./sideeffects/FunctionHInterface"
+import { FunctionHelper } from "./sideeffects/FunctionHelper"
 
 @customElement("editor-mixed")
 export class EditorMixed extends LitElement {
@@ -36,6 +41,7 @@ export class EditorMixed extends LitElement {
   blockRegistry: BlockRegistry
   connectorRegistry: ConnectorRegistry
   variableHelper: VariableHInterface
+  functionHelper: FunctionHInterface
   declare layouter: BaseLayouter
   declare blockRenderer: BaseBlockRenderer
   declare drawerRenderer: BaseDrawerRenderer
@@ -79,6 +85,12 @@ export class EditorMixed extends LitElement {
       this.blockRegistry,
       this.connectorRegistry,
       this.requestUpdate.bind(this)
+    )
+    this.functionHelper = new FunctionHelper(
+      this.blockRegistry,
+      this.connectorRegistry,
+      this.requestUpdate.bind(this),
+      this.variableHelper
     )
   }
 
@@ -269,6 +281,7 @@ export class EditorMixed extends LitElement {
       () => this.dragLayerRef.value?.requestUpdate(),
       this.requestUpdate.bind(this),
       () => this.widgetRenderer?.removeWidget?.(),
+      this.data.hideDrawer != true,
       () => this.drawerRenderer?.setExpanded?.(false)
     )
   }
@@ -276,8 +289,9 @@ export class EditorMixed extends LitElement {
   private handleDataChanged(newData: MixedContentEditorConfiguration) {
     this.blockRegistry.clear()
     this.connectorRegistry.clear()
-    applyData(newData, this.blockRegistry, this.connectorRegistry)
+    this.functionHelper.entrypoint = newData.mainFunction ?? "main"
     if (this.drawerRenderer) this.drawerRenderer.enabled = newData.hideDrawer != true
+    applyData(newData, this.blockRegistry, this.connectorRegistry)
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -311,7 +325,7 @@ export class EditorMixed extends LitElement {
       new (): T extends BaseCompiler ? T : null
     },
     callbacks: SandboxCallbacks
-  ): CompilationResult {
+  ): CompilationResult | null {
     if (compilerClass == null) throw new Error("Compiler class is null")
     if (!this.blockRegistry.root) throw new Error("Root block is not initialized")
 
@@ -336,5 +350,16 @@ export class EditorMixed extends LitElement {
 
   public clearMarkings() {
     this.blockRegistry.clearMarked(false)
+  }
+
+  public hasCustomCode(): boolean {
+    return [...this.blockRegistry._blocks.keys()].some(
+      block =>
+        !block.isInDrawer &&
+        ((block.type == BlockType.Expression &&
+          (block.data as BlockDataExpression).expression == DefinedExpression.Custom) ||
+          (block.type == BlockType.Value &&
+            (block.data as BlockDataValue<any>).type == DataType.Dynamic))
+    )
   }
 }

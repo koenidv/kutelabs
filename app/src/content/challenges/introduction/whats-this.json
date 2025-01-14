@@ -7,12 +7,13 @@
     "published": "2024-01-01T00:00:00Z",
     "color": "#FFD203",
     "imageEnd": {
-      "src": "/images/character_boozle_rainbow.png",
+      "src": "/images/character_boozle_rainbow.webp",
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     },
     "dialog": {
-      "static": "Hey, good to see you!<br/> Really cool that you want to learn programming.<br/><br/> Don't worry if the stuff on the right looks more scary than I do - I'll explain it all in a bit.<br/><br/> For now, just enter your name in the input and click the run button. Let's see what happens!"
-    }
+      "static": "Hey, good to see you!<br/>Really cool that you want to learn programming.<br/><br/> Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.<br/><br/><i>For now, just follow my steps:</i><br/><br/>1. Drag the text input block to that really wide blue block<br/>2. Enter your name in the input<br/>3. Click the run button<br/><br/><b>Let's see what happens!</b>"
+    },
+    "confetti": true
   },
   "environment": {
     "language": "js",
@@ -38,13 +39,15 @@
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 100,
-          "y": 200
+          "x": 190,
+          "y": 250
         },
         "block": {
           "type": "function",
           "data": {
-            "name": "inputName"
+            "name": "inputName",
+            "nameEditable": false,
+            "paramsEditable": false
           },
           "connectedBlocks": [
             {
@@ -53,7 +56,9 @@
               "draggable": false,
               "data": {
                 "name": "name",
-                "type": "string"
+                "type": "string",
+                "nameEditable": false,
+                "typeEditable": false
               },
               "connectedBlocks": [
                 {
@@ -92,12 +97,13 @@
           "type": "value",
           "data": {
             "type": "string",
-            "value": "Your name here"
+            "value": "",
+            "placeholder": "Your name here"
           }
         },
         "coordinates": {
-          "x": 400,
-          "y": 280
+          "x": 460,
+          "y": 320
         }
       }
     ],

@@ -1,46 +1,31 @@
 ---
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import ElevatedBox from "../../components/ElevatedBox.astro"
-import { getCollection } from "astro:content"
 import type { Challenge } from "../../schema/challenge"
-import type { Section } from "../../schema/section"
+import { navigationStore } from "../../navigation/NavigationStore"
+import { Image } from "astro:assets"
+import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/astro/components"
 
-type ContentItem = {
-  id: string
-  collection: string
-  data: Challenge | Section
-}
-
-const challenges = sortChallenges((await getCollection("challenges")) as ContentItem[])
-
-function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" | "challenge" })[] {
-  const sectionOrder = items
-    .filter(item => item.id.endsWith("/section"))
-    .sort((a, b) => ((a.data as Section).order ?? 0) - ((b.data as Section).order ?? 0))
-    .map(item => item.id.split("/")[0])
-
-  return items
-    .sort((a, b) => {
-      const sectionComparison =
-        sectionOrder.indexOf(a.id.split("/")[0]) - sectionOrder.indexOf(b.id.split("/")[0])
-      if (sectionComparison !== 0) return sectionComparison
-
-      if (a.id.endsWith("/section")) return -1
-      if (b.id.endsWith("/section")) return 1
-
-      return ((a.data as Challenge).story.order ?? 0) - ((b.data as Challenge).story.order ?? 0)
-    })
-    .filter(item => !item.data.hideSectionHead)
-    .map(item => ({ ...item, type: item.id.endsWith("/section") ? "section" : "challenge" }))
-}
+const challenges = await navigationStore.getChallenes()
 ---
 
 <InnerLayout title="learn">
   <div class="w-full flex flex-col items-center">
     <div class="max-w-4xl w-full p-8 flex flex-col">
       <div class="pb-8">
-        <h1 class="text-5xl font-poppins text-outlined text-white">Let's start learning!</h1>
-        <p><a href="#">Sign up</a> to save your progress.</p>
+        <h1 class="text-5xl font-poppins font-black text-outlined text-white">
+          Let's start learning!
+        </h1>
+        <div class="h-4">
+        <SignedOut isStatic={true}>
+          <SignInButton mode="modal">
+            <p>Sign up to save your progress.</p>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn isStatic={true}>
+          <UserButton showName={true}/>
+        </SignedIn>
+        </div>
       </div>
 
       <div class="w-full h-0.5 bg-black opacity-10 mb-12 mt-4"></div>
@@ -51,8 +36,8 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
             return (
               <div class="pb-4 flex flex-col items-center">
                 {index > 0 && <div class="w-0.5 bg-black h-10 mb-4 opacity-50" />}
-                <h3 class="text-3xl font-poppins">{it.data.title}</h3>
-                <p>{it.data.description}</p>
+                <h3 class="text-3xl font-poppins font-black pb-1 text-center">{it.data.title}</h3>
+                <p class="text-center">{it.data.description}</p>
                 {index > 0 && <div class="w-0.5 bg-black h-4 mt-4 opacity-50" />}
               </div>
             )
@@ -60,31 +45,41 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
             const data = it.data as Challenge
             return (
               <div class="pb-4 flex flex-col items-center">
-                <a href={`/learn/${it.id}`} class="w-full" data-astro-prefetch>
+                <a
+                  href={`/learn/${it.id}`}
+                  class="w-full challenge-container"
+                  id={it.id}
+                  data-astro-prefetch>
                   <ElevatedBox
                     elevation={2}
                     hoverable
                     class="w-full bg-beige-50"
                     style={`background-color: ${data.story.color}`}>
-                    <div class="h-40 flex flex-row items-center justify-between gap-4">
+                    <div class="min-h-40 flex flex-row items-end justify-between gap-4">
                       {data.story.imageStart ? (
-                        <img
+                        <Image
                           src={data.story.imageStart.src}
                           alt={data.story.imageStart.alt}
-                          class="h-full"
+                          width={160}
+                          height={160}
+                          class="h-full max-h-32 lg:max-h-40 w-32 lg:w-40 aspect-square object-cover"
                         />
                       ) : (
                         <div class="w-8" />
                       )}
-                      <div class="w-full flex flex-col items-start justify-center gap-2">
-                        <h1 class="text-xl font-poppins">{data.story.title}</h1>
+                      <div class="w-full h-full flex flex-col items-start justify-center gap-2 py-4 min-h-40">
+                        <h1 class="text-xl font-poppins font-black" id="title">
+                          {data.story.title}
+                        </h1>
                         <p set:html={data.story?.description} />
                       </div>
                       {data.story.imageEnd ? (
-                        <img
+                        <Image
                           src={data.story.imageEnd.src}
                           alt={data.story.imageEnd.alt}
-                          class="h-full"
+                          width={160}
+                          height={160}
+                          class="h-full max-h-32 lg:max-h-40 aspect-square object-fill"
                         />
                       ) : (
                         <div class="w-8" />
@@ -100,3 +95,15 @@ function sortChallenges(items: ContentItem[]): (ContentItem & { type: "section" 
     </div>
   </div>
 </InnerLayout>
+
+<script>
+import { getCompletedChallenges } from "../../state/completedChallenges"
+  (await getCompletedChallenges()).forEach(id => {
+    const container = document.querySelector(`#${CSS.escape(id)}.challenge-container`)
+    if (!container) return
+    container.classList.add("completed")
+    const title = container.querySelector("#title") as HTMLHeadingElement
+    if (!title) return
+    title.innerText += " ✅"
+  })
+</script>

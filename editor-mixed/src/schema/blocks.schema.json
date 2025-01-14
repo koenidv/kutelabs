@@ -29,6 +29,9 @@
               "$ref": "#/$defs/FunctionBlock"
             },
             {
+              "$ref": "#/$defs/FunctionInvokeBlock"
+            },
+            {
               "$ref": "#/$defs/ExpressionBlock"
             },
             {
@@ -89,7 +92,7 @@
               "description": "Connected Blocks",
               "type": "array",
               "items": {
-                "allOf": [
+                "anyOf": [
                   {
                     "properties": {
                       "on": {
@@ -98,15 +101,18 @@
                       }
                     },
                     "required": [
-                      "on",
-                      "type"
+                      "on"
                     ]
                   },
                   {
                     "description": "Connected Block",
                     "$ref": "#/$defs/AnyBlockConnected"
                   }
-                ]
+                ],
+                "required": [
+                  "on"
+                ],
+                "unevaluatedProperties": false
               }
             }
           }
@@ -129,6 +135,30 @@
             "name": {
               "description": "Name of the function",
               "type": "string"
+            },
+            "params": {
+              "type": "array",
+              "description": "Function parameters",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Name of the parameter",
+                    "type": "string"
+                  },
+                  "type": {
+                    "$ref": "#/$defs/dataType"
+                  }
+                }
+              }
+            },
+            "nameEditable": {
+              "type": "boolean",
+              "description": "If the name is editable, defaults to true"
+            },
+            "paramsEditable": {
+              "type": "boolean",
+              "description": "If the parameters are editable, defaults to true"
             }
           },
           "required": [
@@ -149,10 +179,42 @@
               }
             },
             "required": [
-              "on",
-              "type"
+              "on"
             ]
           }
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "FunctionInvokeBlock": {
+      "type": "object",
+      "description": "Function Invokation Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a function invocation block",
+          "type": "string",
+          "const": "function_invoke"
+        },
+        "data": {
+          "description": "Function Invocation Block Data",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the function to invoke",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "connectedBlocks": {
+          "description": "Function invocation blocks can't have downstream connected blocks",
+          "type": "null",
+          "additionalProperties": false
         }
       },
       "required": [
@@ -268,7 +330,15 @@
           "type": "object",
           "properties": {
             "type": {
-              "$ref": "#/$defs/dataType"
+              "$ref": "#/$defs/dataType",
+              "editable": {
+                "type": "boolean",
+                "description": "If the value is editable, defaults to true"
+              },
+              "placeholder": {
+                "type": "string",
+                "description": "Placeholder for the value"
+              }
             }
           },
           "allOf": [
@@ -430,8 +500,7 @@
             }
           ],
           "required": [
-            "type",
-            "value"
+            "type"
           ]
         },
         "connectedBlocks": {
@@ -468,6 +537,14 @@
             "mutable": {
               "description": "If the variable is mutable, defaults to true",
               "type": "boolean"
+            },
+            "nameEditable": {
+              "type": "boolean",
+              "description": "If the name is editable, defaults to true"
+            },
+            "typeEditable": {
+              "type": "boolean",
+              "description": "If the type is editable, defaults to true"
             }
           },
           "required": [
@@ -700,6 +777,10 @@
                 "and",
                 "or"
               ]
+            },
+            "editable": {
+              "type": "boolean",
+              "description": "If the mode is editable, defaults to true"
             }
           },
           "required": [
@@ -748,6 +829,10 @@
                 ">",
                 ">="
               ]
+            },
+            "editable": {
+              "type": "boolean",
+              "description": "If the mode is editable, defaults to true"
             }
           },
           "required": [

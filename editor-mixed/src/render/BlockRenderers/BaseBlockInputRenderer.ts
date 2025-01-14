@@ -13,9 +13,10 @@ import {
 } from "../../blocks/configuration/DataType"
 import "../../drag/TapOrDragLayer"
 import "../../inputs/PrismKotlinEditor"
-import type { Widget } from "../WidgetRenderers/BaseWidgetRenderer"
+import type { EditListWidget, OverlayWidget, Widget } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
+import type { BlockInputIcon } from "./InputIcon"
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   //#region Input Wrappers
@@ -45,31 +46,36 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
    * @param props context properties to be passed down the block tree
    * @returns SVG template result for the input field
    */
-  protected inputInWidget<RefType extends HTMLElement>(
+  protected inputInWidget<RefType extends HTMLElement, W extends Widget = OverlayWidget>(
     registered: AnyRegisteredBlock,
     elementPosition: Coordinates,
     widgetPosition: Coordinates | undefined,
     elementSize: Coordinates,
     widgetSize: Coordinates = elementSize,
-    inputElement: (ref: Ref<RefType>, isInWidget: boolean) => TemplateResult<1>,
-    widget: Widget | undefined,
+    inputElement: (
+      ref: Ref<RefType>,
+      updateWidget?: (updated: OverlayWidget["content"]) => void
+    ) => TemplateResult<1>,
+    widget: W | undefined,
     onWidgetOpened: (
       originRef: RefType,
       targetRef: RefType,
       evt: MouseEvent | TouchEvent | KeyboardEvent
     ) => void = () => {},
+    enabled: boolean,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const openInWidget = (evt: MouseEvent | TouchEvent | KeyboardEvent) => {
+      if (!enabled) return
       const widgetInputRef = createRef<RefType>()
       this.setWidget(
         widget ?? {
           type: "overlay",
-          content: html`
+          content: update => html`
             <div
               style="border-radius: ${6 /
               this._workspaceScaleFactor}px; width: 100%; height: 100%; overflow: auto;">
-              ${inputElement(widgetInputRef, true)}
+              ${inputElement(widgetInputRef, update)}
             </div>
           `,
         },
@@ -97,7 +103,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const inputRef = createRef<RefType>()
 
     return svg`
-        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="">
+        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="border-radius: 6px;">
         ${this.tapOrDragLayer(
           reference => html`
             <div
@@ -112,7 +118,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
               @touchstart=${onOpenEvent}
               @keydown=${onOpenEvent}>
               <div style="pointer-events: none; width: 100%; height: 100%;">
-                ${inputElement(inputRef, false)}
+                ${inputElement(inputRef)}
               </div>
             </div>
           `
@@ -142,13 +148,46 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     target.setSelectionRange(focusPosition ?? 0, focusPosition ?? target.value.length)
   }
 
+  public inputButton(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    enabled: boolean,
+    value: string | { label: string },
+    onClick: (e: Event) => void,
+    iconStart: BlockInputIcon | undefined,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
+    return svg`
+    <foreignObject x=${position.x} y=${position.y} width=${size.x} height=${size.y} style="border-radius: 6px;">
+    ${this.tapOrDragLayer(
+      reference => html`
+        <div
+          class="donotdrag"
+          style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block
+            .isInDrawer
+            ? this._safariFixOnly
+            : this._safariTransform}"
+          tabindex=${registered.block.isInDrawer ? -1 : ++props.tabindex}>
+          <div style="pointer-events: none; width: 100%; height: 100%;">
+            ${this.renderInputButton(value, enabled, onClick, reference, iconStart)}
+          </div>
+        </div>
+      `
+    )}
+    </foreignObject>
+    `
+  }
+
   /**
    * Renders a code input area that will open in a widget.
    * @param registered registered block this input is for
    * @param position position of the input field, relative to the content group (in svg units)
    * @param size size of the input field (in svg units)
+   * @param editable whether the input field is editable
    * @param value current value of the input field
    * @param onChange function to call when the value changes
+   * @param singleLine whether the input enforces a single line input
    * @param props context properties to be passed down the block tree
    * @returns SVG template result for the editable code input
    */
@@ -156,8 +195,10 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: string,
     onChange: (value: string) => void,
+    singleLine: boolean,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return this.inputInWidget<HTMLTextAreaElement>(
@@ -166,9 +207,10 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       size,
       undefined,
-      ref => this.renderInputCode(registered, value, onChange, ref),
+      ref => this.renderInputCode(registered, value, onChange, singleLine, ref),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
+      editable,
       props
     )
   }
@@ -187,8 +229,10 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: string,
     onChange: (value: string) => void,
+    placeholder: string,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     return this.inputInWidget<HTMLInputElement>(
@@ -197,16 +241,19 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       undefined,
       size,
       undefined,
-      (ref, inWidget) =>
+      (ref, widget) =>
         this.renderInputString(
           value,
           onChange,
+          widget != undefined,
           () => {},
+          placeholder,
           ref,
-          inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
+          widget != undefined ? (1 / this._workspaceScaleFactor) * 0.82 : 1
         ),
       undefined,
       this.setSelectionOnWidgetOpened.bind(this),
+      editable,
       props
     )
   }
@@ -225,11 +272,13 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
+    editable: boolean,
     value: boolean,
     onChange: (value: boolean) => void,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const onClick = (e: MouseEvent | TouchEvent | KeyboardEvent) => {
+      if (!editable) return
       if (
         typeof KeyboardEvent !== "undefined" &&
         ((!(e instanceof KeyboardEvent) && e.isTrusted) ||
@@ -266,40 +315,87 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         `
   }
 
+  /** don't look at this code, it's pretty bad, very sorry (widget/input interaction needs a refactor)*/
+  public inputNumber(
+    registered: AnyRegisteredBlock,
+    position: Coordinates,
+    size: Coordinates,
+    editable: boolean,
+    value: number,
+    onChange: (value: number) => void,
+    isFloat: boolean,
+    placeholder: string,
+    props: InternalBlockRenderProps
+  ): TemplateResult<2> {
+    const element = (
+      ref: Ref<HTMLInputElement>,
+      update: ((updated: OverlayWidget["content"]) => void) | undefined,
+      currentValue: number
+    ) =>
+      this.renderInputNumber(
+        currentValue,
+        (newValue, skipUpdate) => {
+          newValue = isFloat ? parseFloat(newValue.toFixed(8)) : Math.round(newValue)
+          onChange(newValue)
+          if (update && !skipUpdate) {
+            update(newUpdate => element(ref, newUpdate, newValue))
+            this.requestUpdate()
+          }
+        },
+        editable && update != undefined,
+        isFloat,
+        placeholder,
+        ref,
+        update != undefined ? (1 / this._workspaceScaleFactor) * 0.82 : 1
+      )
+
+    return this.inputInWidget<HTMLInputElement>(
+      registered,
+      position,
+      undefined,
+      size,
+      undefined,
+      (ref, update) => element(ref, update, value),
+      undefined,
+      this.setSelectionOnWidgetOpened.bind(this),
+      editable,
+      props
+    )
+  }
+
   public inputArray<T extends SimpleDataType>(
     registered: AnyRegisteredBlock,
     position: Coordinates,
     size: Coordinates,
     type: T,
+    editable: boolean,
     values: TsTypeByDataType<T>[],
     onChange: (value: TsTypeByDataType<T>[]) => void,
     props: InternalBlockRenderProps
   ): TemplateResult<2> {
     const inputElement = this.inputElementByDataType(type)
 
-    return this.inputInWidget<HTMLInputElement>(
+    return this.inputInWidget<HTMLInputElement, EditListWidget<TsTypeByDataType<T>>>(
       registered,
       position,
       registered.globalPosition.add(position).plus(0, size.y),
       size,
       new Coordinates(200, 200),
-      (ref, inWidget) =>
-        this.renderInputString(
-          values.join(", "),
-          () => {},
-          () => {},
-          ref,
-          inWidget ? (1 / this._workspaceScaleFactor) * 0.82 : 1
-        ),
+      () => this.renderArrayTarget(type, registered.block.isInDrawer ? undefined : values),
       {
         type: "edit-list",
         values: values,
         onEdited: onChange,
         renderItem: (value, _index, onItemChange) => {
-          return inputElement(value, onItemChange)
+          return inputElement(
+            value,
+            onItemChange as (value: string | number | boolean) => void,
+            true
+          )
         },
       },
       undefined,
+      editable,
       props
     )
   }
@@ -308,7 +404,8 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     type: SimpleDataType
   ): (
     value: TsTypeByDataType<T>,
-    onChange: (value: TsTypeByDataType<T>) => void
+    onChange: (value: TsTypeByDataType<T>) => void,
+    editable: boolean
   ) => TemplateResult<1> {
     switch (type) {
       case DataType.Boolean:
@@ -339,6 +436,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     position: Coordinates,
     size: Coordinates,
     widgetSize: Coordinates,
+    editable: boolean,
     values: { id: string; display: string }[],
     selected: string,
     onSelected: (id: string) => void,
@@ -361,6 +459,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
         },
       },
       undefined,
+      editable,
       props
     )
   }
@@ -379,13 +478,12 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     registered: AnyRegisteredBlock,
     value: string,
     onChange: (value: string) => void,
+    singleLine: boolean,
     reference: Ref<HTMLTextAreaElement> | undefined
   ): TemplateResult<1>
 
   /**
    * Renders an input field for a block
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
    * @param onKeydown function to call when a key is pressed
@@ -395,30 +493,62 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   protected abstract renderInputString(
     value: string,
     onChange: (value: string) => void,
+    editable?: boolean,
     onKeydown?: (e: KeyboardEvent) => void,
+    placeholder?: string,
     reference?: Ref<HTMLInputElement> | undefined,
     textScaling?: number
   ): TemplateResult<1>
 
   /**
+   * Renders a button input for a block
+   * @param value text to display
+   * @param onClick function to call when the button is clicked
+   */
+  protected abstract renderInputButton(
+    value: string | { label: string },
+    enabled?: boolean,
+    onClick?: (e: Event) => void,
+    reference?: Ref<HTMLElement> | undefined,
+    iconStart?: BlockInputIcon
+  ): TemplateResult<1>
+
+  /**
    * Renders a boolean input for a block
    * Defaults to a string input with true/false values
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param value current value of the input field
    * @param onChange function to call when the value changes
    * @param props context properties to be passed down the block tree
    */
   protected abstract renderInputBoolean(
     value: boolean,
-    onChange?: (value: boolean) => void
+    onChange?: (value: boolean) => void,
+    editable?: boolean
+  ): TemplateResult<1>
+
+  /**
+   * Renders an integer or float input for a block
+   * @param value current value of the input field
+   * @param onChange function to call when the value changes
+   * @param editable whether the input field is editable
+   * @param isFloat whether the input field is a float
+   * @param placeholder placeholder text for the input field
+   * @param reference reference to set on to the input field element
+   * @param textScaling scaling factor for the text size
+   */
+  protected abstract renderInputNumber(
+    value: number,
+    onChange?: (value: number, skipUpdate?: boolean) => void,
+    editable?: boolean,
+    isFloat?: boolean,
+    placeholder?: string,
+    reference?: Ref<HTMLInputElement> | undefined,
+    textScaling?: number
   ): TemplateResult<1>
 
   /**
    * Renders a selector input // todo make protected and expose inputSelector Wrapper
    * The input may display a widget to facilitate selecting from a list of values
-   * @param registered registered block this input is for
-   * @param size size of the input field (in svg units)
    * @param values list of ids and values to select from
    * @param selected id of the currently selected value
    * @param props context properties to be passed down the block tree
@@ -427,4 +557,16 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     values: { id: string; display: string }[],
     selected: string
   ): TemplateResult<1>
+
+  /**
+   * Renders the element on a block that leads to the array edit widget
+   * @param type type of the array
+   * @param value current value of the array
+   */
+  protected abstract renderArrayTarget<T extends SimpleDataType>(
+    type: T,
+    value?: TsTypeByDataType<T>[]
+  ): TemplateResult<1>
+
+  protected abstract renderIcon(icon: BlockInputIcon, size: Coordinates): TemplateResult<1>
 }

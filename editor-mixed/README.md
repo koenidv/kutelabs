@@ -9,8 +9,8 @@ forward local port: socat TCP-LISTEN:8080,fork TCP:localhost:4321
 ## cross-platform
 
 - [x] Touch support
-- [ ] Layout for narrow screens
-- [ ] Safari compatibility
+- [x] Layout for narrow screens
+- [x] *best-effort* Safari compatibility
 
 ## a11y
 

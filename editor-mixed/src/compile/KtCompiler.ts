@@ -40,15 +40,20 @@ export class KtCompiler extends BaseCompiler {
         block.output?.let(it => this.markBlock(it.id) + this.wrapDelay(`resolve(${next(it)});`)) ??
         "resolve(Unit);",
     }
+    const inputs = block.data.params.map(it => it.name + ": dynamic").join(", ")
     const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
 
     return `@JsExport
-    @kotlin.js.ExperimentalJsExport
-    fun ${block.data.name}(): Promise<dynamic> = Promise { resolve, _reject ->
+    fun ${block.data.name}(${inputs}): Promise<dynamic> = Promise { resolve, _reject ->
     ${this.markBlock(block.id)}\
     ${this.wrapDelay(inner)}
-    }` // todo function inputs
+    }`
     // functions should not have after blocks; thus not compiling them here
+  }
+
+  compileFunctionInvoke(block: Block<BlockType.FunctionInvoke>, next: typeof this.compile): string {
+    // fixme will return a Promise, but the script is not run in a coroutine, so cannot await
+    return `${block.data.name}(${[...block.inputs.map(it => next(it))].join(", ")})`
   }
 
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
@@ -59,7 +64,7 @@ export class KtCompiler extends BaseCompiler {
       // matches placeholders like "{{0}}"
       const index = Number(match[2])
       return next(block.inputs[index])
-    }) + `\n${next(block.after)}`
+    }) + `;\n${next(block.after)}`
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {

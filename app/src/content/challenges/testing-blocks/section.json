@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 500,
+  "title": "Testing Blocks",
+  "description": ""
+}

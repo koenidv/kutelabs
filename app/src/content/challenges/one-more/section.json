@@ -1,6 +1,0 @@
-{
-  "$schema": "../../../schema/section.schema.json",
-  "order": 4,
-  "title": "Section 4",
-  "description": "Yay, one more section!"
-}

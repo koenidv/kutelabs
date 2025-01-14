@@ -25,6 +25,8 @@ export class Executor {
   public pauseTimeout = () => this.timeout.pause()
   public resumeTimeout = () => this.timeout.resume()
 
+  public cancel: (() => void) | null = null
+
   constructor(
     onResult?: (args: any[], result: any) => void,
     onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
@@ -94,13 +96,17 @@ export class Executor {
       })
     })
 
+    const cancelPromise = new Promise<void>(resolve => (this.cancel = resolve))
+
     try {
-      return await Promise.race([executionPromise, lifeTimer])
+      return await Promise.race([executionPromise, lifeTimer, cancelPromise])
     } finally {
       running = false
       worker.terminate()
       URL.revokeObjectURL(workerUrl)
       this.onCompleted?.()
+      this.cancel = null
+      this.timeout.reset()
     }
   }
 }

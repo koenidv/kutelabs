@@ -37,6 +37,14 @@ export async function readOutputFile(path: string): Promise<string> {
   return await fs.readFile(join(path, "js", "transpiled.js"), { encoding: "utf-8" })
 }
 
+export async function readSourceMap(path: string): Promise<string | undefined> {
+  try {
+    return await fs.readFile(join(path, "js", "transpiled.js.map"), { encoding: "utf-8" })
+  } catch (e) {
+    return undefined
+  }
+}
+
 export function trimErrorMessage(error: string | undefined): string | undefined {
   if (!error) return error
   const internalIndex = error.indexOf("info: produce executable: /data/js/")

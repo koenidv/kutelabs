@@ -67,6 +67,10 @@
         },
         "imageEnd": {
           "$ref": "#/$defs/image"
+        },
+        "confetti": {
+          "type": "boolean",
+          "description": "Show confetti when the story is completed"
         }
       },
       "required": [
@@ -84,7 +88,8 @@
           "type": "string",
           "enum": [
             "js",
-            "kt"
+            "kt",
+            "unset"
           ],
           "description": "Compile language for this challenge"
         },
@@ -161,8 +166,8 @@
           "$ref": "../../../editor-mixed/src/schema/editor.schema.json"
         },
         {
-          "description": "Use and configure the text editor",
-          "$ref": "./editor-text.schema.json"
+          "description": "Use and configure the code editor",
+          "$ref": "./editor-code.schema.json"
         }
       ]
     }

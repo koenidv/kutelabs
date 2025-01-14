@@ -4,25 +4,27 @@ import fs from "node:fs/promises"
 import { join } from "node:path"
 import { joinAndCreate, readFile, writeFile } from "../fsUtils"
 import { ResultDTO } from "../routes/transpile/ResultDTO"
-import { TranspilationStatus } from "../transpile/TranspilationStatus"
+import { RequestError, TranspilationStatus } from "../routes/transpile/Status"
 
 async function baseCacheDir() {
   return joinAndCreate(env.DATA_DIR, "cache", true)
 }
 
-export function shouldCache(status: TranspilationStatus) {
-  return (
-    status === TranspilationStatus.Success ||
-    status === TranspilationStatus.CompilationError
-  )
+export function shouldCache(status: TranspilationStatus | RequestError) {
+  return status === TranspilationStatus.Success || status === TranspilationStatus.CompilationError
 }
 
-export async function writeTranspiledCache(input: string, output: ResultDTO) {
-  // todo calculate chance of collision - security relevant if not quasi-impossible
+/**
+ * Write the transpiled code to cache
+ * @param inputOptions this should include all relevant inputs that led to this output, i.e. code, sourcemap
+ * @param output the transpiled code dto
+ */
+export async function writeTranspiledCache(inputOptions: string[], output: ResultDTO) {
+  // chance of collision is very low: 2^64, ~4.3bn inputs needed for a 50% chance of collision
   try {
     await writeFile(
       await baseCacheDir(),
-      hash(input).toString(),
+      hash(inputOptions.join()).toString(),
       output.setAsCached().toString()
     )
   } catch (e) {
@@ -30,17 +32,26 @@ export async function writeTranspiledCache(input: string, output: ResultDTO) {
   }
 }
 
-export async function existsInCache(input: string) {
+/**
+ * Check if the input is already in cache
+ * @param inputOptions includes all options that would be used to write the code to cache
+ */
+export async function existsInCache(inputOptions: string[]) {
   try {
-    return await fs.exists(join(await baseCacheDir(), hash(input).toString()))
+    return await fs.exists(join(await baseCacheDir(), hash(inputOptions.join()).toString()))
   } catch (e) {
     console.error(e)
+    return false
   }
 }
 
-export async function readTranspiledCache(input: string): Promise<ResultDTO> {
+/**
+ * Read the transpiled code from cache
+ * @param inputOptions includes all options that would be used to write the code to cache
+ */
+export async function readTranspiledCache(inputOptions: string[]): Promise<ResultDTO> {
   try {
-    const cached = await readFile(await baseCacheDir(), hash(input).toString())
+    const cached = await readFile(await baseCacheDir(), hash(inputOptions.join()).toString())
     return ResultDTO.fromJSON(cached)
   } catch (e) {
     console.error(e)

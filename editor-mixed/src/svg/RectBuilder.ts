@@ -21,6 +21,13 @@ export interface Inset {
   innerRadius?: number
 }
 
+export interface Cutout {
+  position: Point
+  width: number
+  height: number
+  radius: number
+}
+
 export interface Rectangle {
   width: number
   height: number
@@ -33,6 +40,7 @@ type AddFeatureType = Omit<Nook, "position"> | Omit<Inset, "position">
 export class RectBuilder {
   private container: Rectangle
   private features: (Nook | Inset)[] = []
+  private cutouts: Cutout[] = []
 
   constructor(config: Rectangle) {
     this.container = config
@@ -77,8 +85,9 @@ export class RectBuilder {
    * @param feature nook or inset to add
    * @param position position of the feature on an edge
    */
-  public add(feature: AddFeatureType, position: Point): this {
-    this.features.push({ ...feature, position })
+  public add(feature: AddFeatureType | Omit<Cutout, "position">, position: Point): this {
+    if ("radius" in feature) this.cutouts.push({ ...feature, position })
+    else this.features.push({ ...feature, position })
     return this
   }
 
@@ -87,40 +96,49 @@ export class RectBuilder {
     const { width, height, radius } = this.container
     const offset = this.container.offset ?? { x: 0, y: 0 }
 
-    path.push(`M ${radius + offset.x} ${offset.y}`)
-    // top
-    this.drawEdge(
-      path,
-      { x: radius + offset.x, y: offset.y },
-      { x: width - radius + offset.x, y: offset.y }
-    )
-    this.drawCorner(path, { x: width + offset.x, y: radius + offset.y }, radius)
-    // right
-    this.drawEdge(
-      path,
-      { x: width + offset.x, y: radius + offset.y },
-      { x: width + offset.x, y: height - radius + offset.y }
-    )
-    this.drawCorner(path, { x: width - radius + offset.x, y: height + offset.y }, radius)
-    // bottom
-    this.drawEdge(
-      path,
-      { x: width - radius + offset.x, y: height + offset.y },
-      { x: radius + offset.x, y: height + offset.y }
-    )
-    this.drawCorner(path, { x: offset.x, y: height - radius + offset.y }, radius)
-    // left
-    this.drawEdge(
-      path,
-      { x: offset.x, y: height - radius + offset.y },
-      { x: offset.x, y: radius + offset.y }
-    )
-    this.drawCorner(path, { x: radius + offset.x, y: offset.y }, radius)
+    this.drawRect(path, offset, { x: width, y: height }, radius)
 
-    path.push("Z")
+    this.cutouts.forEach(({ position, width, height, radius }) =>
+      this.drawRect(path, position, { x: width, y: height }, radius)
+    )
+
     if (this.features.length > 0)
       console.warn("RectBuilder: not all features were placed", this.features)
     return path.join(" ")
+  }
+
+  private drawRect(path: string[], position: Point, size: Point, radius: number) {
+    path.push(`M ${radius + position.x} ${position.y}`)
+    // top
+    this.drawEdge(
+      path,
+      { x: radius + position.x, y: position.y },
+      { x: size.x - radius + position.x, y: position.y }
+    )
+    this.drawCorner(path, { x: size.x + position.x, y: radius + position.y }, radius)
+    // right
+    this.drawEdge(
+      path,
+      { x: size.x + position.x, y: radius + position.y },
+      { x: size.x + position.x, y: size.y - radius + position.y }
+    )
+    this.drawCorner(path, { x: size.x - radius + position.x, y: size.y + position.y }, radius)
+    // bottom
+    this.drawEdge(
+      path,
+      { x: size.x - radius + position.x, y: size.y + position.y },
+      { x: radius + position.x, y: size.y + position.y }
+    )
+    this.drawCorner(path, { x: position.x, y: size.y - radius + position.y }, radius)
+    // left
+    this.drawEdge(
+      path,
+      { x: position.x, y: size.y - radius + position.y },
+      { x: position.x, y: radius + position.y }
+    )
+    this.drawCorner(path, { x: radius + position.x, y: position.y }, radius)
+
+    path.push("Z")
   }
 
   private drawCorner(

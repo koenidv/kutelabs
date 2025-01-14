@@ -14,7 +14,7 @@
   }
 </script>
 
-<div>
+<div class="max-lg:max-h-96 overflow-y-auto">
   <h2>If your code prints anything or throws an error, it will show up here.</h2>
   <div class="flex flex-col pt-4 kt-logs">
     {#each $logState as log}

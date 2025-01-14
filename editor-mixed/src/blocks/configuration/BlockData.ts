@@ -1,23 +1,26 @@
-import type { VariableHInterface } from "../../variables/VariableHInterface"
+import type { FunctionHInterface } from "../../sideeffects/FunctionHInterface"
+import type { VariableHInterface } from "../../sideeffects/VariableHInterface"
 import { BlockType } from "./BlockType"
 import { DataType, type TsTypeByDataType } from "./DataType"
 import type { DefinedExpression } from "./DefinedExpression"
 
-export type BlockDataByType<T extends BlockType, S = never> = T extends BlockType.Function
+export type BlockDataByType<T extends BlockType, D = DataType> = T extends BlockType.Function
   ? BlockDataFunction
-  : T extends BlockType.Expression
-    ? BlockDataExpression
-    : T extends BlockType.Value
-      ? BlockDataValue<S extends DataType ? S : never>
-      : T extends BlockType.VarInit
-        ? BlockDataVariableInit<S extends DataType ? S : never>
-        : T extends BlockType.Variable
-          ? BlockDataVariable
-          : T extends BlockType.LogicJunction
-            ? BlockDataLogicJunction
-            : T extends BlockType.LogicComparison
-              ? BlockDataLogicComparison
-            : BlockDataEmpty
+  : T extends BlockType.FunctionInvoke
+    ? BlockDataFunctionReference
+    : T extends BlockType.Expression
+      ? BlockDataExpression
+      : T extends BlockType.Value
+        ? BlockDataValue<D>
+        : T extends BlockType.VarInit
+          ? BlockDataVariableInit<D>
+          : T extends BlockType.Variable
+            ? BlockDataVariable
+            : T extends BlockType.LogicJunction
+              ? BlockDataLogicJunction
+              : T extends BlockType.LogicComparison
+                ? BlockDataLogicComparison
+                : BlockDataEmpty
 
 export type BlockDataEmpty = null
 
@@ -27,6 +30,21 @@ export type BlockDataEmpty = null
 
 export type BlockDataFunction = {
   name: string
+  params: {
+    name: string
+    type: DataType
+    registeredName?: string
+  }[]
+  isMain?: true | undefined
+  nameEditable?: boolean
+  paramsEditable?: boolean
+}
+
+export type BlockDataFunctionReference = {
+  // used for both reference and invocation, but references are not implemented yet
+  type: DataType.FunctionReference | DataType.FunctionInvokation
+  name: string
+  functionHelper?: WeakRef<FunctionHInterface>
 }
 
 export type BlockDataExpression = {
@@ -39,6 +57,8 @@ export type BlockDataVariableInit<Type extends DataType> = {
   name: string
   type: Type
   mutable: boolean
+  nameEditable?: boolean
+  typeEditable?: boolean
 }
 
 export type BlockDataVariable = {
@@ -50,6 +70,7 @@ export type BlockDataValue<Type extends DataType> = {
   type: Type
   value: TsTypeByDataType<Type>
   editable?: boolean
+  placeholder?: string
 }
 
 export enum LogicJunctionMode {
@@ -59,6 +80,7 @@ export enum LogicJunctionMode {
 export type BlockDataLogicJunction = {
   mode: LogicJunctionMode
   type: DataType.Boolean
+  editable?: boolean
 }
 
 export enum LogicComparisonOperator {
@@ -70,8 +92,18 @@ export enum LogicComparisonOperator {
   LessOrEqual = "<=",
 }
 export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator, DataType[]> = {
-  [LogicComparisonOperator.Equal]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
-  [LogicComparisonOperator.NotEqual]: [DataType.Int, DataType.Float, DataType.String, DataType.Boolean],
+  [LogicComparisonOperator.Equal]: [
+    DataType.Int,
+    DataType.Float,
+    DataType.String,
+    DataType.Boolean,
+  ],
+  [LogicComparisonOperator.NotEqual]: [
+    DataType.Int,
+    DataType.Float,
+    DataType.String,
+    DataType.Boolean,
+  ],
   [LogicComparisonOperator.Greater]: [DataType.Int, DataType.Float],
   [LogicComparisonOperator.GreaterOrEqual]: [DataType.Int, DataType.Float],
   [LogicComparisonOperator.Less]: [DataType.Int, DataType.Float],
@@ -80,4 +112,5 @@ export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator
 export type BlockDataLogicComparison = {
   mode: LogicComparisonOperator
   type: DataType.Boolean
+  editable?: boolean
 }
