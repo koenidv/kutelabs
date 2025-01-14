@@ -2,7 +2,7 @@ import { spawn } from "bun"
 import { env } from "../env"
 import { checkRunscEnvironment } from "./checkRunscEnv"
 import { checkTranspilerImage } from "./checkTranspilerImage"
-import { TranspilationStatus } from "./TranspilationStatus"
+import { TranspilationStatus } from "../routes/transpile/Status"
 import { readOutputFile, readSourceMap, withTempDir, writeInputFile } from "./transpileUtils"
 
 export type TranspilationResult = {

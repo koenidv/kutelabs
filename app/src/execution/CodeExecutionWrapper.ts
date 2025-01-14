@@ -1,7 +1,7 @@
 import { Callbacks } from "@kutelabs/client-runner/src/Callbacks"
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import type { Atom } from "nanostores"
 import type { EditorCodeInterface } from "../components/EditorCodeWrapper.svelte"
 import {
@@ -66,7 +66,11 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         clearMessages()
         if (err == "Execution stopped") return
         console.error("Transpilation: Fetch failed", err)
-        displayMessage("Please check your connection", "error", { single: true })
+        if (err.message.includes("Unauthorized")) {
+          displayMessage("Please sign in", "error", { single: true })
+        } else {
+          displayMessage("Please check your connection", "error", { single: true })
+        }
       })
   }
 

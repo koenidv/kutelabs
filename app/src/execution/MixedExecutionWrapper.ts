@@ -1,7 +1,7 @@
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { TranspilationStatus } from "@kutelabs/server/src/transpile/TranspilationStatus"
+import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import { findBlockByLine } from "@kutelabs/shared/src"
 import { persistentAtom } from "@nanostores/persistent"
 import {
@@ -64,7 +64,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
-    
+
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(JsCompiler, callbacks)
     if (!compiled) {
@@ -111,7 +111,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     const editor = this.editorRef.get()
     editor.clearMarkings()
     this.runFailed.set(false)
-    
+
     const callbacks = this.getCallbacks(editor)
     const compiled = editor.compile(KtCompiler, callbacks)
     displayMessage("Processing", "info", { duration: -1, single: true })
@@ -153,7 +153,11 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
         this.runFailed.set(true)
         clearMessages()
         if (err == "Execution stopped") return
-        displayMessage("Please check your connection", "error", { single: true })
+        if (err.message.includes("Unauthorized")) {
+          displayMessage("Please sign in", "error", { single: true })
+        } else {
+          displayMessage("Please check your connection", "error", { single: true })
+        }
         console.error("Transpilation: Fetch failed", err)
         return
       })

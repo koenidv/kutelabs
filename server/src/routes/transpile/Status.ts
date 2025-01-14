@@ -8,3 +8,7 @@ export enum TranspilationStatus {
   CacheError = "cacheError",
   UnknownError = "unknownError"
 }
+
+export enum RequestError {
+  Unauthorized = "unauthorized",
+}

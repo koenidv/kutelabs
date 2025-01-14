@@ -4,7 +4,7 @@ import fs from "node:fs/promises"
 import { join } from "node:path"
 import { joinAndCreate, readFile, writeFile } from "../fsUtils"
 import { ResultDTO } from "../routes/transpile/ResultDTO"
-import { TranspilationStatus } from "../transpile/TranspilationStatus"
+import { TranspilationStatus } from "../routes/transpile/Status"
 
 async function baseCacheDir() {
   return joinAndCreate(env.DATA_DIR, "cache", true)

@@ -1,7 +1,7 @@
-import type { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import type { RequestError, TranspilationStatus } from "./Status"
 
 export interface ResultDtoInterface {
-  status: TranspilationStatus
+  status: TranspilationStatus | RequestError
   transpiledCode: string | null
   sourceMap: string | null
   message: string | null

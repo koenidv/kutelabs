@@ -9,15 +9,23 @@ import {
 } from "../../cache/cacheUtils"
 import { env } from "../../env"
 import { restoreBlockIds, standardizeBlockIds } from "../../transpile/standardizeBlockIds"
-import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import { RequestError, TranspilationStatus } from "./Status"
 import { transpile } from "../../transpile/transpile"
 import { ResultDTO } from "./ResultDTO"
+import { getAuth } from "@hono/clerk-auth"
 
 const app = new Hono()
 
 app.post("/kt/js", async c => {
   const startTime = Date.now()
-  const body = await c.req.json()
+  const body = await c.req.raw.clone().json()
+  const auth = getAuth(c)
+
+  if (!auth?.userId) {
+    c.status(401)
+    c.json(ResultDTO.error(RequestError.Unauthorized))
+  }
+
   if (!body || !body.kotlinCode) {
     c.status(400)
     c.json(ResultDTO.error(TranspilationStatus.EmptyInput))
@@ -52,8 +60,7 @@ app.post("/kt/js", async c => {
   const dto = ResultDTO.fromTranspilationResult(
     await transpile(code, includeCoroutineLib, generateSourceMap)
   )
-  if (shouldCache(dto.status))
-    await writeTranspiledCache(inputID, dto)
+  if (shouldCache(dto.status)) await writeTranspiledCache(inputID, dto)
 
   posthog.capture({
     distinctId: ipHash,

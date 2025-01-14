@@ -1,17 +1,17 @@
 import { type TranspilationResult } from "../../transpile/transpile"
-import { TranspilationStatus } from "../../transpile/TranspilationStatus"
+import { RequestError, TranspilationStatus } from "./Status"
 import type { ResultDtoInterface } from "./ResultDtoInterface"
 import { trimErrorMessage } from "../../transpile/transpileUtils"
 
 export class ResultDTO implements ResultDtoInterface {
-  status: TranspilationStatus
+  status: TranspilationStatus | RequestError
   transpiledCode: string | null
   sourceMap: string | null = null
   message: string | null = null
   cached: boolean = false
 
   private constructor(
-    status: TranspilationStatus,
+    status: TranspilationStatus | RequestError,
     transpiledCode: string | null = null,
     sourceMap: string | null = null,
     message: string | null = null,
@@ -24,7 +24,10 @@ export class ResultDTO implements ResultDtoInterface {
     this.cached = cached
   }
 
-  public static error(status: TranspilationStatus, message: string | null = null): ResultDTO {
+  public static error(
+    status: TranspilationStatus | RequestError,
+    message: string | null = null
+  ): ResultDTO {
     return new ResultDTO(status, null, null, message)
   }
 
