@@ -3,6 +3,7 @@ import { date, integer, pgTable, uniqueIndex, varchar, type AnyPgColumn } from "
 export const users = pgTable("users", {
   clerkId: varchar().primaryKey(),
   nickname: varchar(),
+  createdAt: date().notNull().defaultNow()
 })
 
 export const completedChallenges = pgTable("completed_challenges", {
