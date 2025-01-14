@@ -1,6 +1,6 @@
 # kutelabs server
 
-This will be the backend for transpilation, authentication, and user progress persistency.
+This is the backend for transpilation and user progress persistence.
 
 ```sh
 bun run dev
@@ -11,6 +11,8 @@ The images are built for amd64 and arm64 and available on as [koenidv/kutelabs-s
 ## Deployment
 
 GitHub Actions builds and pushes the server image on push to `release/server`.
+
+![ci visualization](../docs/server_cd.drawio.svg)
 
 ## Build & Run
 
@@ -37,6 +39,7 @@ docker build --platform linux/amd64,linux/arm64 . -f server/Dockerfile -t kutela
 Docker 26+ is required to run the server. On older versions, transpilation will fail with useless error messages.
 Please ensure that [gVisor is installed](https://gvisor.dev/docs/user_guide/install/) on the host machine. Alternatively, set `ENV` to `development` to disable the sandbox.
 The transpiler image must be available before running the server. You can [specify the image name](#env) in an environment variable.
+You will also need to provide a postgres instance for user data persistence.
 
 ```sh
 docker run -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v data:/data -e TRANSPILER_NAME=kutelabs-transpiler kutelabs-server:latest
@@ -64,8 +67,6 @@ or use the provided compose file.
 | `POSTHOG_HOST`           | PostHog host URL.                                                                    | `https://eu.i.posthog.com`   |
 | `POSTHOG_IDENTIFIER`     | Server identifier for PostHog.                                                       | `local`                      |
 | `SENTRY_DSN`             | Sentry DSN for error tracking.                                                       | _undefined_                  |
-| `CLERK_PUBLISHABLE_KEY`  | Clerk public key for authentication.                                                 | _undefined_                  |
-| `CLERK_SECRET_KEY`       | Clerk secret key for authentication.                                                 | _undefined_                  |
 | `DB_HOST`                | Postgres host.                                                                       | `localhost`                  |
 | `DB_PORT`                | Postgres port.                                                                       | `5432`                       |
 | `DB_USER`                | Postgres user.                                                                       | `kutelabs`                   |
@@ -81,13 +82,17 @@ The server is tested with bun's test runner. Run the tests with:
 bun test
 ```
 
+## Security
+
+The transpilation step is run in a gVisor-run docker container without network and limited resource access to prevent malicious code from being run. gVisor does not completly isolate the container, but considering that the code is not being executed, this should be sufficient.
+
 ## Observability
 
 The server captures transpilation events in PostHog to track usage, performance, and correlate this with app behavior. Errors are reported to Sentry for debugging.
 
 ## Authorization
 
-Authentication is handled by Clerk, the default authorization scope is required for transpilation and reading/updating user data.
+Authentication is handled by Clerk. The default authorization scope is required for transpilation and reading/updating user data.
 
 ## Validation
 

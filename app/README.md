@@ -27,6 +27,24 @@ A staging environment for `main` is available at [main--kutelabs.netlify.app](ht
 | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key for authentication.                 | _undefined_                      |
 | `CLERK_SECRET_KEY`             | Clerk secret key for authentication.                 | _undefined_                      |
 
+## Challenge Execution
+
+Once the user finishes configuring blocks or writing code, the provided code will be transpiled, if necessary, and run. Each challenge includes a set of tests that the code will be tested against to determine if the challenge was completed.
+
+If the challenge submission contains _any_ user-generated code, it will be treated or compiled to as Kotlin code, transpiled to JavaScript, and executed.
+If it contains _no_ user-generated code, it will be compiled to JavaScript and executed.
+Read about [execution security](#security) below.
+
 ## Observability
 
 The web app is instrumented with PostHog for user analytics and Sentry for error tracking.
+
+## Authentication
+
+Authentication is handled by Clerk. Signing in is only required for challenges that include user-generated Kotlin code, progress is also stored locally and synced to the server once the user signs in.
+
+## Security
+
+User-generated code is executed in a worker thread using a Web Worker. This thread is isolated from the main thread and has no access to the DOM or other resources. The user code is further limited by only passing the absolute necessary data and uses messages to call functions outside the worker.This thread is terminated after the execution is complete.
+
+SSL termination is handled by Netlify, which also adds security-relevant headers and prevents the classic web attacks.

@@ -23,10 +23,17 @@ Run `bun install` to install dependencies, then refer to the package readmes:
 
 ![Project Structure](./docs/project_structure.drawio.svg)
 
+Additionally to kutelab components mentioned above, the project relies on:
+
+- [Netlify](https://www.netlify.com/) to build & serve the app
+- [Clerk](https://clerk.dev/) for user management
+
 ## Workspace Structure
 
 ![Workspace Structure](./docs/workspace_structure.drawio.svg)
 
-## Branching
+## Branching Strategy
 
+kutelabs uses a simple git flow branching strategy, though as a solo developer, feature branches were only used for isolation and the main branch was used for development.
 
+To deploy, changes are merge squashed into `release/app` and `release/server`.
