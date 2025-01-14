@@ -14,11 +14,13 @@
   import ElevatedBox from "./ElevatedBox.svelte"
 
   const {
+    id: challengeId,
     tests,
     environment,
     editorType,
     confetti: confettiEnabled,
   }: {
+    id: string
     tests: Challenge["tests"]
     environment: Challenge["environment"]
     editorType: Challenge["editor"]["type"]
@@ -40,6 +42,7 @@
     // set default on client only to prevent ssr flash
     if (speed && $speed == undefined) speed.set("medium")
     if (confettiEnabled) confetti = new (await import("js-confetti")).default()
+    checkLocalChallengeCompletion()
     if (tests.flatMap(t => Object.keys(t.run)).length == 0) challengeCompleted.set(true)
 
     execution.onSuccess = () => {
@@ -47,9 +50,27 @@
         confetti.addConfetti({
           emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
         })
+      localStorage.setItem(
+        "completedChallenges",
+        JSON.stringify([
+          ...new Set([
+            ...JSON.parse(localStorage.getItem("completedChallenges") || "[]"),
+            challengeId,
+          ]),
+        ])
+      )
       challengeCompleted.set(true)
     }
   })
+
+  function checkLocalChallengeCompletion() {
+    const localCompleted = JSON.parse(
+      localStorage.getItem("completedChallenges") || "[]"
+    ) as string[]
+    if (localCompleted.includes(challengeId)) { challengeCompleted.set(true)
+      execution.passAllTests()
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-4 py-4 justify-between select-none">

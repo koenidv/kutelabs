@@ -12,7 +12,9 @@ const challenges = await navigationStore.getChallenes()
   <div class="w-full flex flex-col items-center">
     <div class="max-w-4xl w-full p-8 flex flex-col">
       <div class="pb-8">
-        <h1 class="text-5xl font-poppins font-black text-outlined text-white">Let's start learning!</h1>
+        <h1 class="text-5xl font-poppins font-black text-outlined text-white">
+          Let's start learning!
+        </h1>
         <p><a href="#">Sign up</a> to save your progress.</p>
       </div>
 
@@ -33,7 +35,11 @@ const challenges = await navigationStore.getChallenes()
             const data = it.data as Challenge
             return (
               <div class="pb-4 flex flex-col items-center">
-                <a href={`/learn/${it.id}`} class="w-full" data-astro-prefetch>
+                <a
+                  href={`/learn/${it.id}`}
+                  class="w-full challenge-container"
+                  id={it.id}
+                  data-astro-prefetch>
                   <ElevatedBox
                     elevation={2}
                     hoverable
@@ -46,13 +52,15 @@ const challenges = await navigationStore.getChallenes()
                           alt={data.story.imageStart.alt}
                           width={160}
                           height={160}
-                          class="h-full max-h-32 lg:max-h-40 aspect-square object-fill"
+                          class="h-full max-h-32 lg:max-h-40 w-32 lg:w-40 aspect-square object-cover"
                         />
                       ) : (
                         <div class="w-8" />
                       )}
                       <div class="w-full h-full flex flex-col items-start justify-center gap-2 py-4 min-h-40">
-                        <h1 class="text-xl font-poppins font-black">{data.story.title}</h1>
+                        <h1 class="text-xl font-poppins font-black" id="title">
+                          {data.story.title}
+                        </h1>
                         <p set:html={data.story?.description} />
                       </div>
                       {data.story.imageEnd ? (
@@ -77,3 +85,19 @@ const challenges = await navigationStore.getChallenes()
     </div>
   </div>
 </InnerLayout>
+
+<script>
+
+  const locallyCompleted = JSON.parse(localStorage.getItem("completedChallenges") || "[]") as string[]
+  console.log("locallyCompleted", locallyCompleted)
+  locallyCompleted.forEach((id) => {
+    const container = document.querySelector(`#${CSS.escape(id)}.challenge-container`)
+    console.log("container", container)
+    if (!container) return
+    container.classList.add("completed")
+    const title = container.querySelector("#title") as HTMLHeadingElement
+    if (!title) return
+    title.innerText += " ✅"
+  })
+
+</script>

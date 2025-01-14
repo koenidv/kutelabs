@@ -9,6 +9,7 @@ export abstract class BaseExecutionWrapper {
   protected readonly environment: Challenge["environment"]
 
   protected readonly abortController = new AbortController()
+  protected readonly tests: TestSuite = []
 
   public running = atom(false)
   public runFailed = atom(false)
@@ -19,11 +20,11 @@ export abstract class BaseExecutionWrapper {
     environment: Challenge["environment"],
     runner?: SandboxTestRunner
   ) {
-    const testsParsed = this.parseTests(tests)
+    this.tests = this.parseTests(tests)
     this.testRunner =
       runner ??
       new SandboxTestRunner(
-        testsParsed,
+        this.tests,
         (id, result) => {
           if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
           setTestResult(id, result)
@@ -54,6 +55,12 @@ export abstract class BaseExecutionWrapper {
     editorLoadingState.set(false)
     this.runFailed.set(true)
     this.testRunner.cancel()
+  }
+
+  public passAllTests() {
+    this.tests.forEach(set =>
+      Object.keys(set.run).forEach(id => setTestResult(id, TestResult.Passed))
+    )
   }
 
   private parseTests(rawTests: Challenge["tests"]): TestSuite {
