@@ -1,8 +1,8 @@
-import { Callbacks } from "@kutelabs/client-runner/src/Callbacks"
 import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import type { Atom } from "nanostores"
+import { SourceMapConsumer, type RawSourceMap } from "source-map-js"
 import type { EditorCodeInterface } from "../components/EditorCodeWrapper.svelte"
 import {
   addLog,
@@ -12,9 +12,9 @@ import {
   editorRef,
 } from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
-import { transpileKtJs } from "./transpile"
-import { SourceMapConsumer, type RawSourceMap } from "source-map-js"
+import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import { preprocessKotlin } from "./preprocessKotlin"
+import { transpileKtJs } from "./transpile"
 
 export class CodeExecutionWrapper extends BaseExecutionWrapper {
   editorRef = editorRef as Atom<EditorCodeInterface>
@@ -55,7 +55,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         this.testRunner.execute(transpiled.transpiledCode, {
           argNames: editor.argnames(),
           entrypoint: `transpiled.${editor.entrypoint()}`,
-          callbacks: new Callbacks(), // todo app features, these will also have to be defined before the kotlin code
+          callbacks: filterCallbacks([], appFeatures), // todo app features, these will also have to be defined before the kotlin code
           timeout: 1000,
         })
       })

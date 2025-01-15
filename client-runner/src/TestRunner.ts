@@ -1,5 +1,5 @@
-import type { Callbacks } from "./Callbacks"
-import { ErrorType, Executor, type LoggedError, type LogType } from "./Executor"
+import type { CallbackCollection } from "./callbacks/CallbackCollection"
+import { ErrorType, Executor, type ExecutionError } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
 
 type Args = any[]
@@ -25,7 +25,7 @@ export type ExecutionConfig = {
   executionDelay?: number
   disallowedGlobals?: string[]
   allowedApis?: string[]
-  callbacks?: Callbacks
+  callbacks?: CallbackCollection
 }
 
 const DEFAULT_DISALLOWED_GLOBALS = ["window", "document", "localStorage", "fetch"]
@@ -37,7 +37,6 @@ export class TestRunner {
   private pivotTests: PivotTestSuite = {}
 
   private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
-  private readonly onLog: (args: any[], type: LogType) => void = console.log
   private readonly onGeneralError: (
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string
@@ -56,14 +55,12 @@ export class TestRunner {
   constructor(
     testSuite: TestSuite,
     onResult: typeof this.onFinalTestResult,
-    onLog?: typeof this.onLog,
     onGeneralError?: typeof this.onGeneralError,
     onBlockError?: typeof this.onUserCodeError,
     onFinished?: () => void
   ) {
     this.testSuite = testSuite
     this.onFinalTestResult = onResult
-    if (onLog) this.onLog = onLog
     if (onGeneralError) this.onGeneralError = onGeneralError
     if (onBlockError) this.onUserCodeError = onBlockError
     if (onFinished) this.onFinished = onFinished
@@ -71,7 +68,6 @@ export class TestRunner {
     this.executor = new Executor(
       this.onResult.bind(this),
       this.onError.bind(this),
-      this.onLog.bind(this),
       this.onExecutionCompleted.bind(this),
       this.onWaitRequest.bind(this)
     )
@@ -133,7 +129,6 @@ export class TestRunner {
       .addRejectedPromiseHandler()
       .addDelayApi()
       .addCallbacks(config.callbacks)
-      .addConsoleApi()
       .setCode(userCode, config.argNames, config.entrypoint)
     this.testSuite.forEach(
       testSet => testSet.args.forEach(args => factory.runCode(args), this),
@@ -249,18 +244,19 @@ export class TestRunner {
    * @param type type of the error (see above)
    * @param error the error that occured
    */
-  private onError(type: ErrorType, error: ErrorEvent | LoggedError) {
+  private onError(type: ErrorType, error: ErrorEvent | ExecutionError) {
     if (type == ErrorType.Worker || type == ErrorType.Timeout) {
       this.failRemainingTests()
       this.onGeneralError(type, error.message)
       return
     }
 
-    const linecol = this.matchLineInStack((error as LoggedError).stack)
-    if (!linecol) throw new Error(`Could not find line in stack: ${(error as LoggedError).stack}`)
+    const execerr = error as ExecutionError
+    const linecol = this.matchLineInStack(execerr.stack)
+    if (!linecol) throw new Error(`Could not find line in stack: ${execerr.stack}`)
     linecol[0] -= this.findUserFunctionStartLine()
-    this.failRemainingTests((error as LoggedError).message)
-    this.onUserCodeError((error as LoggedError).message, ...linecol)
+    this.failRemainingTests(execerr.message)
+    this.onUserCodeError(execerr.message, ...linecol)
   }
 
   /**

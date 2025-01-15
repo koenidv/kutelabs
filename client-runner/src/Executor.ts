@@ -1,4 +1,4 @@
-import { Callbacks } from "./Callbacks"
+import type { CallbackCollection } from "./callbacks/CallbackCollection"
 import { Timeout } from "./Timeout"
 
 export enum ErrorType {
@@ -7,7 +7,7 @@ export enum ErrorType {
   Worker = "worker",
 }
 
-export type LoggedError = {
+export type ExecutionError = {
   message: string
   stack: string
 }
@@ -16,8 +16,7 @@ export type LogType = "log" | "error" | "warn"
 
 export class Executor {
   onResult?: (args: any[], result: any) => void
-  onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void
-  onLog?: (args: any[], type: LogType) => void
+  onError?: (type: ErrorType, error: ErrorEvent | ExecutionError) => void
   onCompleted?: () => void
   onRequestWait: (resolve: () => void) => void = resolve => resolve()
 
@@ -29,19 +28,17 @@ export class Executor {
 
   constructor(
     onResult?: (args: any[], result: any) => void,
-    onError?: (type: ErrorType, error: ErrorEvent | LoggedError) => void,
-    onLog?: (args: any[], type: LogType) => void,
+    onError?: (type: ErrorType, error: ErrorEvent | ExecutionError) => void,
     onCompleted?: () => void,
     onRequestWait?: (resolve: () => void) => void
   ) {
     this.onResult = onResult
     this.onError = onError
-    this.onLog = onLog
     this.onCompleted = onCompleted
     if (onRequestWait) this.onRequestWait = onRequestWait
   }
 
-  async execute(script: string, timeoutMs: number, callbacks?: Callbacks): Promise<unknown> {
+  async execute(script: string, timeoutMs: number, callbacks?: CallbackCollection): Promise<unknown> {
     let running = true
 
     const workerUrl = URL.createObjectURL(
@@ -56,17 +53,13 @@ export class Executor {
         const { type, data } = event.data
         switch (type) {
           case "completed":
-            console.log("completed exec")
             resolve(data)
             break
           case "result":
             this.onResult?.(data.args, data.result)
             break
           case "error":
-            this.onError?.(ErrorType.Execution, data as LoggedError)
-            break
-          case "log":
-            this.onLog?.(Object.values(data), "log")
+            this.onError?.(ErrorType.Execution, data as ExecutionError)
             break
           case "requestWait":
             this.onRequestWait(() => {

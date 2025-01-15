@@ -1,4 +1,6 @@
-import type { Callbacks } from "./Callbacks"
+import type { CallbackCollection } from "./callbacks/CallbackCollection"
+import type { NestedStrings } from "./types/nested.types"
+import { stringifyNestedStrings } from "./utils/util"
 
 enum StepType {
   Disallow,
@@ -11,7 +13,7 @@ type Step = { type: StepType; step: string }
 
 export class ScriptFactory {
   private steps: Step[] = []
-  private globals: Map<string, string> = new Map()
+  private globals: NestedStrings = {}
 
   constructor() {}
 
@@ -20,13 +22,9 @@ export class ScriptFactory {
   }
 
   private buildGlobals(): this {
-    const objectStringBuilder: string[] = []
-    for (const [key, value] of this.globals) {
-      objectStringBuilder.push(`${key}:(${value.toString()})`)
-    }
     this.steps.push({
       type: StepType.Define,
-      step: `const globals = {${objectStringBuilder.join(",")}};`,
+      step: `const globals = ${stringifyNestedStrings(this.globals)};`,
     })
     return this
   }
@@ -60,10 +58,8 @@ export class ScriptFactory {
 
   public allowApis(allowedApis: string[]): this {
     allowedApis.forEach(api => {
-      this.globals.set(
-        api,
+      this.globals[api] =
         `(typeof self.${api} === 'function' || typeof self.${api} === 'object') ? self.${api} : undefined`
-      )
     }, this)
     return this
   }
@@ -88,40 +84,18 @@ export class ScriptFactory {
       waitRequests.delete(e.data.id)
       }};`,
     })
-    this.globals.set(
-      "requestWait",
-      `()=>{let resolve;
-      const promise=new Promise(it=>resolve=it);
-      waitRequests.set(++waitRequestCount,resolve);
-      postMessage({type:"requestWait",data:{id:waitRequestCount}});
-      return promise;}`
-    )
+    this.globals["requestWait"] =
+      '()=>{let resolve; \
+      const promise=new Promise(it=>resolve=it); \
+      waitRequests.set(++waitRequestCount,resolve); \
+      postMessage({type:"requestWait",data:{id:waitRequestCount}}); \
+      return promise;}'
     return this
   }
 
-  public addCallbacks(callbacks?: Callbacks): this {
-    if (callbacks) {
-      callbacks.proxies().forEach(proxy => {
-        for (const [name, func] of Object.entries(proxy)) {
-          this.globals.set(name, func)
-        }
-      }, this)
-    }
-    return this
-  }
-
-  public addConsoleApi(logType = "log", errorType = "error"): this {
-    this.globals.set(
-      "console",
-      `{
-        log: (...args) => {
-          postMessage({ type: "${logType}", data: args })
-        },
-        error: (...args) => {
-          postMessage({ type: "${errorType}", data: args })
-        },
-      }`
-    )
+  public addCallbacks(callbacks?: CallbackCollection): this {
+    const proxies = callbacks?.proxies()
+    if (proxies) this.globals = { ...this.globals, ...proxies }
     return this
   }
 
@@ -130,7 +104,7 @@ export class ScriptFactory {
       `/*__startUser*/const userFunction = new Function(
 ${argNames.length > 0 ? argNames.join(",") + "," : ""}
 String.raw\`
-const { ${[...this.globals.keys()].join(", ")} } = this;
+const { ${Object.keys(this.globals).join(", ")} } = this;
 ${unsafeCode}
 return ${entrypoint}(${argNames.join(",")});
 \`/*__endUser*/);`

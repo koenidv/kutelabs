@@ -29,7 +29,6 @@ export abstract class BaseExecutionWrapper {
           if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
           setTestResult(id, result)
         },
-        addLog,
         (type, message) => {
           this.running.set(false)
           addLog([message], "error")
