@@ -17,8 +17,8 @@ html {
   font-weight: 600;
 }
 
-html :has(.dialog-container),
-body :has(.dialog-container) {
+html :has(clerk-signed-out:not([hidden]) .dialog-container),
+body :has(clerk-signed-out:not([hidden]) .dialog-container) {
   overflow: hidden;
 }
 
