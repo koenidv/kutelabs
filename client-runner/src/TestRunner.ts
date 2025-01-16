@@ -3,7 +3,10 @@ import { ErrorType, Executor, type ExecutionError } from "./Executor"
 import { ScriptFactory } from "./ScriptFactory"
 
 type Args = any[]
-export type Test = { description: string; function: (args: Args, result: any) => boolean | string }
+export type Test = {
+  description: string
+  function: (args: Args, result: any, callbacks: CallbackCollection) => boolean | string
+}
 export type TestSet = { args: Args[]; run: { [id: string]: Test } }
 export type TestSuite = TestSet[]
 export type PivotTest = Test & { args: Args[] }
@@ -22,10 +25,10 @@ export type ExecutionConfig = {
   argNames: string[]
   entrypoint: string
   timeout: number
+  callbacks: CallbackCollection
   executionDelay?: number
   disallowedGlobals?: string[]
   allowedApis?: string[]
-  callbacks?: CallbackCollection
 }
 
 const DEFAULT_DISALLOWED_GLOBALS = ["window", "document", "localStorage", "fetch"]
@@ -51,6 +54,7 @@ export class TestRunner {
   private firstCallFinished = false
 
   private currentScript: string | null = null
+  private currentCallbacks: CallbackCollection | null = null
 
   constructor(
     testSuite: TestSuite,
@@ -91,6 +95,7 @@ export class TestRunner {
     this.executionDelay = config.executionDelay ?? -1
     this.firstCallFinished = false
     this.currentScript = this.buildScript(userCode, config)
+    this.currentCallbacks = config.callbacks
 
     return this.executor.execute(this.currentScript, config.timeout, config.callbacks)
   }
@@ -160,7 +165,12 @@ export class TestRunner {
   private onResult(args: Args, result: any): void {
     this.firstCallFinished = true
     if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
-    this.getTestsForArgs(args).forEach(test => this.runTest(test, args, result))
+    if (!this.currentCallbacks) throw new Error("No callbacks set")
+    this.getTestsForArgs(args).forEach(
+      test => this.runTest(test, args, result, this.currentCallbacks!),
+      this
+    )
+    this.currentCallbacks.resetCalls()
   }
 
   /**
@@ -185,9 +195,14 @@ export class TestRunner {
    * @param args arguments the user function was called with
    * @param result result of the user function
    */
-  private runTest(test: PivotTest & { id: string }, args: Args, result: any): void {
+  private runTest(
+    test: PivotTest & { id: string },
+    args: Args,
+    result: any,
+    callbacks: CallbackCollection
+  ): void {
     try {
-      const testResult = test.function(args, result)
+      const testResult = test.function(args, result, callbacks)
       this.onTestResult(
         test.id,
         args,
@@ -196,6 +211,7 @@ export class TestRunner {
       )
     } catch (error) {
       console.error(`Test ${test.id}('${test.description}') failed:`, error)
+      this.onTestResult(test.id, args, TestResult.Failed)
     }
   }
 
@@ -222,7 +238,7 @@ export class TestRunner {
       argSet =>
         argSet.length != args.length || !argSet.every((value, index) => value === args[index])
     )
-    if (this.pivotTests[id].args.length === 0) {
+    if (this.pivotTests[id].args.length === 0) { // fixme should fail remaining args of this test if test failed
       delete this.pivotTests[id]
       this.onFinalTestResult(id, passed, message)
       if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()

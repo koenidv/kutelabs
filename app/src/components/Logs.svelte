@@ -21,7 +21,7 @@
       <p
         role="log"
         class={`font-normal p-2, border-beige-200 border-t-2 last:border-b-2 ${colorByType(log.type)}`}>
-        {log.log.map((it: any) => it.toString()).join(", ")}
+        {log.log.map((it: any) => it?.toString()).join(", ")}
       </p>
     {/each}
   </div>

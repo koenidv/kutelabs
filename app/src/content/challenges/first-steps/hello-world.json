@@ -27,9 +27,9 @@
         []
       ],
       "run": {
-        "entername": {
-          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
-          "description": "Enter your name"
+        "printhelloworld": {
+          "function": "(args,result,callbacks)=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return 'Print something to the log'; return cc.wasCalledWith(([arg0]) => /hello\\s*world/.test(arg0.toString().toLowerCase()) )};",
+          "description": "Print \"Hello World!\""
         }
       }
     }

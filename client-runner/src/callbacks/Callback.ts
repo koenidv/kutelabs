@@ -25,6 +25,10 @@ export class Callback {
     this.calls = []
   }
 
+  public wasCalled(): boolean {
+    return this.calls.length > 0
+  }
+
   public wasCalledWith(testFn: (...args: any[]) => boolean): boolean {
     return this.calls.some(testFn)
   }

@@ -58,7 +58,8 @@
 
       <div class="flex flex-col justify-center">
         <p class="font-medium">{test.description}</p>
-        {#if $testState[test.id]?.message}
+        {#if $testState[test.id]?.message} 
+        <!-- fixme test fail message is not working -->
           <p id="test-message" class="font-normal">{$testState[test.id]?.message}</p>
         {/if}
       </div>

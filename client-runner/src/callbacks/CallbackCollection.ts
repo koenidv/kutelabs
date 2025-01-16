@@ -11,6 +11,18 @@ export class CallbackCollection {
 
   constructor(functions: NestedFunctions = {}) {
     this._callbacks = this.functionsToCallbacks(functions)
+
+    return new Proxy(this, {
+      get: (target, prop) => {
+        if (prop in target) {
+          return (target as any)[prop]
+        }
+        if (typeof prop === "string") {
+          return target.getCallback(prop)
+        }
+        return undefined
+      },
+    })
   }
 
   //#region public
@@ -43,6 +55,10 @@ export class CallbackCollection {
     }
   }
 
+  public resetCalls() {
+    this.clearAllCalls()
+  }
+
   //#region private
 
   private functionsToCallbacks(functions: NestedFunctions): NestedCallbacks {
@@ -66,6 +82,13 @@ export class CallbackCollection {
           : this.callbacksToProxies(callback, [...path, name])
     }
     return proxies
+  }
+
+  private clearAllCalls(callbacks: NestedCallbacks = this._callbacks) {
+    for (const callback of Object.values(callbacks)) {
+      if (callback instanceof Callback) callback.clearCalls()
+      else this.clearAllCalls(callback)
+    }
   }
 
   private findByPath(path: string[], current = this._callbacks): Callback | null {
