@@ -1,0 +1,32 @@
+---
+interface Props {
+  navigateBackDefaultUrl?: string
+}
+const { navigateBackDefaultUrl } = Astro.props
+---
+
+<button id="backButton" aria-label="Navigate back">
+  <slot />
+</button>
+
+<script is:inline define:vars={{ navigateBackDefaultUrl }}>
+  document.querySelectorAll("#backButton")?.forEach(it =>
+    it.addEventListener("click", function () {
+      try {
+        const referrer = new URL(document.referrer)
+        console.log(referrer)
+        if (
+          referrer &&
+          referrer.hostname === window.location.hostname &&
+          referrer.pathname == "/learn"
+        ) {
+          window.history.back()
+        } else {
+          window.location.href = navigateBackDefaultUrl ?? "/learn"
+        }
+      } catch (e) {
+        window.location.href = navigateBackDefaultUrl ?? "/learn"
+      }
+    })
+  )
+</script>

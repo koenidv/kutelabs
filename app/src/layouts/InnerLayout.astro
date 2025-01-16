@@ -1,4 +1,5 @@
 ---
+import BackButton from "../components/BackButton.astro"
 import Logo from "../svg/logo.svg"
 import OuterLayout from "./OuterLayout.astro"
 
@@ -7,7 +8,7 @@ interface Props {
   navigateBackText?: string
   navigateBackDefaultUrl?: string
 }
-const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
+const { title, navigateBackText } = Astro.props
 ---
 
 <OuterLayout title={title}>
@@ -20,12 +21,11 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
         </div>
         {
           navigateBackText && (
-            <button
-              class="relative animate-bg-up border-2 border-transparent hover:border-black box-border px-2 lg:px-4 py-2 transition-colors"
-              id="backButton"
-              aria-label="Navigate back">
-              ← {navigateBackText}
-            </button>
+            <BackButton navigateBackDefaultUrl="/learn">
+              <p class="relative animate-bg-up border-2 border-transparent hover:border-black box-border px-2 lg:px-4 py-2 transition-colors">
+                ← {navigateBackText}
+              </p>
+            </BackButton>
           )
         }
       </div>
@@ -35,23 +35,3 @@ const { title, navigateBackText, navigateBackDefaultUrl } = Astro.props
     <slot />
   </main>
 </OuterLayout>
-
-<script is:inline define:vars={{ navigateBackDefaultUrl }}>
-  document.getElementById("backButton")?.addEventListener("click", function () {
-    try {
-      const referrer = new URL(document.referrer)
-      console.log(referrer)
-      if (
-        referrer &&
-        referrer.hostname === window.location.hostname &&
-        referrer.pathname == "/learn"
-      ) {
-        window.history.back()
-      } else {
-        window.location.href = navigateBackDefaultUrl ?? "/learn"
-      }
-    } catch (e) {
-      window.location.href = navigateBackDefaultUrl ?? "/learn"
-    }
-  })
-</script>
