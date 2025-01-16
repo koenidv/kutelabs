@@ -2,10 +2,11 @@
 import netlify from "@astrojs/netlify";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
+import clerk from '@clerk/astro';
+import { neobrutalism } from '@clerk/themes';
 import sentry from "@sentry/astro";
 import compress from "astro-compress";
 import icon from "astro-icon";
-import clerk from '@clerk/astro'
 import { defineConfig, envField } from "astro/config";
 
 // https://astro.build/config
@@ -16,7 +17,12 @@ export default defineConfig({
       project: "kutelabs-astro",
       authToken: process.env["SECRET_SENTRY_AUTH_TOKEN"],
     },
-  }), clerk({ afterSignOutUrl: "/learn" }), tailwind(), icon(), svelte(), compress()],
+  }), clerk({
+    afterSignOutUrl: "/learn", signInFallbackRedirectUrl: "/learn", signUpFallbackRedirectUrl: "/learn", appearance: {
+      baseTheme: [neobrutalism],
+      variables: { borderRadius: "0", colorPrimary: "#6828EF" },
+    }
+  }), tailwind(), icon(), svelte(), compress()],
   output: "static",
   adapter: netlify({
     imageCDN: true,
