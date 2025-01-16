@@ -39,7 +39,7 @@ export class TestRunner {
   /** Pivoted tests by test id instead of by args */
   private pivotTests: PivotTestSuite = {}
 
-  private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
+  private readonly  onFinalTestResult: (id: string, result: TestResult, message?: string) => void
   private readonly onGeneralError: (
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string

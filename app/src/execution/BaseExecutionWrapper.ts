@@ -25,9 +25,9 @@ export abstract class BaseExecutionWrapper {
       runner ??
       new SandboxTestRunner(
         this.tests,
-        (id, result) => {
+        (id, result, message) => {
           if (result != TestResult.Passed && result != TestResult.Pending) this.runFailed.set(true)
-          setTestResult(id, result)
+          setTestResult(id, result, message)
         },
         (type, message) => {
           this.running.set(false)

@@ -30,7 +30,7 @@
 <div class="flex flex-col gap-4">
   {#each tests as test}
     <div
-      class={`flex flex-row gap-2 kt-test items-center ${[stateToColorClass($testState[test.id]?.state)]}`}
+      class={`flex flex-row gap-2 kt-test test-${$testState[test.id]?.state} items-center ${[stateToColorClass($testState[test.id]?.state)]}`}
       id={`test-${test.id}`}>
       <div class="size-5">
         {#if $testState[test.id]?.state === "passed"}
@@ -66,3 +66,17 @@
     </div>
   {/each}
 </div>
+
+<style lang="scss">
+.kt-test.test-failed {
+  animation: horizontal-shaking 150ms 1;
+}
+
+@keyframes horizontal-shaking {
+ 0% { transform: translateX(0) }
+ 25% { transform: translateX(5px) }
+ 50% { transform: translateX(-5px) }
+ 75% { transform: translateX(5px) }
+ 100% { transform: translateX(0) }
+}
+</style>
