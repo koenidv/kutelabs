@@ -2,7 +2,12 @@ import { ErrorType } from "@kutelabs/client-runner/src/Executor"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import type { Atom } from "nanostores"
-import { SourceMapConsumer, type RawSourceMap } from "source-map-js"
+import {
+  SourceMapConsumer,
+  type MappedPosition,
+  type MappingItem,
+  type RawSourceMap,
+} from "source-map-js"
 import type { EditorCodeInterface } from "../components/EditorCodeWrapper.svelte"
 import {
   addLog,
@@ -15,6 +20,9 @@ import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import { preprocessKotlin } from "./preprocessKotlin"
 import { transpileKtJs } from "./transpile"
+
+const ORIGINAL_SOURCE_NAME = "code.kt"
+const FALLBACK_FIND_ORIGINAL_MAX_DELTA = 5
 
 export class CodeExecutionWrapper extends BaseExecutionWrapper {
   editorRef = editorRef as Atom<EditorCodeInterface>
@@ -36,6 +44,11 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
 
     const preprocessed = preprocessKotlin(code)
     this.preprocessSourceMap = preprocessed.sourceMap
+
+    console.log("CODE")
+    console.log(code)
+    console.log("PREPROCESSED")
+    console.log(preprocessed.code)
 
     transpileKtJs(this.abortController, preprocessed.code, false, true)
       .then(transpiled => {
@@ -110,20 +123,46 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     if (!this.transpileSourceMap || !this.preprocessSourceMap)
       return displayMessage("An error occured", "error", { single: true })
 
-    const intermediatePosition = new SourceMapConsumer(
-      JSON.parse(this.transpileSourceMap)
-    ).originalPositionFor({ line, column })
-    if (!intermediatePosition.line)
+    const intermediateConsumer = new SourceMapConsumer(JSON.parse(this.transpileSourceMap))
+    let intermediatePosition: MappedPosition | null = intermediateConsumer.originalPositionFor({
+      line,
+      column,
+    })
+
+    if (intermediatePosition?.source !== ORIGINAL_SOURCE_NAME)
+      intermediatePosition = this.fallbackFindOriginalLine(intermediateConsumer, line, column)
+
+    if (!intermediatePosition?.line)
       return displayMessage("An error occured", "error", { single: true })
 
     const originalPosition = new SourceMapConsumer(this.preprocessSourceMap).originalPositionFor({
       line: intermediatePosition.line,
       column: intermediatePosition.column,
     })
+    if (!originalPosition.line) return displayMessage("An error occured", "error", { single: true })
 
     displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
     this.editorRef.get().highlight(originalPosition.line, intermediatePosition.column)
     addLog([message, `at ${originalPosition.line}:${intermediatePosition.column}`], "error")
+  }
+
+  private fallbackFindOriginalLine(
+    consumer: SourceMapConsumer,
+    findLine: number,
+    findColumn: number
+  ): MappedPosition | null {
+    let candidate: MappingItem | null = null
+    consumer.eachMapping(mapping => {
+      if (mapping.generatedLine < findLine - FALLBACK_FIND_ORIGINAL_MAX_DELTA) return
+      if (mapping.generatedLine > findLine) return
+      if (mapping.generatedLine == findLine && mapping.generatedColumn > findColumn) return
+      if (mapping.source !== ORIGINAL_SOURCE_NAME) return
+      candidate = mapping // use last candidate
+    })
+    let final = candidate as MappingItem | null
+    return final
+      ? { line: final.originalLine ?? 0, column: final.originalColumn ?? 0, source: final.source! }
+      : null
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, _originalCode: string) {
