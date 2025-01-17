@@ -1,7 +1,7 @@
 import { SandboxCallbacks, type NestedFunctions } from "@kutelabs/client-runner"
 import { addLog, displayMessage } from "../state/state"
 
-export const defaultEnabledNames = ["console", "markBlock"]
+export const defaultEnabledNames = ["console"]
 
 export function filterCallbacks(
   enabledNames: string[],

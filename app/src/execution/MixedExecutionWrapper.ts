@@ -34,7 +34,8 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
   }
 
   private getCallbacks(editor: EditorMixed) {
-    return filterCallbacks(this.environment.appFeatures ?? [], {
+    const enabledCallbacks = ["markBlock", ...(this.environment.appFeatures ?? [])]
+    return filterCallbacks(enabledCallbacks, {
       ...appFeatures,
       ...editor.getExecutionCallbacks(),
     })
