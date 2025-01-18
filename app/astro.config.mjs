@@ -8,6 +8,7 @@ import sentry from "@sentry/astro";
 import compress from "astro-compress";
 import icon from "astro-icon";
 import { defineConfig, envField } from "astro/config";
+import markdownIntegration from '@astropub/md'
 
 // https://astro.build/config
 export default defineConfig({
@@ -22,7 +23,7 @@ export default defineConfig({
       baseTheme: [neobrutalism],
       variables: { borderRadius: "0", colorPrimary: "#6828EF" },
     }
-  }), tailwind(), icon(), svelte(), compress()],
+  }), tailwind(), icon(), svelte(), markdownIntegration(), compress()],
   output: "static",
   adapter: netlify({
     imageCDN: true,
@@ -40,6 +41,9 @@ export default defineConfig({
       PUBLIC_CLERK_PUBLISHABLE_KEY: envField.string({ context: "client", access: "public", optional: false, startsWith: "pk_" }),
       CLERK_SECRET_KEY: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sk_" }),
     }
+  },
+  markdown: {
+    syntaxHighlight: "prism"
   },
   prefetch: {
     defaultStrategy: "viewport",

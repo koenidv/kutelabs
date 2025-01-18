@@ -79,6 +79,16 @@ body :has(clerk-signed-out:not([hidden]) .dialog-container) {
 
 }
 
+/**
+* Dialog Code Block
+*/
+
+.markdown pre:has(code) {
+  background-color: #0D1116;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  overflow-x: auto;
+}
 
 
 @layer components {
@@ -202,6 +212,17 @@ body :has(clerk-signed-out:not([hidden]) .dialog-container) {
     &:hover::before,
     &:focus::before {
       height: 100%;
+    }
+  }
+}
+
+@layer base {
+  ul, ol {
+    list-style: revert;
+    padding: 0 0 0 1.5rem;
+    
+    li:not(:last-of-type) {
+      margin-bottom: 0.5rem;
     }
   }
 }

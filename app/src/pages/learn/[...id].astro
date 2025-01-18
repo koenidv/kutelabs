@@ -1,20 +1,21 @@
 ---
+import { Markdown } from '@astropub/md'
+import { Icon } from "astro-icon/components"
 import { Tabs } from "astro-tabs"
+import { Image } from "astro:assets"
 import { getCollection } from "astro:content"
 import Controls from "../../components/Controls.svelte"
-import EditorMixed from "../../components/EditorMixedWrapper.svelte"
 import EditorCode from "../../components/EditorCodeWrapper.svelte"
+import EditorMixed from "../../components/EditorMixedWrapper.svelte"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import Logs from "../../components/Logs.svelte"
 import NextChallengeButton from "../../components/NextChallengeButton.svelte"
+import SignInDialog from "../../components/SignInDialog.astro"
 import Snackbar from "../../components/Snackbar.svelte"
 import Tests from "../../components/Tests.svelte"
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
-import { Icon } from "astro-icon/components"
-import { Image } from "astro:assets"
-import SignInDialog from "../../components/SignInDialog.astro"
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -54,9 +55,9 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
 
           <Fragment slot="panel-1">
             <div class="flex flex-col h-full gap-6">
-              <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-4 font-medium markdown">
                 <h2 class="font-poppins font-black text-xl">{challenge.story.title}</h2>
-                <p class="font-medium" set:html={challenge.story.dialog?.static} />
+                <Markdown of={challenge.story.dialog?.static} />
               </div>
 
               <NextChallengeButton nextUrl={nextUrl} client:idle />

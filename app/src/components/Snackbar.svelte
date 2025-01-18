@@ -1,5 +1,7 @@
 <script lang="ts">
   import { consumedMessage, snackbarState, type SnackbarMessage } from "../state/state"
+  import ElevatedBox from "./ElevatedBox.svelte"
+  import CloseIcon from "../icons/close.svelte"
 
   let displayMessage: SnackbarMessage | undefined = undefined
   let messageConsumer: Timer
@@ -39,11 +41,15 @@
 </script>
 
 {#if displayMessage}
-  <div
-    class={`messagebox absolute bottom-4 left-4 flex flex-row gap-4 p-4 border border-black shadow-lg ${typeToColor(displayMessage.type)}`}>
-    <p>{displayMessage.message}</p>
-    <button on:click={() => consumedMessage(displayMessage.id)} aria-label="Close message"
-      >X</button>
+  <div class={`messagebox absolute bottom-4 left-4`}>
+    <ElevatedBox elevation={1}>
+      <div class={`flex flex-row gap-4 p-4 ${typeToColor(displayMessage.type)}`}>
+        <p>{displayMessage.message}</p>
+        <button
+          on:click={() => displayMessage && consumedMessage(displayMessage.id)}
+          aria-label="Close message"><CloseIcon /></button>
+      </div>
+    </ElevatedBox>
   </div>
 {/if}
 
