@@ -11,7 +11,7 @@
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     },
     "dialog": {
-      "static": "Hey, good to see you!<br/>Really cool that you want to learn programming.<br/><br/> Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.<br/><br/><i>For now, just follow my steps:</i><br/><br/>1. Drag the text input block to that really wide blue block<br/>2. Enter your name in the input<br/>3. Click the run button<br/><br/><b>Let's see what happens!</b>"
+      "static": "Hey, good to see you! I'm Boozle :)  \n  Really cool that you want to learn programming.\n\n Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.\n\n_For now, just follow my steps:_\n\n1. Drag the text input block to that really wide blue block\n2. Enter your name in the input\n3. Click the run button\n\n**Let's see what happens!**"
     },
     "confetti": true
   },
@@ -28,7 +28,7 @@
       ],
       "run": {
         "entername": {
-          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
+          "function": "(args,result)=>{if (!result) return false; const name = result.trim().toLowerCase(); if (name == 'boozle') return \"That's my name!\"; return (name && name != 'Your name here') ? true : 'Set your name in the input';}",
           "description": "Enter your name"
         }
       }
@@ -45,7 +45,7 @@
         "block": {
           "type": "function",
           "data": {
-            "name": "inputName",
+            "name": "main",
             "nameEditable": false,
             "paramsEditable": false
           },
@@ -109,8 +109,8 @@
     ],
     "hideDrawer": true,
     "invisibleCode": {
-      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
-      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
+      "js": "async function processUsername() { const name = await main(); setUsername(name); return name; }",
+      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> main().then { name: dynamic -> setUsername(name); resolve(name); }}"
     },
     "mainFunction": "processUsername"
   }

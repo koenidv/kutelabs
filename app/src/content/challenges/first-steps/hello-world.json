@@ -11,7 +11,7 @@
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "TODO"
+      "static": "Okay, I think you're ready to create your first own program!\n\n Every programmer's journey starts with a simple program that prints _Hello World!_.\n\n **Show me what you've got, and build this program!**"
     },
     "confetti": true
   },
@@ -39,7 +39,7 @@
     "initialBlocks": [
       {
         "coordinates": {
-          "x": 190,
+          "x": 300,
           "y": 250
         },
         "block": {
@@ -66,10 +66,6 @@
         "count": -1
       }
     ],
-    "invisibleCode": {
-      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
-      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
-    },
     "mainFunction": "main"
   }
 }

@@ -11,7 +11,7 @@
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "TODO"
+      "static": "Okay, a lot just went on. Let's get an overview.\n\n _Stick with me, we'll get more hands-on very soon!_ \n\n - The **orange block** labeled _fun main_ contains what is going to be executed when we run the code.\n - The **first turquoise block** lets us remember things. I'll explain this in a few lessons! Here, we are remembering the text in the **purple block** – my name, Boozle. \n - The **second turquoise block** saying _Print_ doesn't pring on paper, but to the _Logs_ section on the top. The **red block** recalls what we remembered earlier. Notice how _name_ shows up on both blocks? So, this will print my name. \n - At the end, the red recall block shows up once again. This is our program's result — we'll look at this later.\n\n **For now, just run this code!**"
     },
     "confetti": true
   },
@@ -28,20 +28,81 @@
       ],
       "run": {
         "entername": {
-          "function": "(args,result)=>{return (result.trim()!=''&&result.trim()!='Your name here')?true:'Set your name in the input';}",
-          "description": "Enter your name"
+          "function": "() => true",
+          "description": "Run this code"
         }
       }
     }
   ],
   "editor": {
     "type": "mixed",
-    "initialBlocks": [],
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 190,
+          "y": 250
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main",
+            "nameEditable": false,
+            "paramsEditable": false
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "variable_init",
+              "draggable": false,
+              "data": {
+                "name": "name",
+                "type": "string",
+                "nameEditable": false,
+                "typeEditable": false
+              },
+              "connectedBlocks": [
+                {
+                  "on": "input",
+                  "type": "value",
+                  "draggable": false,
+                  "data": {
+                    "type": "string",
+                    "value": "Boozle"
+                  }
+                },
+                {
+                  "on": "after",
+                  "type": "expression",
+                  "draggable": false,
+                  "data": {
+                    "expression": "Println"
+                  },
+                  "connectedBlocks": [
+                    {
+                      "on": "input",
+                      "type": "variable",
+                      "draggable": false,
+                      "data": {
+                        "name": "name"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "on": "output",
+              "type": "variable",
+              "draggable": false,
+              "data": {
+                "name": "name"
+              }
+            }
+          ]
+        }
+      }
+    ],
     "hideDrawer": true,
-    "invisibleCode": {
-      "js": "async function processUsername() { const name = await inputName(); setUsername(name); return name; }",
-      "kt": "@JsExport  @kotlin.js.ExperimentalJsExport fun processUsername(): Promise<String> = Promise { resolve, reject -> inputName().then { name: dynamic -> setUsername(name); resolve(name); }}"
-    },
-    "mainFunction": "processUsername"
+    "mainFunction": "main"
   }
 }

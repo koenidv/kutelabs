@@ -2,7 +2,7 @@
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
     "order": 10,
-    "title": "What are those variables?",
+    "title": "Meeting Vera",
     "description": "You'll need to remember a few things, your code a few more!",
     "published": "2024-01-01T00:00:00Z",
     "color": "#6cf09f",
@@ -11,7 +11,7 @@
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "TODO"
+      "static": "Hey! I'm Vera. \n\n For now, there's no content here."
     },
     "confetti": true
   },

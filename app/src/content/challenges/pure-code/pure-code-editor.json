@@ -1,13 +1,13 @@
 {
   "$schema": "../../../schema/challenge.schema.json",
   "story": {
-    "order": 1,
+    "order": 10,
     "title": "Pure Code Editor",
     "description": "Say hello to a world of pure code",
     "published": "2024-01-01T00:00:00Z",
     "color": "#be93fe",
     "dialog": {
-      "static": "whoaa this is just text, no blocks! scary shit"
+      "static": "whoaa this is just text, no blocks! scary shit \n\n ```kt \nfun main() {\n  // dialog also supports syntax highlighting\n}\n```"
     },
     "confetti": true
   },
