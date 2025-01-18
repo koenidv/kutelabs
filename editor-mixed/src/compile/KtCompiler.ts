@@ -11,9 +11,9 @@ export class KtCompiler extends BaseCompiler {
   declareImports(callbacks: SandboxCallbacks): string {
     const imports = ["import kotlin.js.Promise"]
     const requestWait = '@JsName("requestWait")\nexternal fun requestWait(): Promise<Unit>'
-    const envFunctions = [...callbacks.callbacks.keys()].map(
-      name => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`
-    )
+    const envFunctions = Object.entries(callbacks.flattenedCallbacks())
+      .filter(([name]) => !name.startsWith("console."))
+      .map(([name]) => `@JsName("${name}")\nexternal fun ${name}(vararg args: Any)`)
     return [...imports, requestWait, ...envFunctions].join("\n")
   }
 
@@ -59,12 +59,14 @@ export class KtCompiler extends BaseCompiler {
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
     const definedMethod = DefinedExpressionData[block.data.expression].kt
     if (!definedMethod) throw new Error(`Expression ${block.data.expression} is not defined`)
-      
-    return definedMethod.replace(/{{\d}}/g, (match: string) => {
-      // matches placeholders like "{{0}}"
-      const index = Number(match[2])
-      return next(block.inputs[index])
-    }) + `;\n${next(block.after)}`
+
+    return (
+      definedMethod.replace(/{{\d}}/g, (match: string) => {
+        // matches placeholders like "{{0}}"
+        const index = Number(match[2])
+        return next(block.inputs[index])
+      }) + `;\n${next(block.after)}`
+    )
   }
 
   compileCustomExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {

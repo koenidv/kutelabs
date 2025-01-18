@@ -41,18 +41,19 @@ export class CallbackCollection {
     return this.invokeCallback(data.path, data.data)
   }
 
-  private invokeCallback(pathString: string, data: any): boolean {
-    try {
-      const callback = this.findByPath(this.splitPath(pathString))
-      if (!callback) {
-        console.error(`Sandbox callback ${pathString} not found`)
-        return false
+  public flattenedCallbacks(): Record<string, Callback> {
+    const flattened: Record<string, Callback> = {}
+    const traverse = (callbacks: NestedCallbacks, path: string[] = []) => {
+      for (const [name, callback] of Object.entries(callbacks)) {
+        if (callback instanceof Callback) {
+          flattened[[...path, name].join(".")] = callback
+        } else {
+          traverse(callback, [...path, name])
+        }
       }
-      return callback.invoke(data)
-    } catch (error) {
-      console.error(`Error invoking sandbox callback ${pathString}`, error)
-      return false
     }
+    traverse(this._callbacks)
+    return flattened
   }
 
   public resetCalls() {
@@ -82,6 +83,20 @@ export class CallbackCollection {
           : this.callbacksToProxies(callback, [...path, name])
     }
     return proxies
+  }
+
+  private invokeCallback(pathString: string, data: any): boolean {
+    try {
+      const callback = this.findByPath(this.splitPath(pathString))
+      if (!callback) {
+        console.error(`Sandbox callback ${pathString} not found`)
+        return false
+      }
+      return callback.invoke(data)
+    } catch (error) {
+      console.error(`Error invoking sandbox callback ${pathString}`, error)
+      return false
+    }
   }
 
   private clearAllCalls(callbacks: NestedCallbacks = this._callbacks) {
