@@ -24,17 +24,19 @@
     argnames(): string[]
     highlight(line: number, column: number): void
     clearHighlight(): void
+    reset(): void
   }
 
-  let { data }: { data: CodeEditorConfiguration } = $props()
+  let { data, challengeId }: { data: CodeEditorConfiguration; challengeId: string } = $props()
   let editor = $state<PrismEditor | null>(null)
 
   onMount(async () => {
+    const previousState = retrieveState()
     editor = createEditor(
       "#editor-code",
       {
         language: "kotlin",
-        value: data.initialValue ?? "",
+        value: previousState ? previousState : (data.initialValue ?? ""),
         tabSize: 4,
         insertSpaces: false,
       },
@@ -47,7 +49,10 @@
     )
     setIgnoreTab(false)
 
-    editor.addListener("update", () => clearHighlight())
+    editor.addListener("update", () => {
+      clearHighlight()
+      saveState()
+    })
   })
 
   function highlightLine(line: number): Element | null {
@@ -84,12 +89,31 @@
       .forEach((token: Element) => token.classList.remove("error-token"))
   }
 
+  let lastSave = 0
+  function saveState() {
+    if (lastSave + 2000 > Date.now()) return
+    lastSave = Date.now()
+    localStorage.setItem(`editor-state-${challengeId}`, editor?.value ?? "")
+  }
+  function retrieveState() {
+    return localStorage.getItem(`editor-state-${challengeId}`)
+  }
+
+  function reset() {
+    if (!editor) throw new Error("Editor not initialized")
+    editor.textarea.value = data.initialValue ?? ""
+    clearHighlight()
+    editor.update()
+    saveState()
+  }
+
   editorRef.set({
     code: () => (editor?.value ? editor.value + "\n" + data.invisibleCode : null),
     entrypoint: () => data.entrypoint ?? "main",
     argnames: () => data.argnames ?? [],
     highlight: highlight,
     clearHighlight: clearHighlight,
+    reset: reset,
   })
 
   loadIcons(["svg-spinners:ring-resize"])

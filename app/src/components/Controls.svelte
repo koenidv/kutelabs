@@ -5,6 +5,7 @@
   import { CodeExecutionWrapper } from "../execution/CodeExecutionWrapper"
   import CaretUp from "../icons/caret-up.svelte"
   import PlayIcon from "../icons/play.svelte"
+  import DeleteIcon from "../icons/delete.svelte"
   import FastIcon from "../icons/speed-fast.svelte"
   import MediumIcon from "../icons/speed-medium.svelte"
   import SlowIcon from "../icons/speed-slow.svelte"
@@ -151,6 +152,22 @@
           <p class="font-gamja text-2xl text-sideways">Speed →</p>
         </div>
       {/if}
+    {:else if execution instanceof CodeExecutionWrapper}
+      <div class="h-16 w-16 pt-1 pl-1 transition-[padding] duration-100 ease-out">
+        <ElevatedBox
+          elevation={1}
+          hoverable={$executionRunning == false}
+          label="Reset code editor content"
+          className="w-14 h-14"
+          onClick={() => !$executionRunning && execution.resetEditor}>
+          <div
+            class="flex items-center justify-center w-full h-full bg-beige-300 ${!$executionRunning
+              ? 'hover:bg-rose-300'
+              : ''} transition-colors">
+            <DeleteIcon />
+          </div>
+        </ElevatedBox>
+      </div>
     {/if}
   </div>
 

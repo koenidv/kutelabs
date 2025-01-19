@@ -114,7 +114,7 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
           challenge.editor.type == "mixed" ? (
             <EditorMixed data={challenge.editor} client:only="svelte" />
           ) : (
-            <EditorCode data={challenge.editor} client:only="svelte" />
+            <EditorCode data={challenge.editor} challengeId={id} client:only="svelte" />
           )
         }
         <Snackbar client:idle />

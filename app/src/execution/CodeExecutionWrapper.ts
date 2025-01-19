@@ -45,11 +45,6 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     const preprocessed = preprocessKotlin(code)
     this.preprocessSourceMap = preprocessed.sourceMap
 
-    console.log("CODE")
-    console.log(code)
-    console.log("PREPROCESSED")
-    console.log(preprocessed.code)
-
     transpileKtJs(this.abortController, preprocessed.code, false, true)
       .then(transpiled => {
         if (
@@ -103,6 +98,10 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         editorLoadingState.set(false)
         this.running.set(false)
       })
+  }
+
+  public resetEditor() {
+    this.editorRef.get().reset()
   }
 
   protected onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, message: string): void {
