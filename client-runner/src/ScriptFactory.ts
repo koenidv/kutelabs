@@ -105,7 +105,7 @@ export class ScriptFactory {
 ${argNames.length > 0 ? argNames.join(",") + "," : ""}
 String.raw\`
 const { ${Object.keys(this.globals).join(", ")} } = this;
-${unsafeCode}
+${unsafeCode.replaceAll(/`/g, "\\`")}
 return ${entrypoint}(${argNames.join(",")});
 \`/*__endUser*/);`
     )

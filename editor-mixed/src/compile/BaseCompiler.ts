@@ -14,6 +14,7 @@ export type CompilationResult = {
 
 export type InternalCompilationProps = {
   resolveFunction?: string
+  loadedBlocks?: Record<string, string> // blockId -> variable name
 }
 
 export abstract class BaseCompiler {

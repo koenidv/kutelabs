@@ -1,13 +1,49 @@
 import type { SandboxCallbacks } from "@kutelabs/client-runner/src"
-import type { Block } from "../blocks/Block"
+import type { AnyBlock, Block } from "../blocks/Block"
 import { LogicJunctionMode } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../blocks/configuration/DefinedExpression"
 import { ConnectorRole } from "../connections/ConnectorRole"
 import { BaseCompiler, type InternalCompilationProps } from "./BaseCompiler"
+import { IdGenerator } from "@kutelabs/shared/src"
 
 export class KtCompiler extends BaseCompiler {
+  protected override compileByBlockType(
+    block: Block<BlockType>,
+    propsMaybe?: InternalCompilationProps
+  ): string {
+    const loadedBlockIds = Object.keys(propsMaybe?.loadedBlocks ?? {})
+    const firstFunctionInvoke = block.inputs.find(
+      it => it?.type == BlockType.FunctionInvoke && !loadedBlockIds.includes(it.id)
+    )
+    if (firstFunctionInvoke) {
+      const props = propsMaybe ?? {}
+      const compileNext = (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
+        this.compile(block, newProps ?? props)
+      return this.handleNextFunctionInvokeInput(
+        firstFunctionInvoke as Block<BlockType.FunctionInvoke>,
+        block,
+        compileNext.bind(this),
+        props
+      )
+    }
+
+    return super.compileByBlockType(block, propsMaybe)
+  }
+
+  private handleNextFunctionInvokeInput(
+    invokeBlock: Block<BlockType.FunctionInvoke>,
+    originalBlock: AnyBlock,
+    next: typeof this.compile,
+    props: InternalCompilationProps
+  ): string {
+    const valueName = "_" + IdGenerator.next.replace(/-/g, "")
+    if (!props.loadedBlocks) props.loadedBlocks = {}
+    props.loadedBlocks[invokeBlock.id] = valueName
+    return `${invokeBlock.data.name}(${[...invokeBlock.inputs.map(it => next(it))].join(", ")}).then { ${valueName} ->\n${next(originalBlock)}\n};`
+  }
+
   declareImports(callbacks: SandboxCallbacks): string {
     const imports = ["import kotlin.js.Promise"]
     const requestWait = '@JsName("requestWait")\nexternal fun requestWait(): Promise<Unit>'
@@ -41,19 +77,69 @@ export class KtCompiler extends BaseCompiler {
         "resolve(Unit);",
     }
     const inputs = block.data.params.map(it => it.name + ": dynamic").join(", ")
-    const inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
+    let inner = block.inners.length > 0 ? next(block.inners[0], props) : ""
+    if (!inner) {
+      inner = props.resolveFunction ?? ""
+      delete props.resolveFunction
+    }
+
+    let returnType = "Unit"
+    if (block.output && block.output.data) {
+      if (
+        [BlockType.LogicComparison, BlockType.LogicJunction, BlockType.LogicNot].includes(
+          block.output.type
+        )
+      )
+        returnType = "Boolean"
+      else if ("type" in block.output.data)
+        returnType = this.blockDataTypeToKtType(block.output.data.type)
+      else if ("variableHelper" in block.output.data)
+        returnType = this.blockDataTypeToKtType(
+          block.output.data.variableHelper!.deref()!.getVariableType(block.output.data.name)!
+        )
+    }
 
     return `@JsExport
-    fun ${block.data.name}(${inputs}): Promise<dynamic> = Promise { resolve, _reject ->
+    fun ${block.data.name}(${inputs}): Promise<${returnType}> = Promise { resolve, _reject ->
     ${this.markBlock(block.id)}\
     ${this.wrapDelay(inner)}
+    //fnend_${block.data.name}
     }`
     // functions should not have after blocks; thus not compiling them here
   }
 
-  compileFunctionInvoke(block: Block<BlockType.FunctionInvoke>, next: typeof this.compile): string {
-    // fixme will return a Promise, but the script is not run in a coroutine, so cannot await
-    return `${block.data.name}(${[...block.inputs.map(it => next(it))].join(", ")})`
+  private blockDataTypeToKtType(type: DataType): string {
+    switch (type) {
+      case DataType.Int:
+        return "Int"
+      case DataType.Float:
+        return "Double"
+      case DataType.String:
+        return "String"
+      case DataType.Boolean:
+        return "Boolean"
+      case DataType.IntArray:
+        return "List<Int>"
+      case DataType.FloatArray:
+        return "List<Double>"
+      case DataType.StringArray:
+        return "List<String>"
+      case DataType.BooleanArray:
+        return "List<Boolean>"
+      default:
+        return "dynamic"
+    }
+  }
+
+  compileFunctionInvoke(
+    block: Block<BlockType.FunctionInvoke>,
+    _next: typeof this.compile,
+    props: InternalCompilationProps
+  ): string {
+    if (!props.loadedBlocks || !Object.keys(props.loadedBlocks).includes(block.id))
+      throw new Error("FunctionInvoke blocks must be compiled before the block using the result")
+    // fixme this will break with chained inputs; as inputs also cannot use .then
+    return `${props.loadedBlocks[block.id]}`
   }
 
   compileDefinedExpression(block: Block<BlockType.Expression>, next: typeof this.compile): string {
@@ -181,15 +267,16 @@ export class KtCompiler extends BaseCompiler {
     currentBlock: Block<BlockType>,
     compile: (block: Block<BlockType>, newProps?: InternalCompilationProps) => string
   ): string {
-    if (!props) return compile(currentBlock)
+    const compiled = compile(currentBlock, props)
+    if (!props) return compiled
 
     // consume return block on last block inside a function
     // this is required because the return must be nested within the .then calls of the requestWait functions
     if (props.resolveFunction && currentBlock.after == null) {
       const resolve = props.resolveFunction
       delete props.resolveFunction
-      return compile(currentBlock, props) + resolve
+      return compiled + resolve
     }
-    return compile(currentBlock, props)
+    return compiled
   }
 }
