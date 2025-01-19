@@ -51,7 +51,7 @@ export class DefaultConnectors {
       case BlockType.Value:
       case BlockType.Variable:
       case BlockType.FunctionInvoke:
-        return [DefaultConnectors.extender()]
+        return [DefaultConnectors.extender()] // fixme function invokes cannot be used for type-checked inputs (logic) yet
       case BlockType.LogicNot:
         return [DefaultConnectors.extender(), DefaultConnectors.conditionalExtension()]
       case BlockType.LogicJunction:

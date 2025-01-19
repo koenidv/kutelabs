@@ -115,6 +115,9 @@
           "expression": "Println"
         },
         "count": -1
+      },
+      {
+        "type": "logic_comparison"
       }
     ]
   }

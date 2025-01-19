@@ -7,15 +7,20 @@
  */
 export function standardizeBlockIds(
   code: string,
-   idMatcher: RegExp = /markBlock\("([0-9a-f-]+)"\)/g
-  ): {code: string, ids: Map<string, string>} {
+  idMatcher: RegExp = /(?:markBlock\("|_)([0-9a-f-]+)(?:"\))?/g
+): { code: string; ids: Map<string, string> } {
   const ids = new Map<string, string>()
   for (const match of code.matchAll(idMatcher)) {
-    const newId = `block-${ids.size + 1}`
-    ids.set(match[1], newId)
-    code = code.replace(match[1], newId)
+    console.log("replace", match[1])
+    if (ids.has(match[1])) {
+      code = code.replace(match[1], ids.get(match[1])!)
+    } else {
+      const newId = `__block${ids.size + 1}`
+      ids.set(match[1], newId)
+      code = code.replace(match[1], newId)
+    }
   }
-  return {code, ids}
+  return { code, ids }
 }
 
 /**
@@ -25,8 +30,9 @@ export function standardizeBlockIds(
  * @returns The code with the original block ids restored.
  */
 export function restoreBlockIds(code: string, ids: Map<string, string>): string {
+  console.log(ids)
   for (const [original, standardized] of ids) {
-    code = code.replace(standardized, original)
+    code = code.replaceAll(standardized, original)
   }
   return code
 }
