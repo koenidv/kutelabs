@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 30,
+    "title": "Something to work with",
+    "description": "Most challenges will give you some values to work with, this is how it works.",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#FFADC4",
+    "imageStart": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "todo: challenge inputs / entrypoint params"
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "js",
+    "appFeatures": []
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [],
+    "initialDrawerBlocks": [],
+    "mainFunction": "main"
+  }
+}

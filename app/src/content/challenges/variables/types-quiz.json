@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 50,
+    "title": "Types Quiz",
+    "description": "This would be the spot to add the multiple choice editor",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#B8A9F8",
+    "imageStart": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "todo: challenge inputs / entrypoint params"
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "js",
+    "appFeatures": []
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [],
+    "initialDrawerBlocks": [],
+    "mainFunction": "main"
+  }
+}

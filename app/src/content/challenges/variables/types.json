@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 40,
+    "title": "Demystifying types",
+    "description": "Variables remember all kinds of things, but only if the type fits!",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#B6FFC8",
+    "imageEnd": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "todo: challenge inputs / entrypoint params"
+    },
+    "confetti": true
+  },
+  "environment": {
+    "language": "js",
+    "appFeatures": []
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "initialBlocks": [],
+    "initialDrawerBlocks": [],
+    "mainFunction": "main"
+  }
+}
