@@ -41,8 +41,8 @@
     "typescript": "^5.7.2"
   },
   "devDependencies": {
+    "@iconify/svelte": "^4.1.0",
     "@iconify-json/humbleicons": "^1.2.6",
-    "@iconify-json/svg-spinners": "^1.2.2",
-    "@iconify/svelte": "^4.1.0"
+    "@iconify-json/svg-spinners": "^1.2.2"
   }
 }

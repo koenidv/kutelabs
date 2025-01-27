@@ -1,15 +1,17 @@
 <script lang="ts">
-  import Icon, { loadIcons } from "@iconify/svelte"
   import type { Challenge } from "../schema/challenge"
-  import { testState } from "../state/state"
+  import CheckIcon from "../icons/check-circle.svelte"
+  import CrossIcon from "../icons/cross-circle.svelte"
+  import SpinnerIcon from "../icons/spinner-animated.svelte"
+
   import { TestResult } from "@kutelabs/client-runner/src"
+  import { testState } from "../state/state"
   const { tests: testData }: { tests: Challenge["tests"] } = $props()
 
-  const tests = testData?.flatMap(test =>
-    Object.entries(test.run).map(([id, { description }]) => ({ id, description }))
-  ) ?? []
-
-  loadIcons(["humbleicons:check-circle", "humbleicons:times-circle", "svg-spinners:ring-resize"])
+  const tests =
+    testData?.flatMap(test =>
+      Object.entries(test.run).map(([id, { description }]) => ({ id, description }))
+    ) ?? []
 
   const stateToColorClass = (state: TestResult | null) => {
     switch (state) {
@@ -34,11 +36,11 @@
       id={`test-${test.id}`}>
       <div class="size-5">
         {#if $testState[test.id]?.state === "passed"}
-          <Icon class="test-passed size-5" icon="humbleicons:check-circle" />
+          <CheckIcon class="test-passed size-5" />
         {:else if $testState[test.id]?.state === "failed"}
-          <Icon class="test-failed size-5" icon="humbleicons:times-circle" />
+          <CrossIcon class="test-failed size-5" />
         {:else if $testState[test.id]?.state === "pending"}
-          <Icon class="test-pending size-5" icon="svg-spinners:ring-resize" />
+          <SpinnerIcon class="test-pending size-5" />
         {:else}
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,8 +60,7 @@
 
       <div class="flex flex-col justify-center">
         <p class="font-medium">{test.description}</p>
-        {#if $testState[test.id]?.message} 
-        <!-- fixme test fail message is not working -->
+        {#if $testState[test.id]?.message}
           <p id="test-message" class="font-normal">{$testState[test.id]?.message}</p>
         {/if}
       </div>
@@ -68,15 +69,25 @@
 </div>
 
 <style lang="scss">
-.kt-test.test-failed {
-  animation: horizontal-shaking 150ms 1;
-}
+  .kt-test.test-failed {
+    animation: horizontal-shaking 150ms 1;
+  }
 
-@keyframes horizontal-shaking {
- 0% { transform: translateX(0) }
- 25% { transform: translateX(5px) }
- 50% { transform: translateX(-5px) }
- 75% { transform: translateX(5px) }
- 100% { transform: translateX(0) }
-}
+  @keyframes horizontal-shaking {
+    0% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(5px);
+    }
+    50% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
 </style>

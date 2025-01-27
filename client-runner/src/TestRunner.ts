@@ -5,7 +5,12 @@ import { ScriptFactory } from "./ScriptFactory"
 type Args = any[]
 export type Test = {
   description: string
-  function: (args: Args, result: any, callbacks: CallbackCollection) => boolean | string
+  function: (props: {
+    args: Args
+    result: any
+    callbacks: CallbackCollection
+    executedCode: string
+  }) => boolean | string
 }
 export type TestSet = { args: Args[]; run: { [id: string]: Test } }
 export type TestSuite = TestSet[]
@@ -39,7 +44,7 @@ export class TestRunner {
   /** Pivoted tests by test id instead of by args */
   private pivotTests: PivotTestSuite = {}
 
-  private readonly  onFinalTestResult: (id: string, result: TestResult, message?: string) => void
+  private readonly onFinalTestResult: (id: string, result: TestResult, message?: string) => void
   private readonly onGeneralError: (
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string
@@ -53,6 +58,7 @@ export class TestRunner {
   private executionDelay = 0
   private firstCallFinished = false
 
+  private currentUserCode: string | null = null
   private currentScript: string | null = null
   private currentCallbacks: CallbackCollection | null = null
 
@@ -94,6 +100,7 @@ export class TestRunner {
     this.resetPivotTests()
     this.executionDelay = config.executionDelay ?? -1
     this.firstCallFinished = false
+    this.currentUserCode = userCode
     this.currentScript = this.buildScript(userCode, config)
     this.currentCallbacks = config.callbacks
 
@@ -202,7 +209,12 @@ export class TestRunner {
     callbacks: CallbackCollection
   ): void {
     try {
-      const testResult = test.function(args, result, callbacks)
+      const testResult = test.function({
+        args,
+        result,
+        callbacks,
+        executedCode: this.currentUserCode!,
+      })
       this.onTestResult(
         test.id,
         args,
@@ -238,7 +250,8 @@ export class TestRunner {
       argSet =>
         argSet.length != args.length || !argSet.every((value, index) => value === args[index])
     )
-    if (this.pivotTests[id].args.length === 0) { // fixme should fail remaining args of this test if test failed
+    if (this.pivotTests[id].args.length === 0) {
+      // fixme should fail remaining args of this test if test failed
       delete this.pivotTests[id]
       this.onFinalTestResult(id, passed, message)
       if (Object.keys(this.pivotTests).length === 0) this.onFinished?.()
