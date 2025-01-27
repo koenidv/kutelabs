@@ -3,23 +3,21 @@
   "story": {
     "order": 10,
     "title": "Meeting Vera",
-    "description": "You'll need to remember a few things, your code a few more!",
+    "description": "Vera is really smart, she can remember a lot!",
     "published": "2024-01-01T00:00:00Z",
-    "color": "#6cf09f",
+    "color": "#F9DBBD",
     "imageStart": {
       "src": "/images/promise.webp",
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "Hey! I'm Vera. \n\n For now, there's no content here."
+      "static": "Heyhey! I'm Vera. \n\n One of the fundamental things your code should be able to do is remembering stuff. Well, good thing you're meeting me — I actually have a Master's in remembering. \n\n Here's what we'll do: We save whatever we need in something called a _variable_. A variable can be created using the **turquoise block** with two white areas. \n\n 1. **Add it to main**. The first field is the variable's name, and I'll talk about this _int_ later. \n 2. We also have to put something in the variable. **Let's connect a number for now**. \n 3. Once you added the create block, a new red block will appear that lets you recall what you saved. \n\n **Add a print block and print the variable!**"
     },
     "confetti": true
   },
   "environment": {
     "language": "js",
-    "appFeatures": [
-      "setUsername"
-    ]
+    "appFeatures": []
   },
   "tests": [
     {
@@ -27,13 +25,59 @@
         []
       ],
       "run": {
+        "defineVar": {
+          "function": "({executedCode})=>/let \\w+ = \\d+;/.test(executedCode);",
+          "description": "Create a variable"
+        },
+        "printVar": {
+          "function": "({args,result,callbacks})=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return false; return cc.wasCalledWith(([arg0]) => arg0 ? /\\d+/.test(arg0.toString()) : false)};",
+          "description": "Print it"
+        }
       }
     }
   ],
   "editor": {
     "type": "mixed",
-    "initialBlocks": [],
-    "initialDrawerBlocks": [],
-    "mainFunction": "processUsername"
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 300,
+          "y": 250
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          }
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "variable_init",
+        "data": {
+          "name": "variable",
+          "nameEditable": true,
+          "typeEditable": false,
+          "type": "int"
+        },
+        "count": 1
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "int",
+          "value": 42
+        },
+        "count": 1
+      },
+      {
+        "type": "expression",
+        "data": {
+          "expression": "Println"
+        }
+      }
+    ],
+    "mainFunction": "main"
   }
 }

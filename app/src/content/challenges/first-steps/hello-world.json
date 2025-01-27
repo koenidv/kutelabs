@@ -17,9 +17,7 @@
   },
   "environment": {
     "language": "js",
-    "appFeatures": [
-      "setUsername"
-    ]
+    "appFeatures": []
   },
   "tests": [
     {
@@ -28,7 +26,7 @@
       ],
       "run": {
         "printhelloworld": {
-          "function": "(args,result,callbacks)=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return 'Print something to the log'; return cc.wasCalledWith(([arg0]) => arg0 ? /hello\\s*world/.test(arg0.toString().toLowerCase()) : false) ? true : 'You printed something else'};",
+          "function": "({args,result,callbacks})=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return 'Print something to the log'; return cc.wasCalledWith(([arg0]) => arg0 ? /hello\\s*world/.test(arg0.toString().toLowerCase()) : false) ? true : 'You printed something else'};",
           "description": "Print \"Hello World!\""
         }
       }

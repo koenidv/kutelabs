@@ -17,9 +17,7 @@
   },
   "environment": {
     "language": "js",
-    "appFeatures": [
-      "setUsername"
-    ]
+    "appFeatures": []
   },
   "tests": [
     {

@@ -28,7 +28,7 @@
       ],
       "run": {
         "entername": {
-          "function": "(args,result)=>{if (!result) return false; const name = result.trim().toLowerCase(); if (name == 'boozle') return \"That's my name!\"; return (name && name != 'Your name here') ? true : 'Set your name in the input';}",
+          "function": "({args,result})=>{if (!result) return false; const name = result.trim().toLowerCase(); if (name == 'boozle') return \"That's my name!\"; return (name && name != 'Your name here') ? true : 'Set your name in the input';}",
           "description": "Enter your name"
         }
       }
