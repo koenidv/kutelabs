@@ -120,6 +120,12 @@ export abstract class BaseCompiler {
           compileNext,
           props
         )
+      case BlockType.MathOperation:
+        return this.compileMathOperation(
+          block as Block<BlockType.MathOperation>,
+          compileNext,
+          props
+        )
       default:
         throw new Error(`Block type ${block.type} is not implemented in base compiler`)
     }
@@ -223,6 +229,12 @@ export abstract class BaseCompiler {
   /** Compiles a **logic comparison** block @param block Logic Comparison block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
   abstract compileLogicComparison(
     block: Block<BlockType.LogicComparison>,
+    next: typeof this.compile,
+    props?: InternalCompilationProps
+  ): string
+  /** Compiles a **math operation** block @param block Math Operation block to compile @param next function to compile connected blocks with optionally changed props @param props information passed down the compile tree */
+  abstract compileMathOperation(
+    block: Block<BlockType.MathOperation>,
     next: typeof this.compile,
     props?: InternalCompilationProps
   ): string

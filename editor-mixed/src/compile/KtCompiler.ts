@@ -247,6 +247,12 @@ export class KtCompiler extends BaseCompiler {
     return `(${left} ${operator} ${right})`
   }
 
+  compileMathOperation(block: Block<BlockType.MathOperation>, next: typeof this.compile): string {
+    const operator = block.data.mode
+    const inputs = block.inputs.map(it => next(it)).join(` ${operator} `)
+    return `(${inputs})`
+  }
+
   chainInputs(block: Block<BlockType>, next: typeof this.compile): string {
     return block.inputs.map(it => next(it)).join(", ")
   }

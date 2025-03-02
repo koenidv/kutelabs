@@ -2,6 +2,7 @@ import { Block, type AnyBlock } from "../blocks/Block"
 import {
   LogicComparisonOperator,
   LogicJunctionMode,
+  MathOperation,
   type BlockDataByType,
   type BlockDataExpression,
 } from "../blocks/configuration/BlockData"
@@ -82,17 +83,18 @@ function parseBlockRecursive(
     for (const connectedBlock of parseConnected) {
       connectedBlocks.push({
         connector: parseDefaultConnector(data.type, connectedBlock.on),
-        connected: "type" in connectedBlock
-          ? parseBlockRecursive(
-              connectedBlock,
-              connectedBlock.connectedBlocks as
-                | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
-                | undefined
-                | null,
-              blockRegistry,
-              connectorRegistry
-            )
-          : undefined,
+        connected:
+          "type" in connectedBlock
+            ? parseBlockRecursive(
+                connectedBlock,
+                connectedBlock.connectedBlocks as
+                  | ({ on: MixedContentEditorConnector } & (MixedContentEditorBlock | undefined))[]
+                  | undefined
+                  | null,
+                blockRegistry,
+                connectorRegistry
+              )
+            : undefined,
       })
     }
   }
@@ -162,6 +164,11 @@ function normalizeBlockData(
         ;(data as BlockDataByType<BlockType.LogicComparison>).mode =
           (data as any)?.mode ?? LogicComparisonOperator.Equal
       }
+      break
+    case BlockType.MathOperation:
+      // default mode for operation
+      ;(data as BlockDataByType<BlockType.MathOperation>).mode =
+        (data as any)?.mode ?? MathOperation.Add
       break
   }
   return data

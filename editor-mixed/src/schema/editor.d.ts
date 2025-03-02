@@ -90,6 +90,7 @@ export type AnyBlock = (
   | LogicNotBlock
   | LogicJunctionBlock
   | LogicComparisonBlock
+  | MathOperationBlock
 ) & {
   /**
    * Set to false to disable dragging this block
@@ -144,6 +145,7 @@ export type AnyBlockSingle = (
   | LogicNotBlock
   | LogicJunctionBlock
   | LogicComparisonBlock
+  | MathOperationBlock
 ) & {
   /**
    * Set to false to disable dragging this block
@@ -471,6 +473,34 @@ export interface LogicComparisonBlock {
   }
   connectedBlocks?: {
     on?: "comparisonInput"
+    [k: string]: unknown
+  }[]
+  [k: string]: unknown
+}
+/**
+ * Math Operation Block
+ */
+export interface MathOperationBlock {
+  /**
+   * Defines this block as a Math Operation block
+   */
+  type: "math_operation"
+  /**
+   * Math Operation Block Data
+   */
+  data?: {
+    /**
+     * Operator
+     */
+    operator: "+" | "-" | "*" | "/" | "%" | ">="
+    /**
+     * If the operator is editable, defaults to true
+     */
+    editable?: boolean
+    [k: string]: unknown
+  }
+  connectedBlocks?: {
+    on?: "input"
     [k: string]: unknown
   }[]
   [k: string]: unknown

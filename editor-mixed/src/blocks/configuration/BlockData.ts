@@ -20,7 +20,9 @@ export type BlockDataByType<T extends BlockType, D = DataType> = T extends Block
               ? BlockDataLogicJunction
               : T extends BlockType.LogicComparison
                 ? BlockDataLogicComparison
-                : BlockDataEmpty
+                : T extends BlockType.MathOperation
+                  ? BlockDataMathOperation
+                  : BlockDataEmpty
 
 export type BlockDataEmpty = null
 
@@ -112,5 +114,25 @@ export const ComparisonOperatorTypeCompatibility: Record<LogicComparisonOperator
 export type BlockDataLogicComparison = {
   mode: LogicComparisonOperator
   type: DataType.Boolean
+  editable?: boolean
+}
+
+export enum MathOperation {
+  Add = "+",
+  Subtract = "-",
+  Multiply = "*",
+  Divide = "/",
+  Modulo = "%",
+}
+export const MathOperationTypeCompatibility: Record<MathOperation, DataType[]> = {
+  [MathOperation.Add]: [DataType.Int, DataType.Float],
+  [MathOperation.Subtract]: [DataType.Int, DataType.Float],
+  [MathOperation.Multiply]: [DataType.Int, DataType.Float],
+  [MathOperation.Divide]: [DataType.Int, DataType.Float],
+  [MathOperation.Modulo]: [DataType.Int],
+}
+export type BlockDataMathOperation = {
+  mode: MathOperation
+  type: DataType
   editable?: boolean
 }

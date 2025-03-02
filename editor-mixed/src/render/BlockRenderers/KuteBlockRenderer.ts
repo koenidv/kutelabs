@@ -9,7 +9,7 @@ import type { AnyBlock } from "../../blocks/Block"
 import {
   LogicComparisonOperator,
   LogicJunctionMode,
-  type BlockDataFunction,
+  MathOperation,
 } from "../../blocks/configuration/BlockData"
 import { DataType, isArrayType, simpleTypeFromArrayType } from "../../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
@@ -20,14 +20,14 @@ import { RectBuilder } from "../../svg/RectBuilder"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
 import { HeightProp, type SizeProps } from "../SizeProps"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
+import type { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { BlockMarking, type InternalBlockRenderProps, type SvgResult } from "./BlockRendererTypes"
-import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
-import { map } from "lit/directives/map.js"
 import { BlockInputIcon } from "./InputIcon"
+import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
 
 export class KuteBlockRenderer extends BaseBlockRenderer {
-  protected readonly inputRenderer: KuteBlockInputRenderer
+  protected readonly inputRenderer: BaseBlockInputRenderer
 
   constructor(
     blockRegistry: BlockRegistry,
@@ -202,6 +202,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       case BlockType.LogicNot:
       case BlockType.LogicJunction:
       case BlockType.LogicComparison:
+      case BlockType.MathOperation:
         return "#3639f5"
       default:
         return "#ffffff"
@@ -440,7 +441,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         new Coordinates(6, 6),
         new Coordinates(size.fullWidth - 12, size.fullHeight - 12),
         !block.isInDrawer && (block.data.editable ?? true),
-        block.isInDrawer ? "code()" : block.data.value,
+        !block.isInDrawer || !block.data.editable ? block.data.value : "code()",
         (value: string) => block.updateData(cur => ({ ...cur, value })),
         true,
         props
@@ -461,7 +462,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         new Coordinates(5, 5),
         new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
         !block.isInDrawer && (block.data.editable ?? true),
-        block.isInDrawer ? null : block.data.value,
+        !block.isInDrawer || !block.data.editable ? block.data.value : null,
         (value: number) => block.updateData(cur => ({ ...cur, value })),
         block.data.type == DataType.Float,
         (block.data.placeholder ?? block.data.type == DataType.Int) ? "number" : "decimal",
@@ -484,7 +485,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
       new Coordinates(5, 5),
       new Coordinates(size.fullWidth - 10, size.fullHeight - 10),
       !block.isInDrawer && (block.data.editable ?? true),
-      block.isInDrawer ? null : block.data.value,
+      !block.isInDrawer || !block.data.editable ? block.data.value : null,
       (value: string) => block.updateData(cur => ({ ...cur, value })),
       block.data.placeholder ?? "text",
       props
@@ -565,6 +566,26 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         Object.entries(LogicComparisonOperator).map(([display, id]) => ({ id, display })),
         block.data.mode,
         (id: string) => block.updateData(cur => ({ ...cur, mode: id as LogicComparisonOperator })),
+        props
+      )}
+    `
+  }
+
+  protected override renderContentMathOperation(
+    registered: RegisteredBlock<BlockType.MathOperation, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    const { size, block } = registered
+    return svg`
+      ${this.inputRenderer.inputSelector(
+        registered,
+        new Coordinates(6, 6),
+        new Coordinates(size.fullWidth - 14, size.fullHeight - 12),
+        new Coordinates(200, 200),
+        block.data.editable ?? true,
+        Object.entries(MathOperation).map(([display, id]) => ({ id, display })),
+        block.data.mode,
+        (id: string) => block.updateData(cur => ({ ...cur, mode: id as MathOperation })),
         props
       )}
     `

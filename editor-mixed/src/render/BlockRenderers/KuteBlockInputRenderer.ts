@@ -52,7 +52,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     `
   }
 
-  private renderInputButton(
+  protected renderInputButton(
     value: string | { label: string },
     editable: boolean = true,
     onClick?: (e: Event) => void,

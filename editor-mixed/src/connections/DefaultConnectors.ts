@@ -66,6 +66,8 @@ export class DefaultConnectors {
           DefaultConnectors.comparisonInput(),
           DefaultConnectors.comparisonInput(),
         ]
+      case BlockType.MathOperation:
+        return [DefaultConnectors.extender(), DefaultConnectors.inputExtension(), DefaultConnectors.inputExtension()]
       default:
         return []
     }

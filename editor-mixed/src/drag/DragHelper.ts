@@ -67,7 +67,7 @@ export class DragHelper {
     if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent && evt.touches.length != 1)
       return
     if (!this.workspaceRef.value) throw new Error("Workspace not initialized")
-    
+
     const draggedParent = this.findParent(
       evt.target as HTMLElement,
       it => it.classList.contains("dragable"),
@@ -88,7 +88,8 @@ export class DragHelper {
 
     this.afterDrag(this.dragged, this.dragX, this.dragY, true)
     this.workspaceRef.value.style.cursor = "grabbing"
-    if (this.workspaceRef.value.clientWidth < 400 && "drawerConnector" in this.previousUpstream!) this.collapseDrawer()
+    if (this.workspaceRef.value.clientWidth < 400 && "drawerConnector" in this.previousUpstream!)
+      this.collapseDrawer()
   }
 
   /**
@@ -241,16 +242,17 @@ export class DragHelper {
 
     let droppedOnDrawer = false
 
-    // if (typeof TouchEvent != "undefined" && evt instanceof TouchEvent) {
     /* Because of the touch event rerender fix we applied at touchstart, the event's target will be the invisible cloned element.
      * Thus we cannot check if the target is within the drawer, but we have to compare touch position and drawer bounds. */
     const dropCoords = normalizePrimaryPointerPosition(evt)!
     droppedOnDrawer = this.testTouchInDrawer(dropCoords.x, dropCoords.y)
-    // } else {
-    //   droppedOnDrawer = this.findParent(evt.target as HTMLElement, it => it.id == "drawer") != null
-    // }
 
     if (droppedOnDrawer) {
+      if (this.hasNonDraggableChildRecursive(this.dragged.block)) {
+        this.cancelDrag()
+        this.requestRerender(true)
+        return
+      }
       this.blockRegistry.attachToDrawer(this.dragged.block)
     } else {
       const snap = this.connectorRegistry.selectConnectorForBlock(
@@ -356,6 +358,18 @@ export class DragHelper {
       console.error("Previous block could not be reattached")
     }
     this.reset()
+  }
+
+  /**
+   * Check if any block downstream of the given block is not draggable
+   * @param block block to check
+   * @returns true if any block downstream is not draggable
+   */
+  private hasNonDraggableChildRecursive(block: AnyBlock): boolean {
+    if (block.isInDrawer) return false
+    if (block.draggable === false) return true
+    if (block.connectedBlocks.downstream.length === 0) return false
+    return block.connectedBlocks.downstream.some(it => this.hasNonDraggableChildRecursive(it.block))
   }
 
   //#region Keyboard Interaction
@@ -480,6 +494,10 @@ export class DragHelper {
   private connectToDrawer(block: AnyBlock, upstream: AnyBlock | null, cancel: () => void) {
     if (!this.drawerEnabled) {
       srAnnounce(this.workspaceRef, "Drawer is not enabled")
+      return cancel()
+    }
+    if (this.hasNonDraggableChildRecursive(block)) {
+      srAnnounce(this.workspaceRef, "Block has non-draggable children")
       return cancel()
     }
     this.blockRegistry.attachToDrawer(block)

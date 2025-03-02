@@ -10,5 +10,6 @@ export function blocksAreSimiliar(a: AnyBlock, b: AnyBlock): boolean {
   if (aData["expression"] != bData["expression"]) return false
   if (aData["customExpression"] != bData["customExpression"]) return false
   if (aData["editable"] != bData["editable"]) return false
+  if (aData["editable"] === false && aData["value"] != bData["value"]) return false
   return true
 }

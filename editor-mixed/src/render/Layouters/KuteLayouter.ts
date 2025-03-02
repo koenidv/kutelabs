@@ -81,8 +81,9 @@ export class KuteLayouter extends BaseLayouter {
         } else {
           size.addHeight(HeightProp.Body, DEFAULT_INNER_HEIGHT)
         }
-        if (index < insets.length - 1)
+        if (index < insets.length - 1) {
           size.addHeight(HeightProp.Intermediate, DEFAULT_INTERMEDIATE_HEIGHT)
+        }
       })
     } else if (
       block.type == BlockType.Value &&
@@ -94,10 +95,18 @@ export class KuteLayouter extends BaseLayouter {
     } else if (block.type == BlockType.VarSet) {
       const connectedInner = block.connectedBlocks.byConnector(block.connectors.inners[0])
       const innerSize = connectedInner ? this.blockRegistry.getSize(connectedInner) : null
+
+      const inputHeight = block.connectedBlocks.byConnector(block.connectors.inputExtensions[0] ?? null)?.let(
+        connected => this.blockRegistry.getSize(connected).fullHeight
+      ) ?? DEFAULT_CONNECTOR_HEIGHT
+
       size.addWidth(WidthProp.Left, 24)
       size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? MIN_WIDTH * 0.6) + 2 * PADDING_X)
       size.addWidth(WidthProp.Right, 24)
-      size.addHeight(HeightProp.CutRow, (innerSize?.fullHeight ?? MIN_HEIGHT) + 2 * PADDING_Y)
+      size.addHeight(
+        HeightProp.CutRow,
+        Math.max((innerSize?.fullHeight ?? MIN_HEIGHT) + 2 * PADDING_Y, inputHeight - 12)
+      )
       size.addHeight(HeightProp.Tail, 6)
     }
 

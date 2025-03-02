@@ -260,6 +260,11 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
             registered as RegisteredBlock<BlockType.LogicComparison, any>,
             props
           )
+        case BlockType.MathOperation:
+          return this.renderContentMathOperation(
+            registered as RegisteredBlock<BlockType.MathOperation, any>,
+            props
+          )
         default:
           console.error("No content renderer for block type", registered.block.type)
           return this.renderDefaultContent(registered, props)
@@ -421,6 +426,14 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
   /** Override this to customize how the content of **logic comparison** blocks is renderer */
   protected renderContentLogicComparison(
     registered: RegisteredBlock<BlockType.LogicComparison, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
+  }
+
+  /** Override this to customize how the content of **math operation** blocks is rendered */
+  protected renderContentMathOperation(
+    registered: RegisteredBlock<BlockType.MathOperation, any>,
     props: InternalBlockRenderProps
   ): SvgResult {
     return this.renderDefaultContent(registered, props)

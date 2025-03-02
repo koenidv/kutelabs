@@ -60,6 +60,9 @@
             },
             {
               "$ref": "#/$defs/LogicComparisonBlock"
+            },
+            {
+              "$ref": "#/$defs/MathOperationBlock"
             }
           ]
         },
@@ -847,6 +850,58 @@
               "on": {
                 "enum": [
                   "comparisonInput"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "MathOperationBlock": {
+      "type": "object",
+      "description": "Math Operation Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a Math Operation block",
+          "type": "string",
+          "const": "math_operation"
+        },
+        "data": {
+          "description": "Math Operation Block Data",
+          "type": "object",
+          "properties": {
+            "operator": {
+              "description": "Operator",
+              "type": "string",
+              "enum": [
+                "+",
+                "-",
+                "*",
+                "/",
+                "%",
+                ">="
+              ]
+            },
+            "editable": {
+              "type": "boolean",
+              "description": "If the operator is editable, defaults to true"
+            }
+          },
+          "required": [
+            "operator"
+          ]
+        },
+        "connectedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "enum": [
+                  "input"
                 ]
               }
             }
