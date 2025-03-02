@@ -1,14 +1,16 @@
 <script lang="ts">
   import { fade } from "svelte/transition"
   import type { Postcard } from "../schema/postcard"
+  import PostcardContent from "./PostcardContent.svelte"
 
   let { config, title }: { config: Postcard; title: String } = $props()
   let flipped = $state(false)
 </script>
 
-<div class="flex w-full min-h-full items-center flex-col gap-4 overflow-x-hidden select-none">
+<div
+  class="flex w-full min-h-full items-center flex-col gap-4 overflow-x-hidden select-none max-lg:hidden">
   <div
-    class={`postcard-container ${flipped ? "flipped top-[20%] lg:aspect-[3/2] max-lg:h-48" : "top-[25%] aspect-[3/2]"} lg:h-[60%] max-lg:w-[70%]  absolute z-10 transition-[top] duration-500`}
+    class={`postcard-container ${flipped ? "flipped top-[20%]" : "top-[25%]"} h-[60%] max-w-[75%] aspect-[3/2] absolute z-10 transition-[top] duration-500`}
     onclick={() => {
       flipped = !flipped
     }}
@@ -26,9 +28,7 @@
           class="w-full h-full object-cover" />
       </div>
       <div class="postcard-back bg-beige-50">
-        {config.message}
-        <!-- todo markdown rendering (needs to be dynamic; can't use astropub/md) -->
-        <!-- todo postcard layout -->
+        <PostcardContent {config} />
       </div>
     </div>
   </div>
@@ -38,12 +38,23 @@
     </div>
     <p
       transition:fade={{ duration: 300 }}
-      class="absolute top-[85%] pt-3 font-normal text-sm font-mono">
+      class="absolute top-[85%] pt-4 font-normal text-sm font-mono">
       click to flip
     </p>
   {:else}
     <div transition:fade={{ duration: 300 }} class="h-full w-full absolute bg-card-overlay"></div>
   {/if}
+</div>
+
+<div class="lg:hidden flex justify-center">
+  <div class="max-w-lg flex flex-col gap-6 pt-6">
+    <h1 class="font-poppins text-2xl font-black">{title}</h1>
+    <img
+    src="https://unsplash.it/1000/600"
+    alt="Postcard front side"
+    class="w-full h-full object-cover" />
+    <PostcardContent {config} />
+  </div>
 </div>
 
 <style lang="scss">
