@@ -11,7 +11,7 @@
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "todo: challenge inputs / entrypoint params"
+      "static": "Going forward, most challenges will you give you some inputs you'll work on.\n\n You can use these just like any other variable, but you can't change their value.\n\n Your task here is simple:<br/>**Print the input value you're given, increased by 1.**"
     },
     "confetti": true
   },
@@ -22,15 +22,79 @@
   "tests": [
     {
       "args": [
-        []
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          20
+        ],
+        [
+          542
+        ],
+        [
+          -10
+        ]
       ],
-      "run": {}
+      "run": {
+        "printUpdated": {
+          "function": "({args,result,callbacks})=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return false; return cc.wasCalledWith(([arg0]) => arg0 == args[0] + 1 && typeof arg0 === 'number')};",
+          "description": "Print your result"
+        }
+      }
     }
   ],
   "editor": {
     "type": "mixed",
-    "initialBlocks": [],
-    "initialDrawerBlocks": [],
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 300,
+          "y": 250
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main",
+            "params": [
+              {
+                "type": "int",
+                "name": "input"
+              }
+            ]
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "expression",
+              "data": {
+                "expression": "Println"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "value",
+        "data": {
+          "type": "int",
+          "value": 0,
+          "editable": true
+        },
+        "count": 1
+      },
+      {
+        "type": "math_operation",
+        "data": {
+          "operator": "+",
+          "editable": true
+        }
+      }
+    ],
     "mainFunction": "main"
   }
 }
