@@ -4,14 +4,14 @@
     "order": 20,
     "title": "Staying up to date",
     "description": "Just like we have to remember things, we need to refresh what we know.",
-    "published": "2024-01-01T00:00:00Z",
+    "published": "2024-03-02T00:00:00Z",
     "color": "#9CFFFA",
     "imageEnd": {
       "src": "/images/promise.webp",
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "todo: variable setting, probably with math blocks"
+      "static": "Now that you know how to create variables with the turquoise block, let's learn something super important – how to change what's in them!\n\nThere are 2 new blocks here:\n\n**The _set .. to_ block helps you set what's in a variable.**\n\nConnect the variable you want to update to the hole in the middle, and the new value to the input on the side.\n\n**The math block lets you do some simple math.**\n\nConnect two inputs and select if you want to add, subtract, or otherwise combine them.\n\nNow for the challenge:\n\n**Use the new blocks to update the variable to 8, and print it!**\n\n_Hint: You can use the variable for the calculation._"
     },
     "confetti": true
   },
@@ -24,13 +24,92 @@
       "args": [
         []
       ],
-      "run": {}
+      "run": {
+        "printUpdated": {
+          "function": "({args,result,callbacks})=>{const cc = callbacks['console.log']; if(!cc.wasCalled()) return false; return cc.wasCalledWith(([arg0]) => arg0 == 8 && typeof arg0 === 'number')};",
+          "description": "Print the number 8"
+        }
+      }
     }
   ],
   "editor": {
     "type": "mixed",
-    "initialBlocks": [],
-    "initialDrawerBlocks": [],
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 300,
+          "y": 250
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main"
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "variable_init",
+              "data": {
+                "name": "score",
+                "nameEditable": false,
+                "typeEditable": false,
+                "type": "int"
+              },
+              "connectedBlocks": [
+                {
+                  "on": "input",
+                  "type": "value",
+                  "draggable": false,
+                  "data": {
+                    "type": "int",
+                    "value": 5,
+                    "editable": false
+                  }
+                },
+                {
+                  "on": "after",
+                  "type": "expression",
+                  "data": {
+                    "expression": "Println"
+                  },
+                  "connectedBlocks": [
+                    {
+                      "on": "input",
+                      "type": "variable",
+                      "data": {
+                        "name": "score"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "initialDrawerBlocks": [
+      {
+        "type": "variable_set",
+        "count": 1
+      },
+      {
+        "type": "value",
+        "data": {
+          "type": "int",
+          "value": 3,
+          "editable": false
+        },
+        "count": 1
+      },
+      {
+        "type": "math_operation",
+        "data": {
+          "operator": "+",
+          "editable": true
+        }
+      }
+    ],
     "mainFunction": "main"
   }
 }

@@ -54,7 +54,7 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
           <Fragment class="w-full" slot="tab-2">Logs</Fragment>
 
           <Fragment slot="panel-1">
-            <div class="flex flex-col h-full gap-6">
+            <div class="flex flex-col h-full gap-6 overflow-x-hidden">
               <div class="flex flex-col gap-4 font-medium markdown">
                 <h2 class="font-poppins font-black text-xl">{challenge.story.title}</h2>
                 <Markdown of={challenge.story.dialog?.static} />
