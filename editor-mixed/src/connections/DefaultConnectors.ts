@@ -239,10 +239,12 @@ export class DefaultConnectors {
 
   static innerVariable() {
     return new Connector(ConnectorType.Inner, ConnectorRole.Input, [
-      remote =>
-        remote.type === ConnectorType.Before &&
-        remote.role === ConnectorRole.Input &&
-        remote.parentBlock?.type === BlockType.Variable,
+      remote => {
+        if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input || remote.parentBlock?.type !== BlockType.Variable)
+          return false
+        const data = remote.parentBlock.data as BlockDataVariable
+        return data.variableHelper?.deref()?.getVariableMutable(data.name) ?? false
+      }
     ])
   }
 
