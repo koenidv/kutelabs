@@ -25,7 +25,7 @@
         <img
           src="https://unsplash.it/1000/600"
           alt="Postcard front side"
-          class="w-full h-full object-cover" />
+          class="w-full h-full object-cover border-white border-8" />
       </div>
       <div class="postcard-back bg-beige-50">
         <PostcardContent {config} />
@@ -52,7 +52,7 @@
     <img
     src="https://unsplash.it/1000/600"
     alt="Postcard front side"
-    class="w-full h-full object-cover" />
+    class="w-full h-full object-cover border-white border-8 rounded-sm" />
     <PostcardContent {config} />
   </div>
 </div>

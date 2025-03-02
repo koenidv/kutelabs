@@ -7,7 +7,7 @@ export default {
 		extend: {
 			fontFamily: {
 				poppins: ["Poppins", ...defaultTheme.fontFamily.sans],
-				gamja: ["Gamja Flower", ...defaultTheme.fontFamily.sans],
+				gummy: ["Sour Gummy", ...defaultTheme.fontFamily.sans],
 			},
 			colors: {
 				beige: {

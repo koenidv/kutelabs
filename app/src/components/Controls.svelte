@@ -149,7 +149,7 @@
       </div>
       {#if !debugMenuOpen}
         <div class="hidden lg:flex pt-2 justify-center">
-          <p class="font-gamja text-2xl text-sideways">Speed →</p>
+          <p class="font-gummy text-xl text-sideways">Speed →</p>
         </div>
       {/if}
     {:else if execution instanceof CodeExecutionWrapper}
