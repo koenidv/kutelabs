@@ -122,7 +122,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
       if (e.key === "ArrowUp") increase(e)
       if (e.key === "ArrowDown") decrease(e)
       if (
-        !(isFloat ? /[0-9.]/ : /[0-9]/).test(e.key) &&
+        !(isFloat ? /[0-9.-]/ : /[0-9-]/).test(e.key) && // todo only allow "-" at the beginning
         !["Backspace", "Delete", "Tab"].includes(e.key)
       ) {
         e.preventDefault()

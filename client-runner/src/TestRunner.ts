@@ -215,15 +215,17 @@ export class TestRunner {
         callbacks,
         executedCode: this.currentUserCode!,
       })
-      this.onTestResult(
-        test.id,
-        args,
-        testResult === true ? TestResult.Passed : TestResult.Failed,
-        typeof testResult === "string" ? testResult : undefined
-      )
+      if (testResult === true) {
+        this.onTestResult(test.id, args, TestResult.Passed)
+      } else {
+        this.failRemainingTests(
+          typeof testResult === "string" ? testResult : undefined,
+          TestResult.Failed
+        )
+      }
     } catch (error) {
       console.error(`Test ${test.id}('${test.description}') failed:`, error)
-      this.onTestResult(test.id, args, TestResult.Failed)
+      this.failRemainingTests(undefined, TestResult.Error)
     }
   }
 

@@ -29,13 +29,20 @@ export abstract class BaseCompiler {
   ): CompilationResult | null {
     const functionBlocks = root.blocks.filter(({ block }) => block.type == BlockType.Function)
     if (functionBlocks.length == 0) return null
+    
     let code =
       this.declareImports(callbacks) +
       "\n" +
       functionBlocks.map(it => this.compile(it.block)).join("\n") +
       "\n" +
       this.addCode(invisibleCode)
-    return { code, entrypoint, argNames: [] }
+
+    const argNames = this.getArgNames(
+      functionBlocks.map(it => it.block as Block<BlockType.Function>),
+      entrypoint
+    )
+    
+    return { code, entrypoint, argNames }
   }
 
   compile<T, S>(
@@ -43,10 +50,7 @@ export abstract class BaseCompiler {
     props?: InternalCompilationProps
   ): string {
     if (block == null) return ""
-    if (
-      block.connectors.before != null &&
-      block.connectors.before.role == ConnectorRole.Default
-    ) {
+    if (block.connectors.before != null && block.connectors.before.role == ConnectorRole.Default) {
       return this.applyBlockMeta(
         block as Block<BlockType>,
         (block: Block<BlockType>, newProps?: InternalCompilationProps) =>
@@ -59,6 +63,15 @@ export abstract class BaseCompiler {
       )
     }
     return this.compileByBlockType(block as Block<BlockType>, props)
+  }
+
+  protected getArgNames(functionBlocks: Block<BlockType.Function>[], entrypoint: string): string[] {
+    const entrypointBlock = functionBlocks.find(it => it.data.name == entrypoint)
+    if (!entrypointBlock) {
+      console.error(`No block for entrypoint ${entrypoint} found; argnames will be empty`)
+      return []
+    }
+    return entrypointBlock.data.params.map(it => it.name)
   }
 
   protected compileByBlockType(block: Block<BlockType>, props?: InternalCompilationProps): string {
