@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/koenidv/kutelabs/refs/heads/main/app/src/schema/challenge.schema.json",
+  "title": "Postcard",
+  "description": "An editor type that displays a postcard",
+  "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "The URL of the image"
+        },
+        "alt": {
+          "type": "string",
+          "description": "The alt text of the image"
+        }
+      },
+      "required": [
+        "src",
+        "alt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "type": {
+      "description": "Defines this editor as postcard",
+      "type": "string",
+      "const": "postcard"
+    },
+    "from": {
+      "type": "string",
+      "description": "The sender of the postcard"
+    },
+    "to": {
+      "type": "string",
+      "description": "The recipient of the postcard"
+    },
+    "stamp": {
+      "$ref": "#/$defs/image"
+    },
+    "message": {
+      "type": "string",
+      "description": "The message on the postcard, supports markdown"
+    },
+    "imageFront": {
+      "$ref": "#/$defs/image"
+    }
+  },
+  "required": [
+    "type",
+    "from",
+    "stamp",
+    "message",
+    "imageFront"
+  ],
+  "additionalProperties": false
+}

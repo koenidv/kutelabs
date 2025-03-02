@@ -200,7 +200,7 @@ export interface Challenge {
     /**
      * Compile language for this challenge
      */
-    language: "js" | "kt" | "unset"
+    language: "js" | "kt" | "unset" | "none"
     /**
      * App-level features (app callbacks) to enable for this challenge
      */
@@ -234,7 +234,7 @@ export interface Challenge {
       }
     }
   }[]
-  editor: MixedContentEditorConfiguration | CodeEditorConfiguration
+  editor: MixedContentEditorConfiguration | CodeEditorConfiguration | Postcard
   [k: string]: unknown
 }
 export interface Image {
@@ -623,4 +623,37 @@ export interface CodeEditorConfiguration {
    */
   argnames?: string[]
   [k: string]: unknown
+}
+/**
+ * Use and configure a postcard
+ */
+export interface Postcard {
+  /**
+   * Defines this editor as postcard
+   */
+  type: "postcard"
+  /**
+   * The sender of the postcard
+   */
+  from: string
+  /**
+   * The recipient of the postcard
+   */
+  to?: string
+  stamp: Image1
+  /**
+   * The message on the postcard, supports markdown
+   */
+  message: string
+  imageFront: Image1
+}
+export interface Image1 {
+  /**
+   * The URL of the image
+   */
+  src: string
+  /**
+   * The alt text of the image
+   */
+  alt: string
 }

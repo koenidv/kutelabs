@@ -5,13 +5,13 @@ import Image from "astro/components/Image.astro"
 import BoozleLock from "../../public/images/character_boozle_lock.webp"
 import ElevatedBox from "./ElevatedBox.astro"
 interface Props {
-  executionLanguage: "js" | "kt" | "unset"
+  executionLanguage: "js" | "kt" | "unset" | "none"
 }
 const { executionLanguage } = Astro.props
 ---
 
 {
-  executionLanguage !== "js" ? (
+  executionLanguage !== "js" && executionLanguage !== "none" ? (
     <SignedOut isStatic={true}>
       <div class="fixed top-0 left-0 z-40 w-screen h-screen pointer-events-auto bg-beige-800 bg-opacity-50 flex items-center justify-center dialog-container">
         <div class="w-[90vw] lg:w-[60vw] h-[70vh] lg:h-[60vh] bg-beige-50 border-[6px] border-beige-900 overflow-hidden max-w-5xl max-h-[40rem]">

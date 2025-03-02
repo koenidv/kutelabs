@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 2,
+    "title": "A message from Boozle",
+    "description": "Let's see what he wrote!",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#a061ff",
+    "imageEnd": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "dialog": {
+      "static": "A postcard from Boozle!"
+    }
+  },
+  "environment": {
+    "language": "none"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "postcard",
+    "from": "Boozle",
+    "to": "{{username}}",
+    "message": "# Hey {{username}}, it's Boozle! \n\n Lorem Ipsum Demo Message",
+    "imageFront": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    },
+    "stamp": {
+      "src": "/images/promise.webp",
+      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+    }
+  }
+}

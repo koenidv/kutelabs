@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../schema/section.schema.json",
+  "order": 1000,
+  "title": "The Final",
+  "description": "One last challenge and I'll let you go into the wild"
+}

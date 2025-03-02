@@ -89,7 +89,8 @@
           "enum": [
             "js",
             "kt",
-            "unset"
+            "unset",
+            "none"
           ],
           "description": "Compile language for this challenge"
         },
@@ -168,6 +169,10 @@
         {
           "description": "Use and configure the code editor",
           "$ref": "./editor-code.schema.json"
+        },
+        {
+          "description": "Use and configure a postcard",
+          "$ref": "./postcard.schema.json"
         }
       ]
     }

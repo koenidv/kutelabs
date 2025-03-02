@@ -7,6 +7,7 @@ import { getCollection } from "astro:content"
 import Controls from "../../components/Controls.svelte"
 import EditorCode from "../../components/EditorCodeWrapper.svelte"
 import EditorMixed from "../../components/EditorMixedWrapper.svelte"
+import Postcard from "../../components/Postcard.svelte"
 import ElevatedBox from "../../components/ElevatedBox.astro"
 import Logs from "../../components/Logs.svelte"
 import NextChallengeButton from "../../components/NextChallengeButton.svelte"
@@ -16,6 +17,7 @@ import Tests from "../../components/Tests.svelte"
 import InnerLayout from "../../layouts/InnerLayout.astro"
 import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
+
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
@@ -47,78 +49,89 @@ const nextUrl = nextId ? `${baseUrl}/${nextId}` : undefined
     class="flex w-full flex-col justify-center"
     data-tests={JSON.stringify(challenge.tests)}>
     <div class="flex flex-col lg:flex-row px-4 lg:px-12 pb-12 lg:h-[90vh] gap-4">
-      <div
-        class="border-4 border-beige-200 bg-beige-50 p-4 w-full lg:w-[40%] min-w-72 flex-grow -z-0">
-        <Tabs class="h-full">
-          <Fragment class="w-full" slot="tab-1">Story</Fragment>
-          <Fragment class="w-full" slot="tab-2">Logs</Fragment>
+      { challenge.editor.type !== "postcard" ? (
+        <div
+          class="border-4 border-beige-200 bg-beige-50 p-4 w-full lg:w-[40%] min-w-72 flex-grow -z-0">
+          <Tabs class="h-full">
+            <Fragment class="w-full" slot="tab-1">Story</Fragment>
+            <Fragment class="w-full" slot="tab-2">Logs</Fragment>
 
-          <Fragment slot="panel-1">
-            <div class="flex flex-col h-full gap-6 overflow-x-hidden">
-              <div class="flex flex-col gap-4 font-medium markdown">
-                <h2 class="font-poppins font-black text-xl">{challenge.story.title}</h2>
-                <Markdown of={challenge.story.dialog?.static} />
+            <Fragment slot="panel-1">
+              <div class="flex flex-col h-full gap-6 overflow-x-hidden">
+                <div class="flex flex-col gap-4 font-medium markdown">
+                  <h2 class="font-poppins font-black text-xl">{challenge.story.title}</h2>
+                  <Markdown of={challenge.story.dialog?.static} />
+                </div>
+
+                <NextChallengeButton nextUrl={nextUrl} client:idle />
+
+                <Tests tests={challenge.tests} client:idle />
+
+                <div class="hidden lg:flex flex-col justify-between h-full gap-6 flex-grow">
+                  {
+                    challenge.story.imageStart ? (
+                      <hr />
+                      <Image
+                        src={challenge.story.imageStart.src}
+                        alt={challenge.story.imageStart.alt}
+                        width={192}
+                        height={192}
+                        class="w-[80%] max-w-48 aspect-square object-fill"
+                      />
+                    ) : challenge.story.imageEnd ? (
+                      <hr />
+                      <Image
+                        src={challenge.story.imageEnd.src}
+                        alt={challenge.story.imageEnd.alt}
+                        width={192}
+                        height={192}
+                        class="w-[80%] max-w-48 scale-x-[-1] aspect-square object-fill"
+                      />
+                    ) : undefined
+                  }
+                </div>
               </div>
+            </Fragment>
 
-              <NextChallengeButton nextUrl={nextUrl} client:idle />
+            <Fragment slot="panel-2">
+              <Logs client:idle />
+            </Fragment>
+          </Tabs>
+        </div>
 
-              <Tests tests={challenge.tests} client:idle />
+        <Controls
+          id={id}
+          tests={challenge.tests}
+          environment={challenge.environment}
+          editorType={challenge.editor.type}
+          confetti={challenge.story.confetti}
+          client:load
+        />
 
-              <div class="hidden lg:flex flex-col justify-between h-full gap-6 flex-grow">
-                {
-                  challenge.story.imageStart ? (
-                    <hr />
-                    <Image
-                      src={challenge.story.imageStart.src}
-                      alt={challenge.story.imageStart.alt}
-                      width={192}
-                      height={192}
-                      class="w-[80%] max-w-48 aspect-square object-fill"
-                    />
-                  ) : challenge.story.imageEnd ? (
-                    <hr />
-                    <Image
-                      src={challenge.story.imageEnd.src}
-                      alt={challenge.story.imageEnd.alt}
-                      width={192}
-                      height={192}
-                      class="w-[80%] max-w-48 scale-x-[-1] aspect-square object-fill"
-                    />
-                  ) : undefined
-                }
-              </div>
-            </div>
-          </Fragment>
-
-          <Fragment slot="panel-2">
-            <Logs client:idle />
-          </Fragment>
-        </Tabs>
-      </div>
-
-      <Controls
-        id={id}
-        tests={challenge.tests}
-        environment={challenge.environment}
-        editorType={challenge.editor.type}
-        confetti={challenge.story.confetti}
-        client:load
-      />
-
-      <ElevatedBox elevation={2} class="flex-grow-[2] max-lg:h-[80vh] flex min-w-0 w-full">
+        <ElevatedBox elevation={2} class="flex-grow-[2] max-lg:h-[80vh] flex min-w-0 w-full">
         <div
           class="absolute top-0 left-0 w-full h-full flex items-center justify-center border-l-4 border-t-4 border-r-2 border-b-2 border-black bg-beige-100">
           <Icon name="svg-spinners:ring-resize" />
         </div>
         {
-          challenge.editor.type == "mixed" ? (
+          challenge.editor.type === "mixed" ? (
             <EditorMixed data={challenge.editor} client:only="svelte" />
-          ) : (
+          ) : challenge.editor.type === "code" ? (
             <EditorCode data={challenge.editor} challengeId={id} client:only="svelte" />
-          )
+          ) : (
+            <div class="relative w-full h-full bg-red-100 flex justify-center items-center">
+              <p class="text-red-800">error: unknown editor type</p>
+            </div>
+            )
         }
         <Snackbar client:idle />
       </ElevatedBox>
+      ) : (
+        // Postcard
+        <Postcard config={challenge.editor} title={challenge.story.dialog.static} client:load />
+      )} 
+
+
     </div>
   </div>
 </InnerLayout>
