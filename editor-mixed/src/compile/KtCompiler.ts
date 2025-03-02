@@ -198,7 +198,8 @@ export class KtCompiler extends BaseCompiler {
   }
 
   compileVariableSet(block: Block<BlockType.VarSet>, next: typeof this.compile): string {
-    return `${next(block.inners[0])} = ${next(block.inputs[0])};\n${next(block.after)}`
+    const setTo = block.connectedBlocks.byConnector(block.connectors.inputExtensions[0])
+    return `${next(block.inners[0])} = ${next(setTo)};\n${next(block.after)}`
   }
 
   compileLoop(block: Block<BlockType.Loop>, next: typeof this.compile): string {

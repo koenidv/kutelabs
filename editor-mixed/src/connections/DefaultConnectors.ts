@@ -1,6 +1,8 @@
- import {
+import type { AnyBlock, Block } from "../blocks/Block"
+import {
   ComparisonOperatorTypeCompatibility,
   LogicComparisonOperator,
+  MathOperation,
   type BlockDataVariable,
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
@@ -67,7 +69,11 @@ export class DefaultConnectors {
           DefaultConnectors.comparisonInput(),
         ]
       case BlockType.MathOperation:
-        return [DefaultConnectors.extender(), DefaultConnectors.inputExtension(), DefaultConnectors.inputExtension()]
+        return [
+          DefaultConnectors.extender(),
+          DefaultConnectors.inputExtension(),
+          DefaultConnectors.inputExtension(),
+        ]
       default:
         return []
     }
@@ -141,15 +147,12 @@ export class DefaultConnectors {
 
         const localType = variableData.variableHelper?.deref()?.getVariableType(variableData.name)
         if (!localType) return false
+        const remoteType = this.getValueOrVariableType(remote.parentBlock)
+        if (remoteType === null) return false
 
-        if (remote.parentBlock.data != null && "type" in remote.parentBlock.data) {
-          return (
-            localType === remote.parentBlock.data.type ||
-            remote.parentBlock.data.type === DataType.Dynamic
-          )
-        }
-
-        return false
+        return (
+          localType === remoteType || remoteType === DataType.Dynamic || remoteType === undefined
+        )
       },
     ])
   }
@@ -159,7 +162,7 @@ export class DefaultConnectors {
       remote => {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
-        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
+        const remoteType = this.getValueOrVariableType(remote.parentBlock)
         return remoteType === DataType.Boolean || remoteType === DataType.Dynamic
       },
     ])
@@ -171,7 +174,7 @@ export class DefaultConnectors {
       remote => {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
-        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
+        const remoteType = this.getValueOrVariableType(remote.parentBlock)
         return remoteType === DataType.Boolean || remoteType === DataType.Dynamic
       },
     ])
@@ -183,8 +186,8 @@ export class DefaultConnectors {
         if (remote.type !== ConnectorType.Before || remote.role !== ConnectorRole.Input)
           return false
 
-        const remoteType = this.getValueOrVariableType(remote.parentBlock?.data)
-        if (remoteType == null) return false
+        const remoteType = this.getValueOrVariableType(remote.parentBlock)
+        if (remoteType === null) return false
 
         if (
           !local.parentBlock?.data ||
@@ -197,7 +200,7 @@ export class DefaultConnectors {
             local.parentBlock.data.mode as LogicComparisonOperator
           ]
         if (!compat) return true
-        return compat.includes(remoteType)
+        return remoteType === undefined || compat.includes(remoteType) || remoteType === DataType.Dynamic
       },
     ])
   }
@@ -250,12 +253,32 @@ export class DefaultConnectors {
     return new Connector(ConnectorType.Internal, ConnectorRole.Drawer)
   }
 
-  static getValueOrVariableType(data: any): DataType | null {
+  static getValueOrVariableType(block: AnyBlock | null): DataType | null | undefined {
+    if (block == null) return null
+    const data = block.data
     if (data == null) return null
     if ("type" in data) return data.type
     if ("variableHelper" in data) {
-      return data.variableHelper?.deref()?.getVariableType(data.name)
+      return data.variableHelper?.deref()?.getVariableType(data.name) ?? null
+    }
+    if (block.type === BlockType.MathOperation) {
+      return DefaultConnectors.determineMathBlockVariableType(
+        block as Block<BlockType.MathOperation>
+      )
     }
     return null
+  }
+
+  static determineMathBlockVariableType(
+    block: Block<BlockType.MathOperation>
+  ): DataType | undefined {
+    const typeA = block.inputs[0]?.let(it => this.getValueOrVariableType(it)) ?? null
+    const typeB = block.inputs[1]?.let(it => this.getValueOrVariableType(it)) ?? null
+
+    if (typeA == null || typeB == null) return undefined
+    if (typeA === typeB) return typeA
+    if (typeA === DataType.Float || typeB === DataType.Float) return DataType.Float
+    if (typeA === DataType.Dynamic || typeB === DataType.Dynamic) return DataType.Dynamic
+    return DataType.Int
   }
 }

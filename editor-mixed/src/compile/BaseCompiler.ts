@@ -5,6 +5,7 @@ import { BlockType } from "../blocks/configuration/BlockType"
 import { DefinedExpression } from "../blocks/configuration/DefinedExpression"
 import type { RootBlock } from "../blocks/RootBlock"
 import type { DataType } from "../blocks/configuration/DataType"
+import { ConnectorRole } from "../connections/ConnectorRole"
 
 export type CompilationResult = {
   code: string
@@ -43,15 +44,8 @@ export abstract class BaseCompiler {
   ): string {
     if (block == null) return ""
     if (
-      ![
-        BlockType.Value,
-        BlockType.Variable,
-        BlockType.Function,
-        BlockType.LogicNot,
-        BlockType.LogicJunction,
-        BlockType.LogicComparison,
-        BlockType.FunctionInvoke,
-      ].includes(block.type)
+      block.connectors.before != null &&
+      block.connectors.before.role == ConnectorRole.Default
     ) {
       return this.applyBlockMeta(
         block as Block<BlockType>,

@@ -37,9 +37,7 @@ export class KuteLayouter extends BaseLayouter {
     const size = SizeProps.empty()
 
     if (block.connectors.inputExtensions.length > 0) {
-      if (block.type == BlockType.VarSet) {
-        size.addHeight(HeightProp.Head, 6)
-      } else {
+      if (block.type != BlockType.VarSet) {
         block.connectors.inputExtensions.map((connector, index) => {
           const connected = block.connectedBlocks.byConnector(connector)
           if (connected != null) {
@@ -95,19 +93,20 @@ export class KuteLayouter extends BaseLayouter {
     } else if (block.type == BlockType.VarSet) {
       const connectedInner = block.connectedBlocks.byConnector(block.connectors.inners[0])
       const innerSize = connectedInner ? this.blockRegistry.getSize(connectedInner) : null
+      const innerHeight = (innerSize?.fullHeight ?? MIN_HEIGHT) + 2 * PADDING_Y
 
-      const inputHeight = block.connectedBlocks.byConnector(block.connectors.inputExtensions[0] ?? null)?.let(
-        connected => this.blockRegistry.getSize(connected).fullHeight
-      ) ?? DEFAULT_CONNECTOR_HEIGHT
+      const inputHeight =
+        block.connectedBlocks
+          .byConnector(block.connectors.inputExtensions[0] ?? null)
+          ?.let(connected => this.blockRegistry.getSize(connected).fullHeight) ??
+        DEFAULT_CONNECTOR_HEIGHT
 
       size.addWidth(WidthProp.Left, 24)
       size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? MIN_WIDTH * 0.6) + 2 * PADDING_X)
       size.addWidth(WidthProp.Right, 24)
-      size.addHeight(
-        HeightProp.CutRow,
-        Math.max((innerSize?.fullHeight ?? MIN_HEIGHT) + 2 * PADDING_Y, inputHeight - 12)
-      )
-      size.addHeight(HeightProp.Tail, 6)
+      size.addHeight(HeightProp.Head, 6 + Math.max(0, (inputHeight - innerHeight - 12) / 2))
+      size.addHeight(HeightProp.CutRow, innerHeight)
+      size.addHeight(HeightProp.Tail, 6 + Math.max(0, (inputHeight - innerHeight - 12) / 2))
     }
 
     if (block.type == BlockType.Variable) {
