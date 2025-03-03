@@ -8,6 +8,7 @@ interface Props {
   executionLanguage: "js" | "kt" | "unset" | "none"
 }
 const { executionLanguage } = Astro.props
+const { url } = Astro
 ---
 
 {
@@ -33,7 +34,10 @@ const { executionLanguage } = Astro.props
                   To continue, you'll need to sign in.
                 </p>
 
-                <SignInButton mode="modal">
+                <SignInButton
+                  mode="modal"
+                  forceRedirectUrl={url.toString()}
+                  signUpForceRedirectUrl={url.toString()}>
                   <ElevatedBox elevation={2} hoverable>
                     <p class="p-4 h-full w-full bg-beige-300">Sign In</p>
                   </ElevatedBox>
