@@ -7,8 +7,8 @@
     "published": "2024-01-01T00:00:00Z",
     "color": "#a061ff",
     "imageEnd": {
-      "src": "/images/promise.webp",
-      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+        "src": "/images/character_boozle_kotlin.webp",
+      "alt": "Boozle holding the Kotlin logo"
     },
     "dialog": {
       "static": "A postcard from Boozle!"
@@ -31,12 +31,12 @@
     "to": "{{username}}",
     "message": "# Hey {{username}}, it's Boozle! \n<br/> Wow, I'm proud. You made it.\n\n I've taught you I everything I could teach you. Now it's time for you to go out there, on your own adventures.\nAs you can see, I'm also taking some time off. \n\n<br/> I'd like to leave you with some resources: \n\n - You'll recognize some of the things I've taught you and learn about many more [in the Kotlin Tour, straight from Kotlin's creators](https://kotlinlang.org/docs/kotlin-tour-welcome.html).\n- You can use Kotlin to build stuff for many platforms, you'll want to [install IntelliJ IDEA Community Edition](https://www.jetbrains.com/idea/) for that.\n\n<br/> I wish you all the best, {{username}}. \n\n<br/> Boozle out!",
     "imageFront": {
-      "src": "/images/promise.webp",
-      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+      "src": "/images/placeholder_postcard_done.webp",
+      "alt": "Postcard showing Copenhagen"
     },
     "stamp": {
-      "src": "/images/promise.webp",
-      "alt": "Crossed fingers to show my promise to create nicer images for these stories"
+      "src": "/images/character_boozle_kotlin.webp",
+      "alt": "Postage stamp showing boozle holding the Kotlin logo"
     }
   }
 }

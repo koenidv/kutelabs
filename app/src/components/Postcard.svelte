@@ -23,8 +23,8 @@
     <div class="postcard w-full min-h-full h-fit shadow-2xl transition-transform duration-500">
       <div class="postcard-front bg-beige-50">
         <img
-          src="https://unsplash.it/1000/600"
-          alt="Postcard front side"
+          src={config.imageFront.src}
+          alt={config.imageFront.alt}
           class="w-full h-full object-cover border-white border-8" />
       </div>
       <div class="postcard-back bg-beige-50">

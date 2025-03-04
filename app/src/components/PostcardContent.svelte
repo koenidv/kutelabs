@@ -20,10 +20,12 @@
   <div class="flex flex-col w-full h-full lg:flex-row-reverse">
     <div
       class="w-full basis-1/4 p-4 flex flex-row-reverse lg:flex-col max-lg:justify-between lg:items-end">
-      <img
-        src="https://unsplash.it/200/200"
-        alt="Postcard front side"
-        class="stamp object-cover lg:mb-4" />
+      <div class="stamp lg:pb-4">
+        <img
+        src={config.stamp.src}
+        alt={config.stamp.alt}
+        class="object-contain h-full w-full bg-[#FFD203] rounded-sm stampshadow" />
+      </div>
       <div class="flex-col items-end font-normal font-gummy text-start lg:text-end p-2 md">
         <SvelteMarkdown source={"from " + config.from} />
         <SvelteMarkdown source={"to " + replaceUsername(config.to ?? "{{username}}")} />
@@ -64,5 +66,9 @@
       text-decoration: underline;
       text-underline-offset: 0.3em;
     }
+  }
+
+  .stampshadow {
+    box-shadow: inset 0 0 0.5rem 0 white;
   }
 </style>
