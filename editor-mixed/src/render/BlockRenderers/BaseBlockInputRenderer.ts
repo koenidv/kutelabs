@@ -18,6 +18,12 @@ import type { InternalBlockRenderProps } from "./BlockRendererTypes"
 import { PropertiesBlockRenderer } from "./PropertiesBlockRenderer"
 import type { BlockInputIcon } from "./InputIcon"
 
+type GenericInputElementType<T extends DataType> = (
+  value: TsTypeByDataType<T>,
+  onChange: (value: TsTypeByDataType<T>) => void,
+  editable: boolean
+) => TemplateResult<1>
+
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
   //#region Input Wrappers
 
@@ -402,20 +408,16 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
 
   protected inputElementByDataType<T extends SimpleDataType>(
     type: SimpleDataType
-  ): (
-    value: TsTypeByDataType<T>,
-    onChange: (value: TsTypeByDataType<T>) => void,
-    editable: boolean
-  ) => TemplateResult<1> {
+  ): GenericInputElementType<T> {
     switch (type) {
       case DataType.Boolean:
-        return this.renderInputBoolean as any
+        return this.renderInputBoolean.bind(this) as any
       case DataType.String:
-        return this.renderInputString as any
+        return this.renderInputString.bind(this) as any
       case DataType.Int:
-        return this.renderInputString as any
+        return this.renderInputNumber.bind(this) as any
       case DataType.Float:
-        return this.renderInputString as any
+        return this.renderInputNumber.bind(this) as any
     }
   }
 
