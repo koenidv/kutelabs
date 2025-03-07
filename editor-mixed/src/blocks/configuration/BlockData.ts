@@ -4,27 +4,37 @@ import { BlockType } from "./BlockType"
 import { DataType, type TsTypeByDataType } from "./DataType"
 import type { DefinedExpression } from "./DefinedExpression"
 
-export type BlockDataByType<T extends BlockType, D = DataType> = T extends BlockType.Function
-  ? BlockDataFunction
-  : T extends BlockType.FunctionInvoke
-    ? BlockDataFunctionReference
-    : T extends BlockType.Expression
-      ? BlockDataExpression
-      : T extends BlockType.Value
-        ? BlockDataValue<D>
-        : T extends BlockType.VarInit
-          ? BlockDataVariableInit<D>
-          : T extends BlockType.Variable
-            ? BlockDataVariable
-            : T extends BlockType.LogicJunction
-              ? BlockDataLogicJunction
-              : T extends BlockType.LogicComparison
-                ? BlockDataLogicComparison
-                : T extends BlockType.MathOperation
-                  ? BlockDataMathOperation
-                  : BlockDataEmpty
+export type BlockDataByType<T extends BlockType, D = DataType> = T extends BlockType.Comment
+  ? BlockDataComment
+  : T extends BlockType.Function
+    ? BlockDataFunction
+    : T extends BlockType.FunctionInvoke
+      ? BlockDataFunctionReference
+      : T extends BlockType.Expression
+        ? BlockDataExpression
+        : T extends BlockType.Value
+          ? BlockDataValue<D>
+          : T extends BlockType.VarInit
+            ? BlockDataVariableInit<D>
+            : T extends BlockType.Variable
+              ? BlockDataVariable
+              : T extends BlockType.LogicJunction
+                ? BlockDataLogicJunction
+                : T extends BlockType.LogicComparison
+                  ? BlockDataLogicComparison
+                  : T extends BlockType.MathOperation
+                    ? BlockDataMathOperation
+                    : BlockDataEmpty
 
 export type BlockDataEmpty = null
+
+export type BlockDataComment = {
+  value: string
+  textColor?: string
+  backgroundColor?: string
+  borderColor?: string
+  fontSize?: number
+}
 
 /*
  * Block Type Specific Data

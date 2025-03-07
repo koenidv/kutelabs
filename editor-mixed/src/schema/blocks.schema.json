@@ -26,6 +26,9 @@
         {
           "oneOf": [
             {
+              "$ref": "#/$defs/CommentBlock"
+            },
+            {
               "$ref": "#/$defs/FunctionBlock"
             },
             {
@@ -120,6 +123,50 @@
             }
           }
         }
+      ]
+    },
+    "CommentBlock": {
+      "type": "object",
+      "description": "Comment Block",
+      "properties": {
+        "type": {
+          "description": "Defines this block as a comment block",
+          "type": "string",
+          "const": "comment"
+        },
+        "data": {
+          "description": "Comment Block Data",
+          "type": "object",
+          "properties": {
+            "value": {
+              "description": "Comment text",
+              "type": "string"
+            },
+            "textColor": {
+              "description": "Text color",
+              "type": "string"
+            },
+            "backgroundColor": {
+              "description": "Background color",
+              "type": "string"
+            },
+            "borderColor": {
+              "description": "Border color",
+              "type": "string"
+            },
+            "fontSize": {
+              "description": "Font size",
+              "type": "number"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "data"
       ]
     },
     "FunctionBlock": {

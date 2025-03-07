@@ -13,4 +13,5 @@ export enum BlockType {
   LogicJunction = "logic_junction",
   LogicComparison = "logic_comparison",
   MathOperation = "math_operation",
+  Comment = "comment",
 }

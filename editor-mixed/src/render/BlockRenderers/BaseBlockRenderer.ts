@@ -206,6 +206,11 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
   ): SvgResult {
     return this.clipContent(registered, () => {
       switch (registered.block.type) {
+        case BlockType.Comment:
+          return this.renderContentComment(
+            registered as RegisteredBlock<BlockType.Comment, any>,
+            props
+          )
         case BlockType.Function:
           return this.renderContentFunction(
             registered as RegisteredBlock<BlockType.Function, any>,
@@ -334,6 +339,14 @@ export abstract class BaseBlockRenderer extends PropertiesBlockRenderer {
   }
 
   //#region Block Contents
+
+  /** Override this to customize how the content of **comment** blocks is rendered */
+  protected renderContentComment(
+    registered: RegisteredBlock<BlockType.Comment, any>,
+    props: InternalBlockRenderProps
+  ): SvgResult {
+    return this.renderDefaultContent(registered, props)
+  }
 
   /** Override this to customize how the content of **function** blocks is rendered */
   protected renderContentFunction(

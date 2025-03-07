@@ -10,6 +10,7 @@ import {
   LogicComparisonOperator,
   LogicJunctionMode,
   MathOperation,
+  type BlockDataComment,
 } from "../../blocks/configuration/BlockData"
 import { DataType, isArrayType, simpleTypeFromArrayType } from "../../blocks/configuration/DataType"
 import { DefinedExpressionData } from "../../blocks/configuration/DefinedExpression"
@@ -63,7 +64,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         this.addContainerCutouts(rectangle, size)
 
         const path = rectangle.generatePath()
-        const stroke = this.determineContainerStroke(marking)
+        const stroke = this.determineContainerStroke(block, marking)
 
         return svg`
       <path
@@ -185,6 +186,8 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
 
   private determineContainerFill(block: AnyBlock): string {
     switch (block.type) {
+      case BlockType.Comment:
+        return (block.data as BlockDataComment).backgroundColor ?? "#fff"
       case BlockType.Function:
       case BlockType.FunctionInvoke:
         return "#ff9b30"
@@ -209,7 +212,18 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     }
   }
 
-  private determineContainerStroke(marking: BlockMarking | null): { color: string; width: number } {
+  private determineContainerStroke(
+    block: AnyBlock,
+    marking: BlockMarking | null
+  ): { color: string; width: number } {
+    if (
+      block.type == BlockType.Comment &&
+      block.data &&
+      "borderColor" in block.data &&
+      block.data.borderColor
+    ) {
+      return { color: block.data.borderColor, width: 2 }
+    }
     switch (marking) {
       case BlockMarking.Executing:
         return { color: "#355F3B", width: 3 }
@@ -224,6 +238,25 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
     return svg`<text x=${size.fullWidth / 2} y=${size.fullHeight / 2} fill="white" alignment-baseline="middle" text-anchor="middle" font-family="monospace">
       ${block.data && "name" in block.data ? block.data.name : block.type}
     </text>`
+  }
+
+  protected override renderContentComment(
+    registered: RegisteredBlock<BlockType.Comment, any>,
+    _props: InternalBlockRenderProps
+  ): SvgResult {
+    const { block, size } = registered
+    return svg`
+      <text 
+        x=${size.fullWidth / 2} 
+        y=${size.fullHeight / 2} 
+        fill=${block.data.textColor ?? "black"} 
+        font-size=${block.data.fontSize ?? 12}
+        alignment-baseline="middle" 
+        text-anchor="middle" 
+        font-family="monospace"
+        font-weight="400"
+      >${block.data.value}</text>
+    `
   }
 
   protected override renderContentFunction(

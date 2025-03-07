@@ -1,5 +1,6 @@
 import type { AnyBlock } from "../../blocks/Block"
 import type {
+  BlockDataComment,
   BlockDataExpression,
   BlockDataFunction,
   BlockDataValue,
@@ -111,6 +112,8 @@ export class KuteLayouter extends BaseLayouter {
 
     if (block.type == BlockType.Variable) {
       size.addWidth(WidthProp.Left, (block.data as BlockDataVariable).name.length * 7.9 + 12)
+    } else if (block.type == BlockType.Comment) {
+      size.addWidth(WidthProp.Left, (block.data as BlockDataComment).value.length * 7.9 + 8)
     } else if (block.type == BlockType.Function) {
       size.addWidth(WidthProp.Left, MIN_WIDTH - INNER_WIDTH)
       const data = block.data as BlockDataFunction
