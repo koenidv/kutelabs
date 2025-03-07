@@ -11,7 +11,7 @@
       "alt": "Crossed fingers to show my promise to create nicer images for these stories"
     },
     "dialog": {
-      "static": "todo: challenge inputs / entrypoint params"
+      "static": "todo: write about types"
     },
     "confetti": true
   },
@@ -24,13 +24,201 @@
       "args": [
         []
       ],
-      "run": {}
+      "run": {
+        "run": {
+          "description": "Run the code",
+          "function": "()=>true"
+        }
+      }
     }
   ],
   "editor": {
     "type": "mixed",
-    "initialBlocks": [],
-    "initialDrawerBlocks": [],
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 50,
+          "y": 200
+        },
+        "block": {
+          "type": "function",
+          "data": {
+            "name": "main",
+            "params": []
+          },
+          "connectedBlocks": [
+            {
+              "on": "inner",
+              "type": "variable_init",
+              "data": {
+                "name": "aString",
+                "type": "string",
+                "nameEditable": false,
+                "typeEditable": false
+              },
+              "connectedBlocks": [
+                {
+                  "on": "input",
+                  "type": "value",
+                  "data": {
+                    "value": "String: for text",
+                    "type": "string"
+                  }
+                },
+                {
+                  "on": "after",
+                  "type": "variable_init",
+                  "data": {
+                    "name": "anInt",
+                    "type": "int",
+                    "nameEditable": false,
+                    "typeEditable": false
+                  },
+                  "connectedBlocks": [
+                    {
+                      "on": "input",
+                      "type": "value",
+                      "data": {
+                        "value": 42,
+                        "type": "int"
+                      }
+                    },
+                    {
+                      "on": "after",
+                      "type": "variable_init",
+                      "data": {
+                        "name": "aFloat",
+                        "type": "float",
+                        "nameEditable": false,
+                        "typeEditable": false
+                      },
+                      "connectedBlocks": [
+                        {
+                          "on": "input",
+                          "type": "value",
+                          "data": {
+                            "value": 3.142,
+                            "type": "float"
+                          }
+                        },
+                        {
+                          "on": "after",
+                          "type": "variable_init",
+                          "data": {
+                            "name": "aBoolean",
+                            "type": "boolean",
+                            "nameEditable": false,
+                            "typeEditable": false
+                          },
+                          "connectedBlocks": [
+                            {
+                              "on": "input",
+                              "type": "value",
+                              "data": {
+                                "value": true,
+                                "type": "boolean"
+                              }
+                            } 
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "coordinates": {
+          "x": 455,
+          "y": 254
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "String is a text",
+            "borderColor": "#ff9b30"
+          },
+          "draggable": false
+        }
+      },
+      {
+        "coordinates": {
+          "x": 455,
+          "y": 333
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "Int is a whole number",
+            "borderColor": "#ff9b30"
+          },
+          "draggable": false
+        }
+      },
+      {
+        "coordinates": {
+          "x": 455,
+          "y": 412
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "Float is a decimal number",
+            "borderColor": "#ff9b30"
+          },
+          "draggable": false
+        }
+      },
+      {
+        "coordinates": {
+          "x": 590,
+          "y": 448
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "↖",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "fontSize": 18
+          },
+          "draggable": false
+        }
+      },
+      {
+        "coordinates": {
+          "x": 589,
+          "y": 460
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "these are the numbers with a dot",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent"
+          },
+          "draggable": false
+        }
+      },
+      {
+        "coordinates": {
+          "x": 407,
+          "y": 491
+        },
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "Boolean is a yes or no",
+            "borderColor": "#ff9b30"
+          },
+          "draggable": false
+        }
+      }
+    ],
+    "hideDrawer": true,
     "mainFunction": "main"
   }
 }

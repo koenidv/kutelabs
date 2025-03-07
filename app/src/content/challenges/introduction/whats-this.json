@@ -11,7 +11,7 @@
       "alt": "A cute human-like monster character looking astonished and throwing up a rainbow"
     },
     "dialog": {
-      "static": "Hey, good to see you! I'm Boozle :)  \n  Really cool that you want to learn programming.\n\n Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.\n\n_For now, just follow my steps:_\n\n1. Drag the text input block to that really wide blue block\n2. Enter your name in the input\n3. Click the run button\n\n**Let's see what happens!**"
+      "static": "Hey, good to see you! I'm Boozle :)  \n  Really cool that you want to learn programming.\n\n Don't worry if all these blocks look more scary than I do - I'll explain it all in a bit.\n\n_For now, just follow my steps:_\n\n1. Drag the text input block to that really wide turquoise block\n2. Enter your name in the input\n3. Click the run button\n\n**Let's see what happens!**"
     },
     "confetti": true
   },
