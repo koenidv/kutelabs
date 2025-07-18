@@ -77,7 +77,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         if (err.message.includes("Unauthorized")) {
           displayMessage("Please sign in", "error", { single: true })
         } else {
-          displayMessage("Please check your connection", "error", { single: true })
+          displayMessage("Transpilation currently unavailable", "error", { single: true })
         }
       })
   }
