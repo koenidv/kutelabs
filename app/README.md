@@ -18,14 +18,15 @@ A staging environment for `main` is available at [main--kutelabs.netlify.app](ht
 
 ## Environment Variables
 
-| Variable                       | Description                                          | Default                          |
-| ------------------------------ | ---------------------------------------------------- | -------------------------------- |
-| `PUBLIC_API_BASE_URL`          | API base url                                         | `https://api.kutelabs.koeni.dev` |
-| `PUBLIC_POSTHOG_API_KEY`       | PostHog key                                          | _undefined_                      |
-| `SENTRY_DSN`                   | Sentry DSN _cannot be specified using dotenv_        | _undefined_                      |
-| `SENTRY_AUTH_TOKEN`            | Sentry Auth Token _cannot be specified using dotenv_ | _undefined_                      |
-| `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key for authentication.                 | _undefined_                      |
-| `CLERK_SECRET_KEY`             | Clerk secret key for authentication.                 | _undefined_                      |
+| Variable                       | Description                                             | Default                          |
+| ------------------------------ | ------------------------------------------------------- | -------------------------------- |
+| `PUBLIC_API_BASE_URL`          | API base url                                            | `https://api.kutelabs.koeni.dev` |
+| `PUBLIC_POSTHOG_API_KEY`       | PostHog key                                             | _undefined_                      |
+| `SENTRY_DSN`                   | Sentry DSN _cannot be specified using dotenv_           | _undefined_                      |
+| `SENTRY_AUTH_TOKEN`            | Sentry Auth Token _cannot be specified using dotenv_    | _undefined_                      |
+| `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key for authentication.                    | _undefined_                      |
+| `CLERK_SECRET_KEY`             | Clerk secret key for authentication.                    | _undefined_                      |
+| `TRANSPILATION_BACKEND`        | Use kute server or Kotlin playground (KUTE\|PLAYGROUND) | KUTE                             |
 
 ## Challenge Execution
 
