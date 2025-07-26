@@ -1,11 +1,8 @@
 export class PlaygroundPostprocessor {
-  value: string
+  value: string = ""
 
-  constructor(transpiled: string) {
+  process(transpiled: string): string {
     this.value = transpiled
-  }
-
-  run(): string {
     return this.removeWrapperCall().removeDefaultOutput().alwaysFlushBuffer().value
   }
 

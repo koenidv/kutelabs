@@ -26,7 +26,6 @@ A staging environment for `main` is available at [main--kutelabs.netlify.app](ht
 | `SENTRY_AUTH_TOKEN`            | Sentry Auth Token _cannot be specified using dotenv_    | _undefined_                      |
 | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key for authentication.                    | _undefined_                      |
 | `CLERK_SECRET_KEY`             | Clerk secret key for authentication.                    | _undefined_                      |
-| `TRANSPILATION_BACKEND`        | Use kute server or Kotlin playground (KUTE\|PLAYGROUND) | KUTE                             |
 
 ## Challenge Execution
 

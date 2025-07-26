@@ -56,6 +56,7 @@ or use the provided compose file.
 | `PORT`                   | The port to listen on.                                                               | `3000`                       |
 | `ENV`                    | Environment hint: `development` or `production`.                                     | _undefined_                  |
 | `APP_ORIGIN`             | Origin of the app for CORS and CSRF.                                                 | `https://kutelabs.koeni.dev` |
+| `TRANSPILATION_BACKEND`  | Use kute server or Kotlin playground (KUTE \| PLAYGROUND)                            | KUTE                         |
 | `TRANSPILER_NAME`        | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`        |
 | `TRANSPILER_MEMORY`      | Memory limit for the transpiler container.                                           | `768m`                       |
 | `TRANSPILER_MEMORY_SWAP` | Memory swap limit for the transpiler container.                                      | `768m`                       |

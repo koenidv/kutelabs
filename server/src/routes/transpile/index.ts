@@ -11,6 +11,7 @@ import { env } from "../../env"
 import { restoreBlockIds, standardizeBlockIds } from "../../transpile/standardizeBlockIds"
 import { RequestError, TranspilationStatus } from "./Status"
 import { transpile } from "../../transpile/transpile"
+import { transpileOnPlayground } from "../../transpile/transpileOnPlayground"
 import { ResultDTO } from "./ResultDTO"
 import { getAuth } from "@hono/clerk-auth"
 
@@ -21,6 +22,7 @@ app.post("/kt/js", async c => {
   const body = await c.req.raw.clone().json()
   const auth = getAuth(c)
 
+  
   if (!auth?.userId) {
     c.status(401)
     return c.json(ResultDTO.error(RequestError.Unauthorized))
@@ -33,11 +35,12 @@ app.post("/kt/js", async c => {
   const { code, ids: standardizedBlockIds } = standardizeBlockIds(body.kotlinCode)
   const includeCoroutineLib = body.includeCoroutineLib ?? true
   const generateSourceMap = body.generateSourceMap ?? false
-
+  const entrypoint = body.entrypoint ?? "main"
+  
   const ipHash = Bun.hash(getConnInfo(c).remote.address ?? "").toString() ?? "anynomous"
   // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
-  const inputID = [code, generateSourceMap ? "sourcemap" : ""]
-
+  const inputID = [code, generateSourceMap ? "sourcemap" : "", entrypoint, includeCoroutineLib]
+  
   if (env.CACHE_ENABLED && (await existsInCache(inputID))) {
     posthog.capture({
       distinctId: ipHash,
@@ -49,16 +52,18 @@ app.post("/kt/js", async c => {
         server: env.POSTHOG_IDENTIFIER,
       },
     })
-
+    
     return c.json(
       (await readTranspiledCache(inputID)).postProcess(code =>
         restoreBlockIds(code, standardizedBlockIds)
       )
     )
   }
-
+  
   const dto = ResultDTO.fromTranspilationResult(
-    await transpile(code, includeCoroutineLib, generateSourceMap)
+    env.TRANSPILATION_BACKEND === "KUTE"
+      ? await transpile(code, entrypoint, includeCoroutineLib, generateSourceMap)
+      : await transpileOnPlayground(code, entrypoint)
   )
   if (shouldCache(dto.status)) await writeTranspiledCache(inputID, dto)
 

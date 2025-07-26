@@ -123,7 +123,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     this.running.set(true)
     editorLoadingState.set(true)
 
-    transpileKtJs(this.abortController, compiled.code)
+    transpileKtJs(this.abortController, compiled.code, compiled.entrypoint)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -139,7 +139,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
         this.testRunner
           .execute(transpiled.transpiledCode, {
             argNames: compiled.argNames,
-            entrypoint: `transpiled.${compiled.entrypoint}`,
+            entrypoint: transpiled.entrypoint ?? `transpiled.${compiled.entrypoint}`,
             callbacks: callbacks,
             executionDelay: executionDelay[this.speed.get()],
             timeout: 1000,

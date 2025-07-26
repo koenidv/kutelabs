@@ -4,18 +4,20 @@ import { checkRunscEnvironment } from "./checkRunscEnv"
 import { checkTranspilerImage } from "./checkTranspilerImage"
 import { TranspilationStatus } from "../routes/transpile/Status"
 import { readOutputFile, readSourceMap, withTempDir, writeInputFile } from "./transpileUtils"
+import type { TranspilationResult } from "./transpile.types"
 
-export type TranspilationResult = {
-  status: TranspilationStatus
-  transpiled?: string
-  sourcemap?: string
-  message?: string
+let withRunsc = false
+if (env.TRANSPILATION_BACKEND === "KUTE") {
+  withRunsc = await checkRunscEnvironment()
+  await checkTranspilerImage()
 }
 
-const withRunsc = await checkRunscEnvironment()
-await checkTranspilerImage()
-
-export async function transpile(code: string, coroutineLib = true, sourcemap = false): Promise<TranspilationResult> {
+export async function transpile(
+  code: string,
+  entrypoint: string,
+  coroutineLib = true,
+  sourcemap = false
+): Promise<TranspilationResult> {
   return withTempDir(
     async (relative, absolute) => {
       await writeInputFile(absolute, code)
@@ -33,11 +35,15 @@ export async function transpile(code: string, coroutineLib = true, sourcemap = f
       )
 
       if (processResult.status !== TranspilationStatus.Success)
-        return { status: processResult.status, message: processResult.message }
+        return {
+          status: processResult.status,
+          message: processResult.message ?? "Compilation failed",
+        }
 
       return {
         status: processResult.status,
         transpiled: await readOutputFile(absolute),
+        entrypoint: `transpiled.${entrypoint}`,
         sourcemap: sourcemap ? await readSourceMap(absolute) : undefined,
       }
     },

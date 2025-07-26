@@ -19,9 +19,7 @@ import {
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
 import { preprocessKotlin } from "./preprocessKotlin"
-import { transpileKtJs, transpileKtJsOnKotlinPlay } from "./transpile"
-import { PlaygroundPostprocessor } from "./PlaygroundPostprocessor"
-import { TRANSPILATION_BACKEND } from "astro:env/client"
+import { transpileKtJs } from "./transpile"
 
 const ORIGINAL_SOURCE_NAME = "code.kt"
 const FALLBACK_FIND_ORIGINAL_MAX_DELTA = 5
@@ -44,31 +42,17 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     this.running.set(true)
     editorLoadingState.set(true)
 
-    switch (TRANSPILATION_BACKEND) {
-      case "KUTE":
-        this.runFromKuteBackend(editor, code, this.abortController)
-        break
-      case "PLAYGROUND":
-        this.runFromKotlinPlayBackend(editor, code)
-        break
-      default: {
-        displayMessage("Transpilation backend not supported", "error", { single: true })
-        this.running.set(false)
-        editorLoadingState.set(false)
-        this.runFailed.set(true)
-        return
-      }
-    }
+    this.transpileAndRun(editor, code, this.abortController)
   }
 
-  private runFromKuteBackend(
+  private transpileAndRun(
     editor: EditorCodeInterface,
     code: string,
     abortController: AbortController
   ) {
     const preprocessed = preprocessKotlin(code)
     this.preprocessSourceMap = preprocessed.sourceMap
-    transpileKtJs(abortController, preprocessed.code, false, true)
+    transpileKtJs(abortController, preprocessed.code, "main", false, true)
       .then(transpiled => {
         if (
           transpiled === null ||
@@ -82,10 +66,12 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         this.editorRef.get().clearHighlight()
         this.runFailed.set(false)
 
+        // todo handle transpiler hints and no sourcemap
+
         this.transpileSourceMap = transpiled.sourceMap
         this.testRunner.execute(transpiled.transpiledCode, {
           argNames: editor.argnames(),
-          entrypoint: `transpiled.${editor.entrypoint()}`,
+          entrypoint: transpiled.entrypoint ?? `transpiled.${editor.entrypoint()}`,
           callbacks: filterCallbacks([], appFeatures), // todo app features, these will also have to be defined before the kotlin code
           timeout: 1000,
         })
@@ -105,29 +91,6 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
       })
   }
 
-  // todo abstract this
-  private runFromKotlinPlayBackend(editor: EditorCodeInterface, code: string) {
-    transpileKtJsOnKotlinPlay(this.abortController, code).then(transpiled => {
-      if (!transpiled?.jsCode) {
-        return this.onTranspilationError(null, editor.entrypoint())
-      }
-
-      const processed = new PlaygroundPostprocessor(transpiled.jsCode).run()
-
-      editorLoadingState.set(false)
-      clearMessages()
-      this.editorRef.get().clearHighlight()
-      this.runFailed.set(false)
-
-      this.testRunner.execute(processed, {
-        argNames: editor.argnames(),
-        entrypoint: `playground.main`, // fixme will not work with different entrypoints
-        callbacks: filterCallbacks([], appFeatures), // todo app features, these will also have to be defined before the kotlin code
-        timeout: 1000,
-      })
-    })
-  }
-
   public printKt() {
     console.log(this.editorRef.get().code())
   }
@@ -135,7 +98,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
   public printJs() {
     editorLoadingState.set(true)
     this.running.set(true)
-    transpileKtJs(this.abortController, this.editorRef.get().code() ?? "")
+    transpileKtJs(this.abortController, this.editorRef.get().code() ?? "", "main")
       .then(transpiled => {
         editorLoadingState.set(false)
         console.log(transpiled?.transpiledCode)
