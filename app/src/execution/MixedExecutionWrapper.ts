@@ -80,7 +80,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
         const causingBlockId = findBlockByLine(compiled.code.split("\n"), parsed.line)
         if (causingBlockId) {
           this.onBlockError(
-            causingBlockId,
+            [causingBlockId],
             "Error during code processing" + parsed.message ? ": " + parsed.message : "",
             "Please check the highlighted block."
           )
@@ -195,7 +195,7 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     if (!editor || !this.lastRunCode) throw new Error("Editor not found")
     const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
     if (!causingBlockId) throw new Error("No block id found")
-    this.onBlockError(causingBlockId, message)
+    this.onBlockError([causingBlockId], message)
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {
