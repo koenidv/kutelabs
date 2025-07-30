@@ -32,15 +32,17 @@ function mapTranspilationResult(
   entrypoint: string
 ): ErrorResult | SuccessResultPlayground {
   const errors = (result.errors["File.kt"] || []).filter(
-    e => !e.message.includes("@kotlin.js.ExperimentalJsExport")
+    e =>
+      !e.message.includes("@kotlin.js.ExperimentalJsExport") &&
+      !e.message.includes("'_reject: (Throwable) -> Unit' is never used")
   )
 
   if (result.jsCode === null) {
-    const singleErrorMessage =
-      errors.length === 1 ? errors[0].message : undefined
+    const singleErrorMessage = errors.length === 1 ? errors[0].message : undefined
     return {
       status: TranspilationStatus.CompilationError,
       message: result.exception || singleErrorMessage || "Compilation failed",
+      transpilerHints: errors
     }
   }
 

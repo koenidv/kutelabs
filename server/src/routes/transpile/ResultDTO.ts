@@ -32,14 +32,16 @@ export class ResultDTO implements ResultDtoInterface {
 
   public static error(
     status: TranspilationStatus | RequestError,
-    message: string | null = null
+    message: string | null = null,
+    transpilerHints: TranspilerHint[] | null = null
   ): ResultDTO {
-    return new ResultDTO(status, null, null, null, null, message)
+    return new ResultDTO(status, null, null, null, transpilerHints, message)
   }
 
   public static fromTranspilationResult(result: TranspilationResult): ResultDTO {
     switch (result.status) {
       case TranspilationStatus.Success:
+        console.debug("Transpilation successful")
         return new ResultDTO(
           TranspilationStatus.Success,
           result.transpiled,
@@ -49,8 +51,12 @@ export class ResultDTO implements ResultDtoInterface {
         )
       case TranspilationStatus.CompilationError:
       case TranspilationStatus.Timeout:
-        console.error("Compilation error", result, result.message)
-        return ResultDTO.error(result.status, trimErrorMessage(result.message))
+        console.debug("Transpilation failed:", result.message)
+        return ResultDTO.error(
+          result.status,
+          trimErrorMessage(result.message),
+          result.transpilerHints
+        )
       default:
         console.error("Unknown error", result.message)
         return ResultDTO.error(
@@ -65,9 +71,11 @@ export class ResultDTO implements ResultDtoInterface {
     return this
   }
 
-  public setAsCached(): this {
-    this.cached = true
-    return this
+  public cloneCached(): ResultDTO {
+    if (this.cached) return this
+    const clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this) as ResultDTO
+    clone.cached = true
+    return clone
   }
 
   public toString(): string {

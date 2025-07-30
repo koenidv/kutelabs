@@ -11,6 +11,7 @@ async function baseCacheDir() {
 }
 
 export function shouldCache(status: TranspilationStatus | RequestError) {
+  if (!env.CACHE_ENABLED) return false
   return status === TranspilationStatus.Success || status === TranspilationStatus.CompilationError
 }
 
@@ -25,7 +26,7 @@ export async function writeTranspiledCache(inputOptions: string[], output: Resul
     await writeFile(
       await baseCacheDir(),
       hash(inputOptions.join()).toString(),
-      output.setAsCached().toString()
+      output.cloneCached().toString()
     )
   } catch (e) {
     console.error(e)

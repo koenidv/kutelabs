@@ -9,6 +9,7 @@ export type ErrorResult = {
     | TranspilationStatus.EmptyInput
     | TranspilationStatus.UnknownError
   message: string
+  transpilerHints?: TranspilerHint[]
 }
 
 export type SuccessResultKute = {

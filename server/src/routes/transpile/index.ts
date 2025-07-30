@@ -40,6 +40,7 @@ app.post("/kt/js", async c => {
   // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
   const inputID = [code, generateSourceMap ? "sourcemap" : "", entrypoint, includeCoroutineLib]
 
+  
   if (env.CACHE_ENABLED && (await existsInCache(inputID))) {
     posthog.capture({
       distinctId: ipHash,
