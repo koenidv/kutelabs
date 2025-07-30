@@ -1,20 +1,20 @@
 <script lang="ts">
+  import Icon, { loadIcons } from "@iconify/svelte"
   import type { PrismEditor } from "prism-code-editor"
   import { onMount } from "svelte"
+  import { fade } from "svelte/transition"
   import type { CodeEditorConfiguration } from "../schema/challenge"
   import { editorLoadingState, editorRef } from "../state/state"
-  import { fade } from "svelte/transition"
-  import Icon, { loadIcons } from "@iconify/svelte"
 
   import { createEditor } from "prism-code-editor"
-  import { indentGuides } from "prism-code-editor/guides"
-  import { matchTags } from "prism-code-editor/match-tags"
-  import { matchBrackets } from "prism-code-editor/match-brackets"
   import { defaultCommands, editHistory, setIgnoreTab } from "prism-code-editor/commands"
+  import { indentGuides } from "prism-code-editor/guides"
   import { highlightBracketPairs } from "prism-code-editor/highlight-brackets"
+  import { matchBrackets } from "prism-code-editor/match-brackets"
+  import { matchTags } from "prism-code-editor/match-tags"
 
-  import "prism-code-editor/prism/languages/kotlin"
   import "prism-code-editor/layout.css"
+  import "prism-code-editor/prism/languages/kotlin"
   import "prism-code-editor/scrollbar.css"
   import "prism-code-editor/themes/github-dark.css"
 
@@ -64,14 +64,27 @@
   function highlightToken(lineElement: Element, column: number) {
     let currentColumn = 0
     let highlighted = false
-    lineElement.querySelectorAll(".token").forEach(token => {
+
+    lineElement.childNodes.forEach(node => {
       if (highlighted) return
-      const tokenLength = token.textContent?.length ?? 0
-      if (currentColumn + tokenLength >= column) {
-        token.classList.add("error-token")
-        return (highlighted = true)
+
+      const textContent = node.textContent ?? ""
+      const nodeLength = textContent.length
+
+      if (currentColumn + nodeLength > column) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const errorSpan = document.createElement("span")
+          errorSpan.className = "error-token"
+          errorSpan.textContent = textContent === "\n" ? "  " : textContent
+
+          node.parentNode!.replaceChild(errorSpan, node)
+        } else if (node instanceof Element) {
+          ;(node as HTMLElement).classList.add("error-token")
+        }
+        highlighted = true
+      } else {
+        currentColumn += nodeLength
       }
-      currentColumn += tokenLength
     })
   }
 

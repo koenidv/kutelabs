@@ -125,6 +125,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
+  // todo make this work when using the playground transpiler backend
   protected async onUserCodeError(message: string, line: number, column: number) {
     this.running.set(false)
     this.runFailed.set(true)
@@ -178,21 +179,72 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
       this.running.set(false)
       editorLoadingState.set(false)
       this.runFailed.set(true)
-      if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
+      this.editorRef.get().clearHighlight()
+      if (transpiled == null) throw new Error("No transpilation result")
 
-      if (transpiled.status == TranspilationStatus.CompilationError) {
-        const line = this.matchLineInTranspilationError(transpiled.message)
-        displayMessage(`Please check line ${line}`, "error", { single: true })
+      if (transpiled.status != TranspilationStatus.CompilationError) {
+        displayMessage("An error occurred", "error", { single: true })
+        console.error(transpiled.status, transpiled)
+      }
+
+      const lines = this.findCompilerErrorLines(transpiled)
+
+      if (typeof lines === "number") {
+        displayMessage(`Please check line ${lines}`, "error", { single: true })
         addLog([transpiled.message], "error")
         return
       }
 
-      // todo (1) generate sourcemap on server, (2) use it to highlight the error
-      displayMessage("Transpilation failed", "error", { single: true })
+      if (Array.isArray(lines) && lines.length > 0) {
+        if (!this.preprocessSourceMap) throw new Error("No preprocess source map available")
+        const preprocessConsumer = new SourceMapConsumer(this.preprocessSourceMap)
+        for (const el of lines) {
+          const originalPosition = preprocessConsumer.originalPositionFor({
+            line: el.line + 1,
+            column: el.ch,
+          })
+          addLog([`${originalPosition.line}:${el.ch} - ${el.message}`], "error")
+          this.editorRef.get().highlight(
+            originalPosition.line,
+            el.ch // columns are not modified by preprocessing
+          )
+        }
+        if (lines.length === 1) {
+          const prefix = lines[0].message.includes(": ") ? lines[0].message.split(": ")[0] + " in line" : "Please check line"
+          displayMessage(
+            `${prefix} ${preprocessConsumer.originalPositionFor({ line: lines[0].line + 1, column: lines[0].ch }).line}`,
+            "error",
+            { single: true }
+          )
+        } else {
+          displayMessage("Please check the highlighted lines", "error", { single: true })
+        }
+        return
+      }
+
+      displayMessage("Please check your code", "error", { single: true })
       console.error("Transpilation failed", transpiled)
-    } catch {
-      displayMessage("Transpilation failed", "error", { single: true })
-      console.error("Transpilation failed", transpiled)
+    } catch (e) {
+      displayMessage("An error occurred", "error", { single: true })
+      console.error(e, transpiled)
     }
+  }
+
+  private findCompilerErrorLines(
+    transpiled: ResultDtoInterface
+  ): number | { line: number; ch: number; message: string }[] | null {
+    if (transpiled.message) {
+      const line = this.matchLineInTranspilationError(transpiled.message)
+      if (line) return line
+    }
+    if (transpiled.transpilerHints && transpiled.transpilerHints.length > 0) {
+      const errors = transpiled.transpilerHints.filter(h => h.severity === "ERROR")
+      return errors.map(e => ({
+        line: e.interval.start.line,
+        ch: e.interval.start.ch,
+        message: e.message,
+      }))
+    }
+    return null
   }
 }
