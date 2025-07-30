@@ -36,6 +36,23 @@
     "type": "mixed",
     "initialBlocks": [
       {
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "  Just run it!",
+            "rotation": 5,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "fontSize": 16
+          },
+          "draggable": false
+        },
+        "coordinates": {
+          "x": 330,
+          "y": 250
+        }
+      },
+      {
         "coordinates": {
           "x": 190,
           "y": 250

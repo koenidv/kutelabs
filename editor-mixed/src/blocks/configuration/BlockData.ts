@@ -34,6 +34,7 @@ export type BlockDataComment = {
   backgroundColor?: string
   borderColor?: string
   fontSize?: number
+  rotation?: number
 }
 
 /*

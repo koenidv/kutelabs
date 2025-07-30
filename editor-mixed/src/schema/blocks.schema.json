@@ -157,6 +157,11 @@
             "fontSize": {
               "description": "Font size",
               "type": "number"
+            },
+            "rotation": {
+              "description": "Rotation of the comment block",
+              "type": "number",
+              "default": 0
             }
           },
           "required": [

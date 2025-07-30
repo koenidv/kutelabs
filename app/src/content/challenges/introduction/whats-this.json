@@ -38,6 +38,23 @@
     "type": "mixed",
     "initialBlocks": [
       {
+        "block": {
+          "type": "comment",
+          "data": {
+            "value": "→ ",
+            "rotation": 195,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "fontSize": 36
+          },
+          "draggable": false
+        },
+        "coordinates": {
+          "x": 420,
+          "y": 308
+        }
+      },
+      {
         "coordinates": {
           "x": 190,
           "y": 250

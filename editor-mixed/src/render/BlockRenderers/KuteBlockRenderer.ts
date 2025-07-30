@@ -255,6 +255,7 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         text-anchor="middle" 
         font-family="monospace"
         font-weight="400"
+        transform="rotate(${block.data.rotation ?? 0}, ${size.fullWidth / 2}, ${size.fullHeight / 2})"
       >${block.data.value}</text>
     `
   }
