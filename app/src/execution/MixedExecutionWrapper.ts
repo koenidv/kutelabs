@@ -202,34 +202,68 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     try {
       this.running.set(false)
       editorLoadingState.set(false)
-      if (transpiled == null || !transpiled.message) throw new Error("No transpilation message")
+      if (!transpiled) throw new Error("No transpilation result")
+      const lines = this.findCompilerErrorLines(transpiled)
+      if (!lines || lines.length === 0) {
+        throw new Error("No error lines found in transpilation result")
+      }
       const editor = editorRef.get()
       if (!editor) throw new Error("Editor not found")
 
-      const line = this.matchLineInTranspilationError(transpiled.message)
-      const causingBlockId = findBlockByLine(originalCode.split("\n"), line!)
-      if (!causingBlockId) throw new Error("No block id found")
-      this.onBlockError(
-        causingBlockId,
-        "Error during code processing: " + transpiled.message.includes("error: ")
-          ? transpiled.message.split("error: ")[1]
-          : transpiled.message,
-        "Please check the highlighted block."
-      )
-    } catch {
+      const causingBlockIds = lines
+        .map(it => findBlockByLine(originalCode.split("\n"), it))
+        .filter(it => {
+          if (it === null || it === undefined) {
+            console.error("Could not find block for line", it, "in code", originalCode)
+            return false
+          }
+          return true
+        }) as string[]
+
+      this.onBlockError(causingBlockIds, this.constructErrorDisplayMessage(transpiled, lines))
+    } catch (e) {
       displayMessage("Transpilation failed", "error", { single: true })
       this.runFailed.set(true)
-      console.error("Transpilation failed", transpiled)
+      console.error(e, transpiled)
     }
   }
 
-  private onBlockError(id: string, message: string, display: string | undefined = message) {
+  private findCompilerErrorLines(transpiled: ResultDtoInterface): number[] | null {
+    if (transpiled.message) {
+      const line = this.matchLineInTranspilationError(transpiled.message)
+      if (line) return [line]
+    }
+    if (transpiled.transpilerHints && transpiled.transpilerHints.length > 0) {
+      const errors = transpiled.transpilerHints.filter(h => h.severity === "ERROR")
+      return errors.map(e => e.interval.start.line)
+    }
+    return null
+  }
+
+  private constructErrorDisplayMessage(
+    transpiled: ResultDtoInterface,
+    lines: number[] | null
+  ): string {
+    if (!lines || lines.length == 0) return "Something's wrong with your code."
+    if (lines.length > 1) return `Please check the highlighted blocks.`
+    if (transpiled.message && transpiled.message.includes("error: ")) {
+      return `An error occurred: ${transpiled.message.split("error: ")[1]}. Please check the highlighted block.`
+    }
+    if (transpiled.message) {
+      return `An error occurred: ${transpiled.message}. Please check the highlighted block.`
+    }
+    return "Please check the highlighted block."
+  }
+
+  private onBlockError(ids: string[], message: string, display: string | undefined = message) {
     addLog([message], "error")
     this.runFailed.set(true)
     this.running.set(false)
     if (display) displayMessage(display, "error", { single: true })
-    console.error("Error from test runner for block", id, message)
     if (!editorRef.get()) throw new Error("Editor not found")
-    this.editorRef.get().getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
+    ids.forEach(id => {
+      console.error("Error from test runner for block", id, message)
+      this.editorRef.get().getExecutionCallbacks()["markBlock"]!(id, BlockMarking.Error)
+    }, this)
   }
 }

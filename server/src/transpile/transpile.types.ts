@@ -29,13 +29,15 @@ export type SuccessResultPlayground = {
 export type TranspilationResult = ErrorResult | SuccessResultKute | SuccessResultPlayground
 
 export type TranspilerHint = {
-  start: {
-    line: number
-    ch: number
-  }
-  end: {
-    line: number
-    ch: number
+  interval: {
+    start: {
+      line: number
+      ch: number
+    }
+    end: {
+      line: number
+      ch: number
+    }
   }
   message: string
   severity: "ERROR" | "WARNING" | "INFO"
