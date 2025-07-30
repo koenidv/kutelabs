@@ -93,59 +93,61 @@
     </div>
 
     {#if execution instanceof MixedExecutionWrapper}
-      <div
-        class="h-16 w-16 {$speed == 'fast'
-          ? 'pt-1 pl-1'
-          : ''} transition-[padding] duration-100 ease-out">
-        <ElevatedBox
-          elevation={$speed == "fast" ? 1 : 2}
-          hoverable={true}
-          label="Run your code"
-          className="w-14 h-14"
-          onClick={() => execution.setSpeed("fast")}>
-          <div
-            class="flex items-center justify-center w-full h-full {$speed == 'fast'
-              ? 'bg-beige-100'
-              : 'bg-beige-300'} transition-colors">
-            <FastIcon />
-          </div>
-        </ElevatedBox>
-      </div>
-      <div
-        class="h-16 w-16 {$speed == 'medium'
-          ? 'pt-1 pl-1'
-          : ''} transition-[padding] duration-100 ease-out">
-        <ElevatedBox
-          elevation={$speed == "medium" ? 1 : 2}
-          hoverable={true}
-          label="Run your code"
-          className="w-14 h-14"
-          onClick={() => execution.setSpeed("medium")}>
-          <div
-            class="flex items-center justify-center w-full h-full {$speed == 'medium'
-              ? 'bg-beige-100'
-              : 'bg-beige-300'} transition-colors">
-            <MediumIcon />
-          </div>
-        </ElevatedBox>
-      </div>
-      <div
-        class="h-16 w-16 {$speed == 'slow'
-          ? 'pt-1 pl-1'
-          : ''} transition-[padding] duration-100 ease-out">
-        <ElevatedBox
-          elevation={$speed == "slow" ? 1 : 2}
-          hoverable={true}
-          label="Run your code"
-          className="w-14 h-14"
-          onClick={() => execution.setSpeed("slow")}>
-          <div
-            class="flex items-center justify-center w-full h-full {$speed == 'slow'
-              ? 'bg-beige-100'
-              : 'bg-beige-300'} transition-colors">
-            <SlowIcon />
-          </div>
-        </ElevatedBox>
+      <div class="flex flex-row lg:flex-col gap-3 lg:gap-2 relative before:content-[''] before:bg-beige-500 before:bg-opacity-50 before:border-beige-500 before:border-4 before:absolute before:top-1 before:-bottom-1 before:left-1 before:-right-1">
+        <div
+          class="h-16 w-16 {$speed == 'fast'
+            ? 'pt-1 pl-1'
+            : ''} transition-[padding] duration-100 ease-out">
+          <ElevatedBox
+            elevation={$speed == "fast" ? 1 : 2}
+            hoverable={true}
+            label="Run your code"
+            className="w-14 h-14"
+            onClick={() => execution.setSpeed("fast")}>
+            <div
+              class="flex items-center justify-center w-full h-full {$speed == 'fast'
+                ? 'bg-beige-100'
+                : 'bg-beige-300'} transition-colors">
+              <FastIcon />
+            </div>
+          </ElevatedBox>
+        </div>
+        <div
+          class="h-16 w-16 {$speed == 'medium'
+            ? 'pt-1 pl-1'
+            : ''} transition-[padding] duration-100 ease-out">
+          <ElevatedBox
+            elevation={$speed == "medium" ? 1 : 2}
+            hoverable={true}
+            label="Run your code"
+            className="w-14 h-14"
+            onClick={() => execution.setSpeed("medium")}>
+            <div
+              class="flex items-center justify-center w-full h-full {$speed == 'medium'
+                ? 'bg-beige-100'
+                : 'bg-beige-300'} transition-colors">
+              <MediumIcon />
+            </div>
+          </ElevatedBox>
+        </div>
+        <div
+          class="h-16 w-16 {$speed == 'slow'
+            ? 'pt-1 pl-1'
+            : ''} transition-[padding] duration-100 ease-out">
+          <ElevatedBox
+            elevation={$speed == "slow" ? 1 : 2}
+            hoverable={true}
+            label="Run your code"
+            className="w-14 h-14"
+            onClick={() => execution.setSpeed("slow")}>
+            <div
+              class="flex items-center justify-center w-full h-full {$speed == 'slow'
+                ? 'bg-beige-100'
+                : 'bg-beige-300'} transition-colors">
+              <SlowIcon />
+            </div>
+          </ElevatedBox>
+        </div>
       </div>
       {#if !debugMenuOpen}
         <div class="hidden lg:flex pt-2 justify-center">
