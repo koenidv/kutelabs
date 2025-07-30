@@ -1,6 +1,6 @@
 import { $authStore } from "@clerk/astro/client"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
-import { PUBLIC_API_BASE_URL } from "astro:env/client"
+import { PUBLIC_API_BASE_URL, PUBLIC_TRANSPILE_REQUIRE_AUTH } from "astro:env/client"
 
 export async function transpileKtJs(
   abortController: AbortController,
@@ -10,14 +10,17 @@ export async function transpileKtJs(
   generateSourceMap = false
 ): Promise<ResultDtoInterface | null> {
   const token = await $authStore.get().session?.getToken()
-  if (!token) throw new Error("Unauthorized: Transpilation is only allowed when authenticated")
+  if (PUBLIC_TRANSPILE_REQUIRE_AUTH && !token)
+    throw new Error("Unauthorized: Transpilation is only allowed when authenticated")
 
   const res = await fetch(`${PUBLIC_API_BASE_URL}/transpile/kt/js`, {
     method: "post",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      Authorization: `Bearer ${await $authStore.get().session?.getToken()}`,
+      Authorization: PUBLIC_TRANSPILE_REQUIRE_AUTH
+        ? `Bearer ${await $authStore.get().session?.getToken()}`
+        : "public",
     },
     body: JSON.stringify({
       kotlinCode: code,

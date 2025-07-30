@@ -40,6 +40,7 @@ export default defineConfig({
       SECRET_SENTRY_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sntrys_" }),
       PUBLIC_CLERK_PUBLISHABLE_KEY: envField.string({ context: "client", access: "public", optional: false, startsWith: "pk_" }),
       CLERK_SECRET_KEY: envField.string({ context: "server", access: "secret", optional: false, startsWith: "sk_" }),
+      PUBLIC_TRANSPILE_REQUIRE_AUTH: envField.boolean({ context: "client", access: "public", optional: false, default: true }),
     }
   },
   markdown: {
