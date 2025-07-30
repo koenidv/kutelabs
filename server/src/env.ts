@@ -6,6 +6,7 @@ export const env = cleanEnv(process.env, {
   ENV: str({ choices: ["development", "undefined", "production"], default: "undefined" }),
   APP_ORIGIN: str({ default: "https://kutelabs.koeni.dev", devDefault: "http://localhost:4321" }),
   TRANSPILATION_BACKEND: str({ choices: ["KUTE", "PLAYGROUND"], default: "KUTE" }),
+  TRANSPILE_REQUIRE_AUTH: bool({ default: true }),
 
   DATA_DIR: str({ default: __dirname + "/data" }),
   DATA_VOLUME_NAME: str({ default: undefined }),

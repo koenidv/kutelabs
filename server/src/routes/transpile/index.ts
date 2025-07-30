@@ -22,8 +22,7 @@ app.post("/kt/js", async c => {
   const body = await c.req.raw.clone().json()
   const auth = getAuth(c)
 
-  
-  if (!auth?.userId) {
+  if (env.TRANSPILE_REQUIRE_AUTH && !auth?.userId) {
     c.status(401)
     return c.json(ResultDTO.error(RequestError.Unauthorized))
   }
@@ -36,11 +35,11 @@ app.post("/kt/js", async c => {
   const includeCoroutineLib = body.includeCoroutineLib ?? true
   const generateSourceMap = body.generateSourceMap ?? false
   const entrypoint = body.entrypoint ?? "main"
-  
+
   const ipHash = Bun.hash(getConnInfo(c).remote.address ?? "").toString() ?? "anynomous"
   // todo use same session id / user id in frontend and here https://posthog.com/questions/getting-current-session-id-or-recording-link
   const inputID = [code, generateSourceMap ? "sourcemap" : "", entrypoint, includeCoroutineLib]
-  
+
   if (env.CACHE_ENABLED && (await existsInCache(inputID))) {
     posthog.capture({
       distinctId: ipHash,
@@ -52,14 +51,14 @@ app.post("/kt/js", async c => {
         server: env.POSTHOG_IDENTIFIER,
       },
     })
-    
+
     return c.json(
       (await readTranspiledCache(inputID)).postProcess(code =>
         restoreBlockIds(code, standardizedBlockIds)
       )
     )
   }
-  
+
   const dto = ResultDTO.fromTranspilationResult(
     env.TRANSPILATION_BACKEND === "KUTE"
       ? await transpile(code, entrypoint, includeCoroutineLib, generateSourceMap)

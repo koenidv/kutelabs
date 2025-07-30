@@ -49,33 +49,34 @@ or use the provided compose file.
 
 ## Env
 
-| Variable                 | Description                                                                          | Default                      |
-| ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------- |
-| `DATA_VOLUME_NAME`       | Name of the volume used for shared data between server and transpiler.               | _undefined_                  |
-| `DATA_DIR`               | Absolute path instead of docker volume. Will be used if `DATA_VOLUME NAME` is unset. | `$(pwd)/data`                |
-| `PORT`                   | The port to listen on.                                                               | `3000`                       |
-| `ENV`                    | Environment hint: `development` or `production`.                                     | _undefined_                  |
-| `APP_ORIGIN`             | Origin of the app for CORS and CSRF.                                                 | `https://kutelabs.koeni.dev` |
-| `TRANSPILATION_BACKEND`  | Use kute server or Kotlin playground (KUTE \| PLAYGROUND)                            | KUTE                         |
-| `TRANSPILER_NAME`        | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`        |
-| `TRANSPILER_MEMORY`      | Memory limit for the transpiler container.                                           | `768m`                       |
-| `TRANSPILER_MEMORY_SWAP` | Memory swap limit for the transpiler container.                                      | `768m`                       |
-| `TRANSPILER_CPU`         | CPU limit for the transpiler container.                                              | _undefined_                  |
-| `TRANSPILER_TIMEOUT`     | Timeout for transpilation in milliseconds.                                           | `60000`                      |
-| `TRANSPILER_GVISOR`      | Enable gVisor sandbox for transpiler.                                                | `true`                       |
-| `CACHE_ENABLED`          | Enable caching of transpiled code.                                                   | `true`                       |
-| `POSTHOG_API_KEY`        | PostHog API key for analytics.                                                       | _undefined_                  |
-| `POSTHOG_HOST`           | PostHog host URL.                                                                    | `https://eu.i.posthog.com`   |
-| `POSTHOG_IDENTIFIER`     | Server identifier for PostHog.                                                       | `local`                      |
-| `SENTRY_DSN`             | Sentry DSN for error tracking.                                                       | _undefined_                  |
-| `DB_HOST`                | Postgres host.                                                                       | `localhost`                  |
-| `DB_PORT`                | Postgres port.                                                                       | `5432`                       |
-| `DB_USER`                | Postgres user.                                                                       | `kutelabs`                   |
-| `DB_PASSWORD`            | Postgres password.                                                                   | `kutelabs`                   |
-| `DB_NAME`                | Postgres database.                                                                   | `kutelabs`                   |
-| `DB_SSL`                 | Wether to use SSL for db connection                                                  | `false`                      |
-| `CLERK_PUBLISHABLE_KEY`  | Clerk publishable key for authentication.                                            | _undefined_                  |
-| `CLERK_SECRET_KEY`       | Clerk secret key for authentication.                                                 | _undefined_                  |
+| Variable                  | Description                                                                          | Default                      |
+| ------------------------- | ------------------------------------------------------------------------------------ | ---------------------------- |
+| `DATA_VOLUME_NAME`        | Name of the volume used for shared data between server and transpiler.               | _undefined_                  |
+| `DATA_DIR`                | Absolute path instead of docker volume. Will be used if `DATA_VOLUME NAME` is unset. | `$(pwd)/data`                |
+| `PORT`                    | The port to listen on.                                                               | `3000`                       |
+| `ENV`                     | Environment hint: `development` or `production`.                                     | _undefined_                  |
+| `APP_ORIGIN`              | Origin of the app for CORS and CSRF.                                                 | `https://kutelabs.koeni.dev` |
+| `TRANSPILATION_BACKEND`   | Use kute server or Kotlin playground (KUTE \| PLAYGROUND)                            | KUTE                         |
+| `TRANSPILE_REQUIRE_AUTH`  | Require Clerk authentication for transpilation requests.                             | `true`                       |
+| `TRANSPILER_NAME`         | Name of the transpiler image to use. Do not include a tag, will use latest.          | `kutelabs-transpiler`        |
+| `TRANSPILER_MEMORY`       | Memory limit for the transpiler container.                                           | `768m`                       |
+| `TRANSPILER_MEMORY_SWAP`  | Memory swap limit for the transpiler container.                                      | `768m`                       |
+| `TRANSPILER_CPU`          | CPU limit for the transpiler container.                                              | _undefined_                  |
+| `TRANSPILER_TIMEOUT`      | Timeout for transpilation in milliseconds.                                           | `60000`                      |
+| `TRANSPILER_GVISOR`       | Enable gVisor sandbox for transpiler.                                                | `true`                       |
+| `CACHE_ENABLED`           | Enable caching of transpiled code.                                                   | `true`                       |
+| `POSTHOG_API_KEY`         | PostHog API key for analytics.                                                       | _undefined_                  |
+| `POSTHOG_HOST`            | PostHog host URL.                                                                    | `https://eu.i.posthog.com`   |
+| `POSTHOG_IDENTIFIER`      | Server identifier for PostHog.                                                       | `local`                      |
+| `SENTRY_DSN`              | Sentry DSN for error tracking.                                                       | _undefined_                  |
+| `DB_HOST`                 | Postgres host.                                                                       | `localhost`                  |
+| `DB_PORT`                 | Postgres port.                                                                       | `5432`                       |
+| `DB_USER`                 | Postgres user.                                                                       | `kutelabs`                   |
+| `DB_PASSWORD`             | Postgres password.                                                                   | `kutelabs`                   |
+| `DB_NAME`                 | Postgres database.                                                                   | `kutelabs`                   |
+| `DB_SSL`                  | Wether to use SSL for db connection                                                  | `false`                      |
+| `CLERK_PUBLISHABLE_KEY`   | Clerk publishable key for authentication.                                            | _undefined_                  |
+| `CLERK_SECRET_KEY`        | Clerk secret key for authentication.                                                 | _undefined_                  |
 
 ## Tests
 
