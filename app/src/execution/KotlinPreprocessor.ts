@@ -1,5 +1,6 @@
 import { SourceMapGenerator, type RawSourceMap } from "source-map-js"
 import { addMapping, mergeSourceMaps } from "./sourceMapUtils"
+import type { AppFeatureKeysWithSignatures } from "./EnvironmentContext"
 
 const INPUT_NAME = "code.kt"
 
@@ -13,20 +14,46 @@ export class KotlinPreprocessor {
   private code: string = ""
   private sourceMap: SourceMapGenerator = new SourceMapGenerator({ file: INPUT_NAME })
 
-  preprocess(code: string): { code: string; sourceMap: RawSourceMap } {
+  preprocess(
+    code: string,
+    callbacks: AppFeatureKeysWithSignatures
+  ): { code: string; sourceMap: RawSourceMap } {
     this.code = code
-    this.initializeSourceMap()
-
     this.trimLines()
-    this.declareMethodExports()
+    this.initializeSourceMap()
+    
     this.insertDebugStatements()
-
+    this.declareMethodExports()
+    this.declareCallbacks(callbacks)
+    
+    this.sourceMap.setSourceContent(INPUT_NAME, code)
     return { code: this.code, sourceMap: this.sourceMap.toJSON() }
   }
 
   private trimLines(): void {
     const lines = this.code.split("\n").map(line => line.trim())
     this.code = lines.join("\n")
+  }
+
+  private declareCallbacks(callbacks: AppFeatureKeysWithSignatures): void {
+    const externalMethodsSourceMap = new SourceMapGenerator({ file: INPUT_NAME })
+    const lines = this.code.split("\n")
+    const processedLines: string[] = []
+    let accumulatedOffset = 0
+
+    Object.entries(callbacks).forEach(([callback, signature], index) => {
+      const externalMethod = `@JsName("${callback}")\nexternal fun ${callback}${signature}`
+      processedLines.push(externalMethod)
+      accumulatedOffset += 2
+    }, this)
+
+    lines.forEach((line, index) => {
+      processedLines.push(line)
+      addMapping(externalMethodsSourceMap, INPUT_NAME, index, index + accumulatedOffset)
+    })
+
+    this.code = processedLines.join("\n")
+    this.sourceMap = mergeSourceMaps(this.sourceMap, externalMethodsSourceMap)
   }
 
   private declareMethodExports(): void {
@@ -36,7 +63,7 @@ export class KotlinPreprocessor {
     let accumulatedOffset = 0
 
     lines.forEach((line, index) => {
-      const modified = line.replace(/fun \w+\(/g, (match, offset) => {
+      const modified = line.replace(/^\w*(?!external)fun \w+\(/g, (match, offset) => {
         addMapping(methodsSourceMap, INPUT_NAME, index, index + accumulatedOffset, offset, offset)
         accumulatedOffset++
         return `@JsExport\n${match}`
@@ -55,11 +82,7 @@ export class KotlinPreprocessor {
     const lines = this.code.split("\n")
     const processedLines: string[] = []
 
-    processedLines.push(
-      '@JsName("__lineExecutingCallback")\nexternal fun __lineExecutingCallback(line: Int): Unit'
-    )
-    let accumulatedOffset = 2
-
+    let accumulatedOffset = 0
     let blockDepth = 0
     let insideBlockComment = false
 
@@ -98,7 +121,7 @@ export class KotlinPreprocessor {
         !isBlockClosing &&
         !isTopLevel
       ) {
-        processedLines.push(`__lineExecutingCallback(${index})`)
+        processedLines.push(`__lineExecutingCallback(${index + 1})`)
         accumulatedOffset++
       }
 

@@ -17,7 +17,7 @@ import {
   editorRef,
 } from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
-import { appFeatures, filterCallbacks } from "./EnvironmentContext"
+import { appFeatures, filterCallbacks, getKotlinSignatures } from "./EnvironmentContext"
 import { transpileKtJs } from "./transpile"
 import { KotlinPreprocessor } from "./KotlinPreprocessor"
 
@@ -51,7 +51,11 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     code: string,
     abortController: AbortController
   ) {
-    const preprocessed = new KotlinPreprocessor().preprocess(code)
+    const enabledCallbacks = ["__lineExecutingCallback", ...(this.environment.appFeatures ?? [])]
+    const preprocessed = new KotlinPreprocessor().preprocess(
+      code,
+      getKotlinSignatures(enabledCallbacks)
+    )
 
     this.preprocessSourceMap = preprocessed.sourceMap
     transpileKtJs(abortController, preprocessed.code, "main", false, true)
@@ -68,10 +72,6 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         this.editorRef.get().clearHighlight()
         this.runFailed.set(false)
 
-        const enabledCallbacks = [
-          "__lineExecutingCallback",
-          ...(this.environment.appFeatures ?? []),
-        ]
         const callbacks = filterCallbacks(enabledCallbacks, {
           ...appFeatures,
           __lineExecutingCallback: this.lineExecutionCallback.bind(this),
@@ -181,9 +181,14 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
       return
     }
 
+    const position =
+      originalPosition.column >= 0
+        ? `${originalPosition.line}:${originalPosition.column}`
+        : `Line ${originalPosition.line}`
+
     displayMessage(`Line ${originalPosition.line}: ${indicator}`, "error", { single: true })
     this.editorRef.get().highlight(originalPosition.line, originalPosition.column)
-    addLog([`${originalPosition.line}:${originalPosition.column} - ${indicator}`], "error")
+    addLog([`${position} - ${indicator}`], "error")
   }
 
   private fallbackFindOriginalLine(

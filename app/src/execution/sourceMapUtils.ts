@@ -21,7 +21,9 @@ export function mergeSourceMaps(
     })
 
     if (original.line === null) {
-      console.error("[Merge Source Maps] No existing original found, using merged original", mapping)
+      console.debug(
+        `[Merge Source Maps] No existing mapping for ${mapping.originalLine}:${mapping.originalColumn}: this is expected for codegen lines`
+      )
     }
 
     generator.addMapping({

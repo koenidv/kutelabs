@@ -12,7 +12,8 @@
     "confetti": true
   },
   "environment": {
-    "language": "kt"
+    "language": "kt",
+    "appFeatures": ["confetti"]
   },
   "tests": [
     {

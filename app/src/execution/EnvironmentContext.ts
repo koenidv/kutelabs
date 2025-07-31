@@ -29,8 +29,33 @@ const setUsername = (name: string) => {
     localStorage.setItem("username", name.trim())
   }
 }
+const setUsernameKotlinSignature = `(name: String): Unit`
+
+const confetti = () => {
+  console.log("Confetti effect triggered!")
+}
 
 export const appFeatures = {
   ...consoleCallbacks,
   setUsername,
-} as NestedFunctions
+  confetti,
+} as const satisfies NestedFunctions
+
+export type AppFeatureKeysWithSignatures = {
+  [K in keyof NestedFunctions]: string
+}
+
+export const appFeatureKotlinSignatures = {
+  setUsername: setUsernameKotlinSignature,
+  __lineExecutingCallback: "(line: Int): Unit",
+  // e.g. confetti using default signature: (): Unit
+} as const
+
+export function getKotlinSignatures(featureKeys: string[]): AppFeatureKeysWithSignatures {
+  const signatures: Record<keyof NestedFunctions, string> = {}
+  featureKeys.forEach(key => {
+    signatures[key as keyof NestedFunctions] =
+      appFeatureKotlinSignatures[key as keyof typeof appFeatureKotlinSignatures] || "(): Unit"
+  })
+  return signatures
+}
