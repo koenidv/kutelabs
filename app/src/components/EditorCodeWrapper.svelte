@@ -88,9 +88,47 @@
     })
   }
 
+  function highlightAllTokens(lineElement: Element) {
+    let contentStarted = false
+
+    lineElement.childNodes.forEach(node => {
+      const textContent = node.textContent ?? ""
+      if (!contentStarted && textContent.trim().length === 0) return
+      contentStarted = true
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const errorSpan = document.createElement("span")
+        errorSpan.className = "error-token"
+        errorSpan.textContent = textContent
+
+        node.parentNode!.replaceChild(errorSpan, node)
+      } else if (node instanceof Element) {
+        ;(node as HTMLElement).classList.add("error-token")
+      }
+    })
+
+    // remove trailing
+    let lastNode = lineElement.lastChild
+    while (lastNode && lastNode.textContent?.trim().length === 0) {
+      lastNode = lastNode.previousSibling
+    }
+    if (lastNode && lastNode.nodeType === Node.TEXT_NODE) {
+      const trimmedContent = lastNode.textContent?.trimEnd() ?? ""
+      if (trimmedContent.length !== lastNode.textContent?.length) {
+        const errorSpan = document.createElement("span")
+        errorSpan.className = "error-token"
+        errorSpan.textContent = trimmedContent
+
+        lastNode.parentNode!.replaceChild(errorSpan, lastNode)
+      }
+    }
+  }
+
   function highlight(line: number, column: number) {
     const lineElement = highlightLine(line)
-    if (lineElement) highlightToken(lineElement, column)
+    if (!lineElement) return
+    if (column >= 0) highlightToken(lineElement, column)
+    else highlightAllTokens(lineElement)
   }
 
   function clearHighlight() {
