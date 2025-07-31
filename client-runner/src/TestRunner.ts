@@ -49,7 +49,7 @@ export class TestRunner {
     type: Exclude<ErrorType, ErrorType.Execution>,
     message: string
   ) => void = console.error
-  private readonly onUserCodeError: (message: string, line: number, column: number) => void =
+  private readonly onUserCodeError: (err: ExecutionError, line: number, column: number) => void =
     console.error
   private readonly onFinished: (() => void) | undefined
 
@@ -287,7 +287,7 @@ export class TestRunner {
     if (!linecol) throw new Error(`Could not find line in stack: ${execerr.stack}`)
     linecol[0] -= this.findUserFunctionStartLine()
     this.failRemainingTests(execerr.message)
-    this.onUserCodeError(execerr.message, ...linecol)
+    this.onUserCodeError(execerr, ...linecol)
   }
 
   /**

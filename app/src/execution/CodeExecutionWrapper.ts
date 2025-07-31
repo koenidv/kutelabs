@@ -1,4 +1,4 @@
-import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { ErrorType, type ExecutionError } from "@kutelabs/client-runner/src/Executor"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
 import type { Atom } from "nanostores"
@@ -18,8 +18,8 @@ import {
 } from "../state/state"
 import { BaseExecutionWrapper } from "./BaseExecutionWrapper"
 import { appFeatures, filterCallbacks } from "./EnvironmentContext"
-import { preprocessKotlin } from "./preprocessKotlin"
 import { transpileKtJs } from "./transpile"
+import { KotlinPreprocessor } from "./KotlinPreprocessor"
 
 const ORIGINAL_SOURCE_NAME = "code.kt"
 const FALLBACK_FIND_ORIGINAL_MAX_DELTA = 5
@@ -28,6 +28,7 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
   editorRef = editorRef as Atom<EditorCodeInterface>
   preprocessSourceMap: RawSourceMap | null = null
   transpileSourceMap: string | null = null
+  lineInExecution: number | null = null
 
   public run(): void {
     const editor = this.editorRef.get()
@@ -50,7 +51,8 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     code: string,
     abortController: AbortController
   ) {
-    const preprocessed = preprocessKotlin(code)
+    const preprocessed = new KotlinPreprocessor().preprocess(code)
+
     this.preprocessSourceMap = preprocessed.sourceMap
     transpileKtJs(abortController, preprocessed.code, "main", false, true)
       .then(transpiled => {
@@ -66,13 +68,20 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
         this.editorRef.get().clearHighlight()
         this.runFailed.set(false)
 
-        // todo handle transpiler hints and no sourcemap
+        const enabledCallbacks = [
+          "__lineExecutingCallback",
+          ...(this.environment.appFeatures ?? []),
+        ]
+        const callbacks = filterCallbacks(enabledCallbacks, {
+          ...appFeatures,
+          __lineExecutingCallback: this.lineExecutionCallback.bind(this),
+        })
 
         this.transpileSourceMap = transpiled.sourceMap
         this.testRunner.execute(transpiled.transpiledCode, {
           argNames: editor.argnames(),
           entrypoint: transpiled.entrypoint ?? `transpiled.${editor.entrypoint()}`,
-          callbacks: filterCallbacks([], appFeatures), // todo app features, these will also have to be defined before the kotlin code
+          callbacks: callbacks, // todo add external fun declarations in preprocessing
           timeout: 1000,
         })
       })
@@ -125,34 +134,56 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
-  // todo make this work when using the playground transpiler backend
-  protected async onUserCodeError(message: string, line: number, column: number) {
+  protected lineExecutionCallback(line: number): void {
+    this.lineInExecution = line
+    displayMessage(`Executing line ${line}`, "info", { single: false })
+  }
+
+  protected async onUserCodeError(err: ExecutionError, line: number, column: number) {
     this.running.set(false)
     this.runFailed.set(true)
-    if (!this.transpileSourceMap || !this.preprocessSourceMap)
-      return displayMessage("An error occured", "error", { single: true })
+    const indicator = err.stack.split("\n")[0] || "An error occured"
 
-    const intermediateConsumer = new SourceMapConsumer(JSON.parse(this.transpileSourceMap))
-    let intermediatePosition: MappedPosition | null = intermediateConsumer.originalPositionFor({
-      line,
-      column,
-    })
+    let originalPosition: MappedPosition | null = null
 
-    if (intermediatePosition?.source !== ORIGINAL_SOURCE_NAME)
-      intermediatePosition = this.fallbackFindOriginalLine(intermediateConsumer, line, column)
+    if (this.transpileSourceMap && this.preprocessSourceMap) {
+      const intermediateConsumer = new SourceMapConsumer(JSON.parse(this.transpileSourceMap))
+      let intermediatePosition: MappedPosition | null = intermediateConsumer.originalPositionFor({
+        line,
+        column,
+      })
+      if (intermediatePosition?.source !== ORIGINAL_SOURCE_NAME) {
+        // fallback 1: search for mapping above and below line
+        intermediatePosition = this.fallbackFindOriginalLine(intermediateConsumer, line, column)
+      }
 
-    if (!intermediatePosition?.line)
-      return displayMessage("An error occured", "error", { single: true })
+      if (!intermediatePosition?.line) return displayMessage(indicator, "error", { single: true })
+      originalPosition = new SourceMapConsumer(this.preprocessSourceMap).originalPositionFor({
+        line: intermediatePosition.line,
+        column: intermediatePosition.column,
+      })
+      if (!originalPosition.line) return displayMessage(indicator, "error", { single: true })
+      originalPosition.column = intermediatePosition.column
+    }
 
-    const originalPosition = new SourceMapConsumer(this.preprocessSourceMap).originalPositionFor({
-      line: intermediatePosition.line,
-      column: intermediatePosition.column,
-    })
-    if (!originalPosition.line) return displayMessage("An error occured", "error", { single: true })
+    if (originalPosition === null && this.lineInExecution !== null) {
+      // fallback 2: use line execution callback; used when transpiling on the playground backend
+      originalPosition = {
+        line: this.lineInExecution,
+        column: -1,
+        source: ORIGINAL_SOURCE_NAME,
+      }
+    }
 
-    displayMessage(`An error occured in line ${originalPosition.line}`, "error", { single: true })
-    this.editorRef.get().highlight(originalPosition.line, intermediatePosition.column)
-    addLog([message, `at ${originalPosition.line}:${intermediatePosition.column}`], "error")
+    if (originalPosition === null) {
+      displayMessage(indicator, "error", { single: true })
+      addLog([indicator], "error")
+      return
+    }
+
+    displayMessage(`Line ${originalPosition.line}: ${indicator}`, "error", { single: true })
+    this.editorRef.get().highlight(originalPosition.line, originalPosition.column)
+    addLog([`${originalPosition.line}:${originalPosition.column} - ${indicator}`], "error")
   }
 
   private fallbackFindOriginalLine(
@@ -210,7 +241,9 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
           )
         }
         if (lines.length === 1) {
-          const prefix = lines[0].message.includes(": ") ? lines[0].message.split(": ")[0] + " in line" : "Please check line"
+          const prefix = lines[0].message.includes(": ")
+            ? lines[0].message.split(": ")[0] + " in line"
+            : "Please check line"
           displayMessage(
             `${prefix} ${preprocessConsumer.originalPositionFor({ line: lines[0].line + 1, column: lines[0].ch }).line}`,
             "error",

@@ -1,4 +1,4 @@
-import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { ErrorType, type ExecutionError } from "@kutelabs/client-runner/src/Executor"
 import { BlockMarking, EditorMixed, JsCompiler, KtCompiler } from "@kutelabs/editor-mixed"
 import type { ResultDtoInterface } from "@kutelabs/server/src/routes/transpile/ResultDtoInterface"
 import { TranspilationStatus } from "@kutelabs/server/src/routes/transpile/Status"
@@ -188,14 +188,14 @@ export class MixedExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
-  protected onUserCodeError(message: string, line: number, _column: number) {
+  protected onUserCodeError(err: ExecutionError, line: number, _column: number) {
     this.running.set(false)
     this.runFailed.set(true)
     const editor = editorRef.get()
     if (!editor || !this.lastRunCode) throw new Error("Editor not found")
     const causingBlockId = findBlockByLine(this.lastRunCode.split("\n"), line)
     if (!causingBlockId) throw new Error("No block id found")
-    this.onBlockError([causingBlockId], message)
+    this.onBlockError([causingBlockId], err.message)
   }
 
   private onTranspilationError(transpiled: ResultDtoInterface | null, originalCode: string) {

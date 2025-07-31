@@ -1,5 +1,5 @@
 import { SandboxTestRunner, TestResult, type TestSuite } from "@kutelabs/client-runner"
-import { ErrorType } from "@kutelabs/client-runner/src/Executor"
+import { ErrorType, type ExecutionError } from "@kutelabs/client-runner/src/Executor"
 import { atom } from "nanostores"
 import type { Challenge } from "../schema/challenge"
 import { addLog, editorLoadingState, setTestResult } from "../state/state"
@@ -46,7 +46,7 @@ export abstract class BaseExecutionWrapper {
 
   public abstract run(): void
   protected abstract onWorkerError(type: ErrorType.Timeout | ErrorType.Worker, error: string): void
-  protected abstract onUserCodeError(message: string, line: number, column: number): void
+  protected abstract onUserCodeError(err: ExecutionError, line: number, column: number): void
 
   public stop() {
     this.abortController.abort("Execution stopped")
