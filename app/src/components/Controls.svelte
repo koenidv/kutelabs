@@ -11,7 +11,7 @@
   import SlowIcon from "../icons/speed-slow.svelte"
   import StopIcon from "../icons/stop.svelte"
   import type { Challenge } from "../schema/challenge"
-  import { challengeCompleted } from "../state/state"
+  import { challengeCompleted, confettiRef } from "../state/state"
   import ElevatedBox from "./ElevatedBox.svelte"
   import { storeChallengeCompleted, getChallengeCompleted } from "../state/completedChallenges"
 
@@ -40,20 +40,30 @@
   let debugMenuOpen = $state(false)
   let confetti: JSConfetti | null = null
 
-  onMount(async () => {
-    // set default on client only to prevent ssr flash
-    if (speed && $speed == undefined) speed.set("medium")
-    if (confettiEnabled) confetti = new (await import("js-confetti")).default()
-    checkLocalChallengeCompletion()
-    if (tests.flatMap(t => Object.keys(t.run)).length == 0) challengeCompleted.set(true)
+  onMount(() => {
+    ;(async () => {
+      // set default on client only to prevent ssr flash
+      if (speed && $speed == undefined) speed.set("medium")
+      if (confettiEnabled) {
+        confetti = new (await import("js-confetti")).default()
+        confettiRef.set(confetti)
+      }
+      checkLocalChallengeCompletion()
+      if (tests.flatMap(t => Object.keys(t.run)).length == 0) challengeCompleted.set(true)
 
-    execution.onSuccess = () => {
-      if (confetti && !challengeCompleted.get())
-        confetti.addConfetti({
-          emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
-        })
-      storeChallengeCompleted(challengeId)
-      challengeCompleted.set(true)
+      execution.onSuccess = () => {
+        if (confetti && !challengeCompleted.get())
+          confetti.addConfetti({
+            emojis: ["⚡️", "✨", "💫", "🌸", "🚀", "☘️", "⭐", "✅"],
+          })
+        storeChallengeCompleted(challengeId)
+        challengeCompleted.set(true)
+      }
+    })()
+    return () => {
+      confettiRef.set(null)
+      confetti = null
+      execution.stop()
     }
   })
 
@@ -93,7 +103,8 @@
     </div>
 
     {#if execution instanceof MixedExecutionWrapper}
-      <div class="flex flex-row lg:flex-col gap-3 lg:gap-2 relative before:content-[''] before:bg-beige-500 before:bg-opacity-50 before:border-beige-500 before:border-4 before:absolute before:top-1 before:-bottom-1 before:left-1 before:-right-1">
+      <div
+        class="flex flex-row lg:flex-col gap-3 lg:gap-2 relative before:content-[''] before:bg-beige-500 before:bg-opacity-50 before:border-beige-500 before:border-4 before:absolute before:top-1 before:-bottom-1 before:left-1 before:-right-1">
         <div
           class="h-16 w-16 {$speed == 'fast'
             ? 'pt-1 pl-1'

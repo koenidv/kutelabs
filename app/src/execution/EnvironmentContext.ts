@@ -1,5 +1,5 @@
 import { SandboxCallbacks, type NestedFunctions } from "@kutelabs/client-runner"
-import { addLog, displayMessage } from "../state/state"
+import { addLog, confettiRef, displayMessage } from "../state/state"
 
 export const defaultEnabledNames = ["console"]
 
@@ -29,10 +29,12 @@ const setUsername = (name: string) => {
     localStorage.setItem("username", name.trim())
   }
 }
-const setUsernameKotlinSignature = `(name: String): Unit`
+const setUsernameKotlinSignature = `(name: String)`
 
 const confetti = () => {
-  console.log("Confetti effect triggered!")
+  confettiRef.get()?.addConfetti({
+    emojis: ["🎉", "🎊", "🥳", "✨", "💫"],
+  })
 }
 
 export const appFeatures = {
@@ -47,7 +49,7 @@ export type AppFeatureKeysWithSignatures = {
 
 export const appFeatureKotlinSignatures = {
   setUsername: setUsernameKotlinSignature,
-  __lineExecutingCallback: "(line: Int): Unit",
+  __lineExecutingCallback: "(line: Int)",
   // e.g. confetti using default signature: (): Unit
 } as const
 
@@ -55,7 +57,7 @@ export function getKotlinSignatures(featureKeys: string[]): AppFeatureKeysWithSi
   const signatures: Record<keyof NestedFunctions, string> = {}
   featureKeys.forEach(key => {
     signatures[key as keyof NestedFunctions] =
-      appFeatureKotlinSignatures[key as keyof typeof appFeatureKotlinSignatures] || "(): Unit"
+      appFeatureKotlinSignatures[key as keyof typeof appFeatureKotlinSignatures] || "()"
   })
   return signatures
 }

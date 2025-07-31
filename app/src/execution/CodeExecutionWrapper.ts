@@ -134,9 +134,18 @@ export class CodeExecutionWrapper extends BaseExecutionWrapper {
     }
   }
 
-  protected lineExecutionCallback(line: number): void {
+  protected lineExecutionCallback(line: number) {
     this.lineInExecution = line
-    displayMessage(`Executing line ${line}`, "info", { single: false })
+    // return new Promise<void>(resolve => {
+    //   this.editorRef.get().highlight(line, -1) // todo use current line highlight instead of error
+    //   this.lineInExecution = line
+    //   console.log("PAUSING")
+    //   setTimeout(() => {
+    //     console.log("RESOLVING")
+    //     this.editorRef.get().clearHighlight() // todo cancel this timeout on stop
+    //     resolve()
+    //   }, 1000) // todo adjustable timeout
+    // })
   }
 
   protected async onUserCodeError(err: ExecutionError, line: number, column: number) {
