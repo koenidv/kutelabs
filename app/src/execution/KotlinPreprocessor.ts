@@ -17,10 +17,16 @@ export class KotlinPreprocessor {
     this.code = code
     this.initializeSourceMap()
 
+    this.trimLines()
     this.declareMethodExports()
     this.insertDebugStatements()
 
     return { code: this.code, sourceMap: this.sourceMap.toJSON() }
+  }
+
+  private trimLines(): void {
+    const lines = this.code.split("\n").map(line => line.trim())
+    this.code = lines.join("\n")
   }
 
   private declareMethodExports(): void {
@@ -49,7 +55,9 @@ export class KotlinPreprocessor {
     const lines = this.code.split("\n")
     const processedLines: string[] = []
 
-    processedLines.push('@JsName("__lineExecutingCallback")\nexternal fun __lineExecutingCallback(line: Int): Unit')
+    processedLines.push(
+      '@JsName("__lineExecutingCallback")\nexternal fun __lineExecutingCallback(line: Int): Unit'
+    )
     let accumulatedOffset = 2
 
     let blockDepth = 0
@@ -90,7 +98,7 @@ export class KotlinPreprocessor {
         !isBlockClosing &&
         !isTopLevel
       ) {
-        processedLines.push(`${"\t".repeat(blockDepth)}__lineExecutingCallback(${index})`)
+        processedLines.push(`__lineExecutingCallback(${index})`)
         accumulatedOffset++
       }
 
