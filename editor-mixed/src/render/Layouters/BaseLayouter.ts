@@ -6,6 +6,7 @@ import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { Coordinates } from "../../util/Coordinates"
 import type { SizeProps } from "../SizeProps"
 
+
 /**
  * The Layouter measures and positions blocks
  */
@@ -64,7 +65,7 @@ export abstract class BaseLayouter {
    * @param block Block to measure
    * @returns Size of the block as @see{SizeProps}
    */
-  abstract measureBlock(block: AnyBlock): SizeProps
+  abstract measureBlock(block: AnyBlock): Unit
 
   //#region Calculate positions
 
@@ -77,28 +78,18 @@ export abstract class BaseLayouter {
     })
   }
 
-  protected setPositionsRecursive(
-    forBlock: AnyBlock,
-    blockPosition: Coordinates
-  ) {
+  protected setPositionsRecursive(forBlock: AnyBlock, blockPosition: Coordinates) {
     const registered = this.blockRegistry.setPosition(forBlock, blockPosition)
     this.setConnectorPositions(registered)
 
-    forBlock.downstreamWithConnectors.forEach(
-      ({ block: connectedBlock, connector }) => {
-        const connectedSize = this.blockRegistry.getSize(connectedBlock)
+    forBlock.downstreamWithConnectors.forEach(({ block: connectedBlock, connector }) => {
+      const connectedSize = this.blockRegistry.getSize(connectedBlock)
 
-        this.setPositionsRecursive(
-          connectedBlock,
-          this.calculateBlockPosition(
-            connectedBlock,
-            connectedSize,
-            registered,
-            connector
-          )
-        )
-      }
-    )
+      this.setPositionsRecursive(
+        connectedBlock,
+        this.calculateBlockPosition(connectedBlock, connectedSize, registered, connector)
+      )
+    })
   }
 
   setConnectorPositions(registeredBlock: AnyRegisteredBlock) {
@@ -110,10 +101,7 @@ export abstract class BaseLayouter {
         registeredBlock.globalPosition,
         registeredBlock.size!
       )
-      connector.globalPosition = Coordinates.add(
-        registeredBlock.globalPosition,
-        connectorOffset
-      )
+      connector.globalPosition = Coordinates.add(registeredBlock.globalPosition, connectorOffset)
     })
   }
 
