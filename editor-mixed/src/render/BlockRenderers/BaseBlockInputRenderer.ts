@@ -25,6 +25,8 @@ type GenericInputElementType<T extends DataType> = (
 ) => TemplateResult<1>
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
+  foreignObjectStyle = ""
+
   //#region Input Wrappers
 
   /**
@@ -109,7 +111,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const inputRef = createRef<RefType>()
 
     return svg`
-        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="border-radius: 6px;">
+        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style={this.foreignObjectStyle}>
         ${this.tapOrDragLayer(
           reference => html`
             <div

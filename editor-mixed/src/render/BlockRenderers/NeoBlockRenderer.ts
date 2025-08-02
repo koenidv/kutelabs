@@ -18,15 +18,15 @@ import { ConnectorRole } from "../../connections/ConnectorRole"
 import type { BlockRegistry } from "../../registries/BlockRegistry"
 import type { AnyRegisteredBlock, RegisteredBlock } from "../../registries/RegisteredBlock"
 import { RectBuilder } from "../../svg/RectBuilder"
+import { adjustHex } from "../../util/ColorUtils"
 import type { BaseLayouter } from "../Layouters/BaseLayouter"
-import { HeightProp, type SizeProps } from "../SizeProps"
+import { type SizeProps } from "../SizeProps"
 import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 import type { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
 import { BaseBlockRenderer } from "./BaseBlockRenderer"
 import { BlockMarking, type InternalBlockRenderProps, type SvgResult } from "./BlockRendererTypes"
 import { BlockInputIcon } from "./InputIcon"
-import { KuteBlockInputRenderer } from "./KuteBlockInputRenderer"
-import { adjustHex } from "../../util/ColorUtils"
+import { NeoBlockInputRenderer } from "./NeoBlockInputRenderer"
 
 export class NeoBlockRenderer extends BaseBlockRenderer {
   protected readonly inputRenderer: BaseBlockInputRenderer
@@ -38,7 +38,7 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
     requestUpdate: () => void
   ) {
     super(blockRegistry, layouter, setWidget, requestUpdate)
-    this.inputRenderer = new KuteBlockInputRenderer(setWidget, requestUpdate)
+    this.inputRenderer = new NeoBlockInputRenderer(setWidget, requestUpdate)
   }
 
   override render(): TemplateResult<2>[] {
