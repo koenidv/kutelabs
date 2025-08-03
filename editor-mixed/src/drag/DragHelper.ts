@@ -8,6 +8,9 @@ import type { BaseDragRenderer } from "../render/DragRenderers/BaseDragRenderer"
 import { Coordinates } from "../util/Coordinates"
 import { findShadowedActiveElement, focusBlockElement, srAnnounce } from "../util/DOMUtils"
 import { normalizePrimaryPointerPosition } from "../util/InputUtils"
+import connectedSound from "../assets/sounds/connected.mp3"
+import disconnectedSound from "../assets/sounds/disconnected.mp3"
+import { BlockType } from "../blocks/configuration/BlockType"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -81,6 +84,10 @@ export class DragHelper {
     this.previousConnection = data.previousConnection
     evt.preventDefault()
     this.removeWidgets()
+
+    if (this.previousUpstream?.type && this.previousUpstream.type != BlockType.Root) {
+      this.playDisconnectedSound()
+    }
 
     this.startPos = this.determineBlockStartPosition(this.dragged, draggedParent)
 
@@ -260,6 +267,7 @@ export class DragHelper {
         new Coordinates(this.dragX, this.dragY),
         25
       )
+      this.playConnectedSound(snap)
       this.insertOnSnap(this.dragged, snap)
     }
 
@@ -285,6 +293,19 @@ export class DragHelper {
       snapOnConnection,
       Coordinates.add(this.startPos, new Coordinates(this.dragX, this.dragY))
     )
+  }
+
+  private playConnectedSound(connection: Connection | null) {
+    if (!connection) return
+    const sound = new Audio(connectedSound)
+    sound.volume = 0.7
+    sound.play()
+  }
+
+  private playDisconnectedSound() {
+    const sound = new Audio(disconnectedSound)
+    sound.volume = 0.7
+    sound.play()
   }
 
   /**
