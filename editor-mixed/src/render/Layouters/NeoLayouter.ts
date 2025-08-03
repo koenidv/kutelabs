@@ -32,9 +32,6 @@ const VARINIT_WIDTH = 208
 const VAR_DEFAULT_WIDTH = 80
 const PADDING_X = 16
 const PADDING_Y = 16
-const PADDING_Y_LOOP_END = 8
-const PADDING_Y_CONDITIONAL_END = 3
-const PADDING_Y_FUNCTION_END = 0
 const PADDING_X_CONNECTOR = 16
 const EXTENSION_CONDITION_LEFT = 96
 
@@ -153,7 +150,7 @@ export class NeoLayouter extends BaseLayouter {
     if (block.type == BlockType.VarSet) {
       const connectedInner = block.connectedBlocks.byConnector(block.connectors.inners[0])
       const innerSize = connectedInner ? this.blockRegistry.getSize(connectedInner) : null
-      const innerHeight = (innerSize?.fullHeight ?? MIN_HEIGHT) + 2 * PADDING_Y
+      const innerHeight = innerSize?.fullHeight ?? MIN_HEIGHT
 
       const inputHeight =
         block.connectedBlocks
@@ -161,9 +158,9 @@ export class NeoLayouter extends BaseLayouter {
           ?.let(connected => this.blockRegistry.getSize(connected).fullHeight) ??
         DEFAULT_CONNECTOR_HEIGHT
 
-      size.addWidth(WidthProp.Left, BLOCK_PADDING_LEFT)
-      size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH) + 2 * PADDING_X)
-      size.addWidth(WidthProp.Right, BLOCK_PADDING_RIGHT)
+      size.addWidth(WidthProp.Left, BLOCK_PADDING_LEFT * 1.5)
+      size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH))
+      size.addWidth(WidthProp.Right, BLOCK_PADDING_RIGHT * 1.5)
       size.addHeight(
         HeightProp.Head,
         BLOCK_PADDING_RIGHT / 2 + Math.max(0, (inputHeight - innerHeight - BLOCK_PADDING_RIGHT) / 2)
@@ -177,7 +174,7 @@ export class NeoLayouter extends BaseLayouter {
       size.addZone({
         x: size.leftWidth,
         y: size.fullHeadHeight,
-        width: (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH) + 2 * PADDING_X,
+        width: (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH),
         height: innerHeight,
       })
     }
@@ -207,6 +204,8 @@ export class NeoLayouter extends BaseLayouter {
           WidthProp.Left,
           Math.round(((block.data as BlockDataComment).value.length * 7.9 + 8) / 16) * 16
         )
+        break
+      case BlockType.VarSet:
         break
       default:
         if (size.fullWidth < MIN_WIDTH) {
@@ -251,12 +250,11 @@ export class NeoLayouter extends BaseLayouter {
     ) {
       const inputIndex = registeredParent.block.connectors.inputExtensions.indexOf(parentConnector)
       return new Coordinates(
-        parentConnector.globalPosition.x + PADDING_X,
+        parentConnector.globalPosition.x +
+          (parentConnector.type == ConnectorType.Inner ? 0 : PADDING_X),
         registeredParent.globalPosition.y +
-          (parentConnector.type == ConnectorType.Inner
-            ? registeredParent.size!.fullHeadHeight! - 2
-            : registeredParent.size!.heads.splice(0, inputIndex).reduce((acc, h) => acc + h, 0)) +
-          (parentConnector.type == ConnectorType.Inner ? 1 * PADDING_Y : 0)
+          registeredParent.size!.heads.splice(0, inputIndex).reduce((acc, h) => acc + h, 0) +
+          (parentConnector.type == ConnectorType.Inner ? BLOCK_PADDING_RIGHT / 2 : 0)
       )
     }
     if (parentConnector.role == ConnectorRole.Output) {
@@ -281,22 +279,13 @@ export class NeoLayouter extends BaseLayouter {
   }
 
   protected override getMeasuredStackHeight(block: AnyBlock): number {
-    const parentType = block.upstream?.type
     let height = this.blockRegistry.getSize(block).fullHeight + PADDING_Y
     let after = block.after
     while (after != null) {
       height += this.blockRegistry.getSize(after).fullHeight + PADDING_Y
       after = after.after
     }
-    return (
-      height +
-      PADDING_Y +
-      (parentType == BlockType.Function
-        ? PADDING_Y_FUNCTION_END
-        : parentType == BlockType.Conditional
-          ? PADDING_Y_CONDITIONAL_END
-          : PADDING_Y_LOOP_END)
-    )
+    return height + PADDING_Y
   }
 
   protected getMeasuredWidth(block: AnyBlock, includingPlaceholders: boolean = true): number {
@@ -343,7 +332,7 @@ export class NeoLayouter extends BaseLayouter {
           // only one inner input is currently supported
           return new Coordinates(
             blockSize.leftWidth - 2,
-            blockSize.fullHeadHeight + DEFAULT_CONNECTOR_HEIGHT / 2 + PADDING_Y - 2
+            blockSize.fullHeadHeight + DEFAULT_CONNECTOR_HEIGHT / 2 - 2
           )
         }
 

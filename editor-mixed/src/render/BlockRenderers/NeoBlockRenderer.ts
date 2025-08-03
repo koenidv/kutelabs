@@ -470,8 +470,8 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size } = registered
     return svg`
-      <text x=${-size.fullHeight / 2} y="5" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">set</text>
-      <text x=${-size.fullHeight / 2} y=${size.fullWidth - 4} transform="rotate(270)" text-anchor="middle" alignment-baseline="baseline">to</text>
+      <text x=${-size.fullHeight / 2} y="4" transform="rotate(270)" text-anchor="middle" alignment-baseline="hanging">set</text>
+      <text x=${-size.fullHeight / 2} y=${size.fullWidth - 8} transform="rotate(270)" text-anchor="middle" alignment-baseline="baseline">to</text>
     `
   }
 
