@@ -65,7 +65,7 @@ export abstract class BaseLayouter {
    * @param block Block to measure
    * @returns Size of the block as @see{SizeProps}
    */
-  abstract measureBlock(block: AnyBlock): Unit
+  abstract measureBlock(block: AnyBlock): SizeProps
 
   //#region Calculate positions
 

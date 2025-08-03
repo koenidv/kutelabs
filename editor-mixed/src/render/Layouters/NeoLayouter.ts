@@ -133,8 +133,8 @@ export class NeoLayouter extends BaseLayouter {
         size.addZone({
           x: size.leftWidth,
           y: size.fullHeight,
-          width: Math.max(width, size.fullWidth - PADDING_LR),
-          height: height,
+          width: Math.floor(Math.max(width, size.fullWidth - PADDING_LR) / 16) * 16,
+          height: Math.floor(height / 16) * 16,
         })
         size.addHeight(HeightProp.Body, height)
         if (size.fullWidth < width + PADDING_LR) {
@@ -164,9 +164,15 @@ export class NeoLayouter extends BaseLayouter {
       size.addWidth(WidthProp.Left, BLOCK_PADDING_LEFT)
       size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH) + 2 * PADDING_X)
       size.addWidth(WidthProp.Right, BLOCK_PADDING_RIGHT)
-      size.addHeight(HeightProp.Head, 6 + Math.max(0, (inputHeight - innerHeight - 12) / 2))
+      size.addHeight(
+        HeightProp.Head,
+        BLOCK_PADDING_RIGHT / 2 + Math.max(0, (inputHeight - innerHeight - BLOCK_PADDING_RIGHT) / 2)
+      )
       size.addHeight(HeightProp.CutRow, innerHeight)
-      size.addHeight(HeightProp.Tail, 6 + Math.max(0, (inputHeight - innerHeight - 12) / 2))
+      size.addHeight(
+        HeightProp.Tail,
+        BLOCK_PADDING_RIGHT / 2 + Math.max(0, (inputHeight - innerHeight - BLOCK_PADDING_RIGHT) / 2)
+      )
 
       size.addZone({
         x: size.leftWidth,
@@ -316,7 +322,6 @@ export class NeoLayouter extends BaseLayouter {
     return Math.max(width + maxInputWidth, downstreamWidth)
   }
 
-  
   protected calculateConnectorOffset(
     connector: Connector,
     block: AnyBlock,

@@ -11,6 +11,7 @@ import { normalizePrimaryPointerPosition } from "../util/InputUtils"
 import connectedSound from "../assets/sounds/connected.mp3"
 import disconnectedSound from "../assets/sounds/disconnected.mp3"
 import { BlockType } from "../blocks/configuration/BlockType"
+import { RootBlock } from "../blocks/RootBlock"
 
 /**
  * Helper class to manage the dragging of blocks in the workspace by mouse, touch, or keyboard.
@@ -85,7 +86,7 @@ export class DragHelper {
     evt.preventDefault()
     this.removeWidgets()
 
-    if (this.previousUpstream?.type && this.previousUpstream.type != BlockType.Root) {
+    if (this.previousUpstream && !(this.previousUpstream instanceof RootBlock)) {
       this.playDisconnectedSound()
     }
 
