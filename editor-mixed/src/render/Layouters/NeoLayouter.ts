@@ -44,7 +44,11 @@ export class NeoLayouter extends BaseLayouter {
     const size = SizeProps.empty()
 
     if (block.connectors.inputExtensions.length > 0) {
-      if (block.type == BlockType.VarSet || block.type == BlockType.Conditional) {
+      if (
+        block.connectors.inners.filter(it => it.role == ConnectorRole.Input).length > 0 ||
+        block.connectors.byRole(ConnectorRole.Conditional).firstOrNull()
+      ) {
+        // skip this step
       } else {
         block.connectors.inputExtensions.map((connector, index) => {
           const connected = block.connectedBlocks.byConnector(connector)
@@ -95,18 +99,19 @@ export class NeoLayouter extends BaseLayouter {
     /*
      * Conditional block extension
      */
-    if (block.type == BlockType.Conditional) {
+    if (block.connectors.byRole(ConnectorRole.Conditional).firstOrNull()) {
       const extension = block.conditional
       const extensionWidth = extension
         ? this.getMeasuredWidth(extension) - PADDING_X
         : VAR_DEFAULT_WIDTH
       const height = extension ? this.getMeasuredStackHeight(extension) - 2 * PADDING_Y : MIN_HEIGHT
+      const left = EXTENSION_CONDITION_LEFT - (block.type == BlockType.LogicNot ? PADDING_LR : 0)
 
-      size.addWidth(WidthProp.Middle, EXTENSION_CONDITION_LEFT - BLOCK_PADDING_LEFT)
+      size.addWidth(WidthProp.Middle, left - BLOCK_PADDING_LEFT)
       size.addWidth(WidthProp.Right, extensionWidth)
       size.addHeight(HeightProp.Head, height + PADDING_Y)
       size.addZone({
-        x: EXTENSION_CONDITION_LEFT,
+        x: left,
         y: BLOCK_PADDING_RIGHT / 2,
         width: extensionWidth,
         height: height,
@@ -159,7 +164,7 @@ export class NeoLayouter extends BaseLayouter {
         DEFAULT_CONNECTOR_HEIGHT
 
       size.addWidth(WidthProp.Left, BLOCK_PADDING_LEFT * 1.5)
-      size.addWidth(WidthProp.Middle, (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH))
+      size.addWidth(WidthProp.Middle, innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH)
       size.addWidth(WidthProp.Right, BLOCK_PADDING_RIGHT * 1.5)
       size.addHeight(
         HeightProp.Head,
@@ -174,7 +179,7 @@ export class NeoLayouter extends BaseLayouter {
       size.addZone({
         x: size.leftWidth,
         y: size.fullHeadHeight,
-        width: (innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH),
+        width: innerSize?.fullWidth ?? VAR_DEFAULT_WIDTH,
         height: innerHeight,
       })
     }
@@ -204,6 +209,10 @@ export class NeoLayouter extends BaseLayouter {
           WidthProp.Left,
           Math.round(((block.data as BlockDataComment).value.length * 7.9 + 8) / 16) * 16
         )
+        break
+      case BlockType.LogicNot:
+        size.addWidth(WidthProp.Left, BLOCK_PADDING_LEFT)
+        size.addWidth(WidthProp.Right, BLOCK_PADDING_RIGHT)
         break
       case BlockType.VarSet:
         break
@@ -317,7 +326,6 @@ export class NeoLayouter extends BaseLayouter {
     _blockPosition: Coordinates,
     blockSize: SizeProps
   ): Coordinates {
-    // fixme the -2 offset accumulates
     switch (connector.type) {
       case ConnectorType.Before:
         if (connector.role == ConnectorRole.Input)
@@ -338,7 +346,7 @@ export class NeoLayouter extends BaseLayouter {
 
         const index = block.connectors.inners.indexOf(connector)
         let bodiesCount = 0
-        const xOffset = blockSize.bodiesAndIntermediates.reduce((acc, sizing) => {
+        const yOffset = blockSize.bodiesAndIntermediates.reduce((acc, sizing) => {
           if (bodiesCount == index) {
             if (sizing.prop == HeightProp.Intermediate) acc += DEFAULT_INTERMEDIATE_HEIGHT
             bodiesCount++
@@ -350,7 +358,7 @@ export class NeoLayouter extends BaseLayouter {
 
         return new Coordinates(
           blockSize.leftWidth + PADDING_X_CONNECTOR - 2,
-          blockSize.fullHeadHeight + xOffset - 2
+          blockSize.fullHeadHeight + yOffset - 2
         )
       }
 
@@ -365,8 +373,9 @@ export class NeoLayouter extends BaseLayouter {
         }
 
         if (connector.role == ConnectorRole.Conditional) {
-          // for if/else blocks
-          return new Coordinates(EXTENSION_CONDITION_LEFT, PADDING_Y + BLOCK_PADDING_RIGHT / 2)
+          const left =
+            EXTENSION_CONDITION_LEFT - (block.type == BlockType.LogicNot ? PADDING_LR : 0)
+          return new Coordinates(left, PADDING_Y + BLOCK_PADDING_RIGHT / 2)
         }
 
         const index = block.connectors.inputExtensions.indexOf(connector)

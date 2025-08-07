@@ -419,7 +419,11 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
   ): SvgResult {
     const { size } = registered
     return svg`
-    <text x=${size.fullWidth / 2} y=${size.fullHeadHeight / 2} fill="black" alignment-baseline="middle" text-anchor="middle">loop while</text>
+    <text x="24" y=${size.fullHeadHeight / 2 - 8} fill="black" alignment-baseline="middle" text-anchor="start">loop</text>
+    <text x="24" y=${size.fullHeadHeight / 2 + 8} fill="black" alignment-baseline="middle" text-anchor="start">while</text>
+    <g transform="translate(90, ${size.fullHeadHeight / 2 - 18}) rotate(90) scale(0.1, 0.125)">
+        <path d="M167.65,174.612c-2.448-6.732-1.224-13.464-3.06-20.196c-1.224-3.672-6.732-3.672-7.956,0 c-2.448,7.344,0,15.912,4.284,22.645C162.754,180.732,168.874,178.284,167.65,174.612z"></path> <path d="M163.366,96.276c-1.224-1.224-3.672-1.224-4.896,0c-3.672,3.672-2.448,8.568-2.448,13.464c0,4.284,0,9.18,0.612,13.464 c0.612,3.672,6.732,3.672,7.344,0c0.612-4.284,0.612-7.956,0.612-12.24C165.814,106.068,167.038,100.56,163.366,96.276z"></path> <path d="M157.246,43.644c-3.672,0-6.12,3.672-4.896,6.732c1.224,4.896,1.224,11.016,1.836,15.912c0.612,3.06,6.12,3.06,6.732,0 c0.612-5.508,0-11.016,1.836-15.912C163.366,47.316,160.918,43.644,157.246,43.644z"></path> <path d="M215.387,41.196c-14.076-15.3-29.376-30.6-48.349-40.392c-2.448-1.224-5.508-1.224-7.344,1.224 c-12.852,15.3-22.644,32.436-36.108,47.124c-4.896,4.896,3.06,12.24,7.344,7.344c12.24-13.464,21.42-29.376,33.66-42.84 c15.912,9.792,26.929,23.868,41.005,36.72C212.326,56.496,220.895,47.316,215.387,41.196z"></path>
+      </g>
     `
   }
 
@@ -573,7 +577,7 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
     size,
   }: RegisteredBlock<BlockType.LogicNot, any>): SvgResult {
     return svg`
-      <text x=${size.fullWidth / 2 - 2} y=${size.fullHeight / 2} fill="white" text-anchor="middle" alignment-baseline="middle">not</text>
+      <text x="32" y=${size.fullHeight / 2} fill="white" text-anchor="middle" alignment-baseline="middle">not</text>
     `
   }
 
