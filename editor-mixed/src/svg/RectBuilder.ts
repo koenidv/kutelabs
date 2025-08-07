@@ -167,8 +167,8 @@ export class RectBuilder {
   private drawEdge(path: string[], from: Point, to: Point) {
     const features = this.consumeOnLine(from, to)
     const transform = {
-      x: to.x > from.x ? 1 : to.x == from.x ? 0 : -1,
-      y: to.y > from.y ? 1 : to.y == from.y ? 0 : -1,
+      x: to.x > from.x || to.y > from.y ? 1 : -1,
+      y: to.y > from.y || to.x > from.x ? 1 : -1,
     }
 
     path.push(`L ${from.x} ${from.y}`)
@@ -270,80 +270,40 @@ export class RectBuilder {
   }
 
   private drawInset(path: string[], inset: Inset, transform: Point) {
+    if (transform.x != 1 || transform.y != 1) {
+      console.error("Insets currently only support (+,+) transforms")
+      return
+    }
     const openRadius = inset.openRadius ?? 0
     const innerRadius = inset.innerRadius ?? 0
 
-    // Start point
-    path.push(`L ${inset.position.x} ${inset.position.y - transform.y * openRadius}`)
-
-    // First corner
-    // this.drawCorner(
-    //   path,
-    //   { x: inset.position.x - transform.x * openRadius, y: inset.position.y },
-    //   openRadius
-    // );
-
-    // First edge
-    const position1 = {
-      x:
-        transform.x == transform.y
-          ? inset.position.x + transform.x * -inset.depth
-          : inset.position.x,
-      y:
-        transform.x == transform.y
-          ? inset.position.y
-          : inset.position.y + transform.y * inset.width,
-    }
+    path.push(`L ${inset.position.x} ${inset.position.y - openRadius}`)
+    this.drawCorner(path, { x: inset.position.x - openRadius, y: inset.position.y }, openRadius)
+    let position1 = { x: inset.position.x + transform.x * -inset.depth, y: inset.position.y }
     this.drawEdge(
       path,
-      { x: inset.position.x - transform.x * openRadius, y: inset.position.y },
-      { x: position1.x + transform.x * innerRadius, y: inset.position.y }
+      { x: inset.position.x - openRadius, y: inset.position.y },
+      { x: position1.x + innerRadius, y: inset.position.y }
     )
-
-    // Second corner
-    // this.drawCorner(
-    //   path,
-    //   { x: position1.x, y: position1.y + transform.y * innerRadius },
-    //   innerRadius,
-    //   { sweep: false }
-    // );
-
-    // Second edge
-    const position2 = {
-      x: transform.x == transform.y ? position1.x : position1.x + transform.x * -inset.depth,
-      y: transform.x == transform.y ? position1.y + transform.y * inset.width : position1.y,
-    }
+    this.drawCorner(path, { x: position1.x, y: position1.y + innerRadius }, innerRadius, {
+      sweep: false,
+    })
+    const position2 = { x: position1.x, y: position1.y + transform.y * inset.width }
     this.drawEdge(
       path,
-      { x: position1.x, y: position1.y + transform.y * innerRadius },
-      { x: position2.x, y: position2.y - transform.y * innerRadius }
+      { x: position1.x, y: position1.y + innerRadius },
+      { x: position2.x, y: position2.y - innerRadius }
     )
-
-    // Third corner
-    // this.drawCorner(
-    //   path,
-    //   { x: position2.x + transform.x * innerRadius, y: position2.y },
-    //   innerRadius,
-    //   { sweep: false }
-    // );
-
-    // Third edge
-    const position3 = {
-      x: transform.x == transform.y ? position2.x + transform.x * inset.depth : position2.x,
-      y: transform.x == transform.y ? position2.y : position2.y + transform.y * inset.width,
-    }
+    this.drawCorner(path, { x: position2.x + innerRadius, y: position2.y }, innerRadius, {
+      sweep: false,
+    })
+    const position3 = { x: position2.x + transform.x * inset.depth, y: position2.y }
     this.drawEdge(
       path,
-      { x: position2.x + transform.x * innerRadius, y: position2.y },
-      { x: position3.x - transform.x * openRadius, y: position3.y }
+      { x: position2.x + innerRadius, y: position2.y },
+      { x: position3.x - openRadius, y: position3.y }
     )
-
-    // Final corner
-    // this.drawCorner(
-    //   path,
-    //   { x: position3.x, y: position3.y + transform.y * openRadius },
-    //   openRadius
-    // );
+    this.drawCorner(path, { x: position3.x, y: position3.y + openRadius }, openRadius)
   }
 
   private consumeOnLine(from: Point, to: Point): (Nook | Inset)[] {
