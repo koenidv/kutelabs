@@ -224,9 +224,16 @@ export class NeoLayouter extends BaseLayouter {
 
     const fullHeight = size.fullHeight
     if (block.connectors.outputExtension) {
-      if (block.output)
-        size.addHeight(HeightProp.Tail, this.blockRegistry.getSize(block.output).fullHeight)
-      else size.addHeight(HeightProp.Tail, DEFAULT_CONNECTOR_HEIGHT)
+      const height =
+        block.output?.let(it => this.blockRegistry.getSize(it).fullHeight) ?? MIN_HEIGHT
+      const width = block.output?.let(it => this.blockRegistry.getSize(it).fullWidth) ?? MIN_WIDTH
+      size.addZone({
+        x: size.fullWidth - width - BLOCK_PADDING_RIGHT,
+        y: size.fullHeight + PADDING_Y,
+        width: width,
+        height: height,
+      })
+      size.addHeight(HeightProp.Tail, height + 2 * PADDING_Y)
     } else if (insets.length > 0) {
       size.addHeight(HeightProp.Tail, DEFAULT_TAIL_HEIGHT)
     } else if (
@@ -242,7 +249,7 @@ export class NeoLayouter extends BaseLayouter {
 
   protected calculateBlockPosition(
     _block: AnyBlock,
-    _size: SizeProps,
+    size: SizeProps,
     registeredParent: AnyRegisteredBlock,
     parentConnector: Connector
   ): Coordinates {
@@ -268,12 +275,17 @@ export class NeoLayouter extends BaseLayouter {
     }
     if (parentConnector.role == ConnectorRole.Output) {
       return new Coordinates(
-        parentConnector.globalPosition.x + PADDING_X,
+        registeredParent.globalPosition.x +
+          registeredParent.size.fullWidth -
+          size.fullWidth -
+          BLOCK_PADDING_RIGHT,
         registeredParent.globalPosition.y +
           registeredParent.size!.tails.reduce(
             (acc, cur) => acc - cur,
             registeredParent.size!.fullHeight
-          )
+          ) +
+          PADDING_Y -
+          2
       )
     }
 
@@ -366,9 +378,10 @@ export class NeoLayouter extends BaseLayouter {
         if (connector.role == ConnectorRole.Output) {
           // we can expect blocks to have a maximum of one output connector
           return new Coordinates(
-            blockSize.fullWidth,
+            blockSize.fullWidth - BLOCK_PADDING_RIGHT - MIN_WIDTH / 2,
             blockSize.tails.reduce((acc, cur) => acc - cur, blockSize.fullHeight) +
-              DEFAULT_CONNECTOR_HEIGHT / 2
+              DEFAULT_CONNECTOR_HEIGHT / 2 +
+              PADDING_Y
           )
         }
 
