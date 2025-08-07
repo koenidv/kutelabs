@@ -21,11 +21,11 @@ export class KotlinPreprocessor {
     this.code = code
     this.trimLines()
     this.initializeSourceMap()
-    
+
     this.insertDebugStatements()
     this.declareMethodExports()
     this.declareCallbacks(callbacks)
-    
+
     this.sourceMap.setSourceContent(INPUT_NAME, code)
     return { code: this.code, sourceMap: this.sourceMap.toJSON() }
   }
@@ -41,7 +41,7 @@ export class KotlinPreprocessor {
     const processedLines: string[] = []
     let accumulatedOffset = 0
 
-    Object.entries(callbacks).forEach(([callback, signature], index) => {
+    Object.entries(callbacks).forEach(([callback, signature]) => {
       const externalMethod = `@JsName("${callback}")\nexternal fun ${callback}${signature}`
       processedLines.push(externalMethod)
       accumulatedOffset += 2
