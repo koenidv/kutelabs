@@ -11,7 +11,7 @@ import { BlockType } from "../../blocks/configuration/BlockType"
 
 export class NeoDrawerRenderer extends BaseDrawerRenderer {
   override maxWidth: number = 128
-  itemGap = 16
+  itemGap = 48
 
   protected override orderBlocks(
     blocks: { block: AnyBlock; count: number }[]
