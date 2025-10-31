@@ -79,7 +79,7 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
           radius: 0,
         })
 
-        // this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
+        this.addContainerNooks(rectangle, block.connectors.all, { size, block, globalPosition })
 
         const path = rectangle.generatePath()
         const fillColor = this.determineContainerFill(block)
@@ -89,18 +89,18 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
         // filter="url(#neobox)"
 
         return svg`
-      <path
-        id="bg-${block.id}"
-        class="highlight-target"
-        fill=${fillColor}
-        fill-rule="evenodd"
-        stroke=${stroke.color}
-        stroke-width=${stroke.width}
-        style="filter: drop-shadow(2px 2px 0 #000)"
-        d=${path}></path>
-      
-      ${this.renderDropZones(size)}
-    `
+          <path
+            id="bg-${block.id}"
+            class="highlight-target"
+            fill=${fillColor}
+            fill-rule="evenodd"
+            stroke=${stroke.color}
+            stroke-width=${stroke.width}
+            style="filter: drop-shadow(2px 2px 0 #000)"
+            d=${path}></path>
+          
+          ${this.renderDropZones(size)}
+        `
       }
     ) as SvgResult
   }
@@ -143,34 +143,7 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
         ConnectorRole.Conditional,
       ].includes(connector.role)
 
-      rectangle.add(
-        {
-          width: horizontal ? (inward ? 14 : 8) : inward ? 5 : 5,
-          depth: horizontal ? (inward ? 5 : -5) : inward ? 14 : -8,
-          openRadius: 0,
-          innerRadius: 0,
-        },
-        {
-          x: connector.globalPosition.x - blockPosition.x,
-          y: connector.globalPosition.y - blockPosition.y + (horizontal ? (inward ? -2 : 10) : 0),
-        }
-      )
-      return
 
-      rectangle.add(
-        {
-          width: 10,
-          length: 5,
-          mode: inward ? "inward" : "outward",
-          pointing: horizontal ? "horizontal" : "vertical",
-          pointRadius: inward ? 0 : 0,
-          baseRadius: 0,
-        },
-        {
-          x: connector.globalPosition.x - blockPosition.x,
-          y: connector.globalPosition.y - blockPosition.y,
-        }
-      )
     })
 
     if (block.type == BlockType.Function) {

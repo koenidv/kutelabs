@@ -140,18 +140,11 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
         connector.role == ConnectorRole.Output ||
         connector.type == ConnectorType.Extension
 
-      const horizontal = [
-        ConnectorRole.Input,
-        ConnectorRole.Output,
-        ConnectorRole.Conditional,
-      ].includes(connector.role)
-
       rectangle.add(
         {
           width: 10,
           length: 5,
           mode: inward ? "inward" : "outward",
-          pointing: horizontal ? "horizontal" : "vertical",
           pointRadius: inward ? 4 : 3,
           baseRadius: 2,
         },
@@ -168,7 +161,6 @@ export class KuteBlockRenderer extends BaseBlockRenderer {
           width: 10,
           length: 5,
           mode: "inward",
-          pointing: "vertical",
           pointRadius: 4,
           baseRadius: 2,
         },

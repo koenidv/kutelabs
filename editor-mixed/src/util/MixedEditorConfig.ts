@@ -23,7 +23,7 @@ import { KuteWidgetRenderer } from "../render/WidgetRenderers/KuteWidgetRenderer
 
 export type MixedEditorConfig = {
   layouter: LayouterConstructorType
-  blockRenderer: BlockRendererConstructorType<any>
+  blockRenderer: BlockRendererConstructorType
   drawerRenderer: DrawerRendererConstructorType
   widgetRenderer: WidgetRendererConstructorType
   dragRenderer: DragRendererConstructorType
@@ -49,10 +49,10 @@ export const KuteMixedEditorConfig: MixedEditorConfig = {
 }
 
 export const DefaultMixedEditorConfig: MixedEditorConfig = {
-  layouter: NeoLayouter,
-  blockRenderer: NeoBlockRenderer,
-  drawerRenderer: NeoDrawerRenderer,
+  layouter: KuteLayouter,
+  blockRenderer: KuteBlockRenderer,
+  drawerRenderer: KuteDrawerRenderer,
   widgetRenderer: KuteWidgetRenderer,
   dragRenderer: DebugDragRenderer,
-  extrasRenderer: NeoExtrasRenderer,
+  extrasRenderer: ExtrasRenderer,
 }
