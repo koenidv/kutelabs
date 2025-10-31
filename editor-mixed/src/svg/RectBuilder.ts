@@ -34,14 +34,26 @@ export interface Rectangle {
   offset?: Point
 }
 
-type AddFeatureType = Omit<Nook, "position"> | Omit<Inset, "position">
+export interface PinConnector {
+  type: "pin"
+  position: Point
+  size: Point
+  innerSize: number
+  innerOffset: number
+  outerRadius: number
+}
+
+type AddFeatureType =
+  | Omit<Nook, "position">
+  | Omit<Inset, "position">
+  | Omit<PinConnector, "position">
 type TurtleState = { position: Point; direction: Point }
 type NookMetrics = { baseRadius: number; pointRadius: number; halfWidth: number }
 type InsetMetrics = { openRadius: number; innerRadius: number }
 
 export class RectBuilder {
   private container: Rectangle
-  private features: (Nook | Inset)[] = []
+  private features: (Nook | Inset | PinConnector)[] = []
   private cutouts: Cutout[] = []
   private turtlePosition: Point = { x: 0, y: 0 }
   private turtleDirection: Point = { x: 1, y: 0 }
@@ -211,6 +223,11 @@ export class RectBuilder {
           metrics.baseRadius
         advance(startDistance - consumed)
         consumed += this.drawNook(path, state, feature, edgeDirection, metrics)
+      } else if (this.isPin(feature)) {
+        const startDistance =
+          this.projectDistance(edgeStart, feature.position, edgeDirection) - feature.size.x / 2
+        advance(startDistance - consumed)
+        consumed += this.drawPinConnector(path, state, feature)
       } else {
         const metrics = this.resolveInsetMetrics(feature)
         const startDistance =
@@ -223,8 +240,12 @@ export class RectBuilder {
     advance(length - consumed)
   }
 
-  private isNook(feature: Nook | Inset): feature is Nook {
+  private isNook(feature: Nook | Inset | PinConnector): feature is Nook {
     return "length" in feature
+  }
+
+  private isPin(feature: Nook | Inset | PinConnector): feature is PinConnector {
+    return "type" in feature && feature.type === "pin"
   }
 
   /**
@@ -390,6 +411,41 @@ export class RectBuilder {
     state.direction = { ...forward }
 
     return inset.width + openRadius * 2
+  }
+
+  private drawPinConnector(path: string[], state: TurtleState, pin: PinConnector): number {
+    const forward = this.normalizeDirection(state.direction)
+    const inward = this.rotate90CCW(forward)
+    const outward = { x: -inward.x, y: -inward.y }
+    const entry = this.translate(pin.position, forward, -pin.size.x / 2)
+    const outerPoint = this.translate(pin.position, outward, pin.size.y)
+    const exit = this.translate(entry, forward, pin.size.x)
+    const curveEndPosition = this.translate(exit, outward, pin.size.y - pin.outerRadius)
+
+    this.applyCorner(path, state, entry, 0, outward)
+    this.drawEdge(path, state, pin.size.y - pin.outerRadius)
+    this.drawCorner(path, outerPoint, pin.outerRadius)
+    this.drawCorner(path, curveEndPosition, pin.outerRadius)
+
+    path.push(`L ${exit.x} ${exit.y}`)
+    state.position = exit
+    state.direction = forward
+
+    // pin cutout
+    const cutoutPosition = this.translate(pin.position, outward, pin.innerOffset)
+    this.add(
+      {
+        width: pin.innerSize,
+        height: pin.innerSize,
+        radius: pin.innerSize / 2,
+      },
+      {
+        x: cutoutPosition.x - pin.innerSize / 2,
+        y: cutoutPosition.y - pin.innerSize / 2,
+      }
+    )
+
+    return pin.size.x
   }
 
   /**

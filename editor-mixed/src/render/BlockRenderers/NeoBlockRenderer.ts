@@ -131,41 +131,56 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
     if (connectors.length == 0) return
 
     connectors.forEach(connector => {
-      if (connector.type == ConnectorType.Internal) return
-      const inward =
-        (connector.type == ConnectorType.Before && connector.role != ConnectorRole.Input) ||
-        connector.role == ConnectorRole.Output ||
-        connector.type == ConnectorType.Extension
 
-      const horizontal = [
-        ConnectorRole.Input,
-        ConnectorRole.Output,
-        ConnectorRole.Conditional,
-      ].includes(connector.role)
+      if (connector.type === ConnectorType.Internal) return
 
-
-    })
-
-    if (block.type == BlockType.Function) {
       rectangle.add(
         {
-          width: 10,
-          length: 5,
-          mode: "inward",
-          pointing: "vertical",
-          pointRadius: 4,
-          baseRadius: 2,
+          type: "pin",
+          size: { x: 16, y: 16 },
+          outerRadius: 0,
+          innerSize: 9,
+          innerOffset: 8,
         },
         {
-          x:
-            connectors.find(it => it.type == ConnectorType.Inner)!.globalPosition.x -
-            blockPosition.x,
-          y:
-            size.fullHeadHeight +
-            size.bodiesAndIntermediates.reduce((acc, cur) => acc + cur.value, 0),
+          x: connector.globalPosition.x - blockPosition.x,
+          y: connector.globalPosition.y - blockPosition.y,
         }
       )
-    }
+
+      // if (connector.type == ConnectorType.Internal) return
+      // const inward =
+      //   (connector.type == ConnectorType.Before && connector.role != ConnectorRole.Input) ||
+      //   connector.role == ConnectorRole.Output ||
+      //   connector.type == ConnectorType.Extension
+
+      // const horizontal = [
+      //   ConnectorRole.Input,
+      //   ConnectorRole.Output,
+      //   ConnectorRole.Conditional,
+      // ].includes(connector.role)
+    })
+
+    // if (block.type == BlockType.Function) {
+    //   rectangle.add(
+    //     {
+    //       width: 10,
+    //       length: 5,
+    //       mode: "inward",
+    //       pointing: "vertical",
+    //       pointRadius: 4,
+    //       baseRadius: 2,
+    //     },
+    //     {
+    //       x:
+    //         connectors.find(it => it.type == ConnectorType.Inner)!.globalPosition.x -
+    //         blockPosition.x,
+    //       y:
+    //         size.fullHeadHeight +
+    //         size.bodiesAndIntermediates.reduce((acc, cur) => acc + cur.value, 0),
+    //     }
+    //   )
+    // }
   }
 
   private determineContainerFill(block: AnyBlock): string {

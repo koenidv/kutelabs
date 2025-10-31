@@ -8,7 +8,6 @@ import type { DrawerRendererConstructorType } from "../render/DrawerRenderers/Ba
 import { DebugDrawerRenderer } from "../render/DrawerRenderers/DebugDrawerRenderer"
 import { KuteDrawerRenderer } from "../render/DrawerRenderers/KuteDrawerRenderer"
 import { NeoDrawerRenderer } from "../render/DrawerRenderers/NeoDrawerRenderer"
-import type { DropRectProps } from "../render/DropRectProps"
 import { ExtrasRenderer } from "../render/ExtrasRenderers.ts/DefaultExtrasRenderer"
 import type { ExtrasRendererInterface } from "../render/ExtrasRenderers.ts/ExtrasRendererInterface"
 import { NeoExtrasRenderer } from "../render/ExtrasRenderers.ts/NeoExtrasRenderer"
@@ -16,7 +15,6 @@ import type { LayouterConstructorType } from "../render/Layouters/BaseLayouter"
 import { DebugLayouter } from "../render/Layouters/DebugLayouter"
 import { KuteLayouter } from "../render/Layouters/KuteLayouter"
 import { NeoLayouter } from "../render/Layouters/NeoLayouter"
-import type { SizeProps } from "../render/SizeProps"
 import type { WidgetRendererConstructorType } from "../render/WidgetRenderers/BaseWidgetRenderer"
 import { DebugWidgetRenderer } from "../render/WidgetRenderers/DebugWidgetRenderer"
 import { KuteWidgetRenderer } from "../render/WidgetRenderers/KuteWidgetRenderer"
@@ -49,10 +47,10 @@ export const KuteMixedEditorConfig: MixedEditorConfig = {
 }
 
 export const DefaultMixedEditorConfig: MixedEditorConfig = {
-  layouter: KuteLayouter,
-  blockRenderer: KuteBlockRenderer,
-  drawerRenderer: KuteDrawerRenderer,
+  layouter: NeoLayouter,
+  blockRenderer: NeoBlockRenderer,
+  drawerRenderer: NeoDrawerRenderer,
   widgetRenderer: KuteWidgetRenderer,
   dragRenderer: DebugDragRenderer,
-  extrasRenderer: ExtrasRenderer,
+  extrasRenderer: NeoExtrasRenderer,
 }
