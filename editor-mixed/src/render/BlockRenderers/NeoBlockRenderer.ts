@@ -131,8 +131,12 @@ export class NeoBlockRenderer extends BaseBlockRenderer {
     if (connectors.length == 0) return
 
     connectors.forEach(connector => {
-
       if (connector.type === ConnectorType.Internal) return
+      if (
+        connector.type === ConnectorType.Before &&
+        block.upstream?.connectedBlocks.byBlock(block)?.type === ConnectorType.Inner
+      )
+        return
 
       rectangle.add(
         {

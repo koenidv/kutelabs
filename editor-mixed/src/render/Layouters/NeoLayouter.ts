@@ -292,7 +292,7 @@ export class NeoLayouter extends BaseLayouter {
     if (parentConnector.type == ConnectorType.Inner) {
       const inFun = parentConnector.parentBlock?.type == BlockType.Function
       return parentConnector.globalPosition.add(
-        new Coordinates(inFun ? -PADDING_X_CONNECTOR : 0, inFun ? 0 : PADDING_Y)
+        new Coordinates(inFun ? -PADDING_X_CONNECTOR : 0, inFun ? PADDING_Y : PADDING_Y)
       )
     }
 
