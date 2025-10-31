@@ -118,7 +118,7 @@
                                 "value": true,
                                 "type": "boolean"
                               }
-                            } 
+                            }
                           ]
                         }
                       ]
@@ -139,7 +139,7 @@
           "type": "comment",
           "data": {
             "value": "String is a text",
-            "borderColor": "#ff9b30"
+            "borderColor": "#23A094"
           },
           "draggable": false
         }
@@ -153,7 +153,7 @@
           "type": "comment",
           "data": {
             "value": "Int is a whole number",
-            "borderColor": "#ff9b30"
+            "borderColor": "#23A094"
           },
           "draggable": false
         }
@@ -167,7 +167,7 @@
           "type": "comment",
           "data": {
             "value": "Float is a decimal number",
-            "borderColor": "#ff9b30"
+            "borderColor": "#23A094"
           },
           "draggable": false
         }
@@ -212,7 +212,7 @@
           "type": "comment",
           "data": {
             "value": "Boolean is a yes or no",
-            "borderColor": "#ff9b30"
+            "borderColor": "#23A094"
           },
           "draggable": false
         }

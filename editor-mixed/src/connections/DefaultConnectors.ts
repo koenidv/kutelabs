@@ -2,8 +2,7 @@ import type { AnyBlock, Block } from "../blocks/Block"
 import {
   ComparisonOperatorTypeCompatibility,
   LogicComparisonOperator,
-  MathOperation,
-  type BlockDataVariable,
+  type BlockDataVariable
 } from "../blocks/configuration/BlockData"
 import { BlockType } from "../blocks/configuration/BlockType"
 import { DataType } from "../blocks/configuration/DataType"

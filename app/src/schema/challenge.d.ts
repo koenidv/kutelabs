@@ -78,6 +78,7 @@ export type AnyBlockConnected = AnyBlock & {
   [k: string]: unknown
 }
 export type AnyBlock = (
+  | CommentBlock
   | FunctionBlock
   | FunctionInvokeBlock
   | ExpressionBlock
@@ -133,6 +134,7 @@ export type AnyBlockConnected1 = AnyBlock & {
  * A block without connected Blocks. Use "type" to determine the type of block
  */
 export type AnyBlockSingle = (
+  | CommentBlock
   | FunctionBlock
   | FunctionInvokeBlock
   | ExpressionBlock
@@ -204,7 +206,7 @@ export interface Challenge {
     /**
      * App-level features (app callbacks) to enable for this challenge
      */
-    appFeatures?: "setUsername"[]
+    appFeatures?: ("setUsername" | "confetti")[]
   }
   /**
    * Tests to run on the code, all must pass
@@ -246,6 +248,46 @@ export interface Image {
    * The alt text of the image
    */
   alt: string
+}
+/**
+ * Comment Block
+ */
+export interface CommentBlock {
+  /**
+   * Defines this block as a comment block
+   */
+  type: "comment"
+  /**
+   * Comment Block Data
+   */
+  data: {
+    /**
+     * Comment text
+     */
+    value: string
+    /**
+     * Text color
+     */
+    textColor?: string
+    /**
+     * Background color
+     */
+    backgroundColor?: string
+    /**
+     * Border color
+     */
+    borderColor?: string
+    /**
+     * Font size
+     */
+    fontSize?: number
+    /**
+     * Rotation of the comment block
+     */
+    rotation?: number
+    [k: string]: unknown
+  }
+  [k: string]: unknown
 }
 /**
  * Function Block

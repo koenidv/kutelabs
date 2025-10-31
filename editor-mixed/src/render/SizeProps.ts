@@ -16,9 +16,17 @@ export enum WidthProp {
 
 export type BlockAndSize = { block: AnyBlock; size: SizeProps }
 
+export type Zone = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export class SizeProps {
   heights: { prop: HeightProp; value: number }[]
   widths: { prop: WidthProp; value: number }[]
+  private _zones: Zone[] = []
 
   constructor(
     heights: { prop: HeightProp; value: number }[],
@@ -51,12 +59,27 @@ export class SizeProps {
     this.widths.push({ prop, value })
   }
 
+  addZone(zone: Zone) {
+    this._zones.push(zone)
+  }
+
   byProp<T extends HeightProp | WidthProp>(list: { prop: T; value: number }[], prop: T) {
     return list.filter(h => h.prop == prop).map(h => h.value)
   }
 
   get fullHeight() {
     return this.heights.reduce((acc, h) => acc + h.value, 0)
+  }
+
+  get zones() {
+    return this._zones.map(z =>
+    ({
+      x: z.x,
+      y: z.y,
+      width: Math.min(z.width, Math.floor((this.fullWidth - z.x) / 16) * 16),
+      height: z.height
+    })
+    )
   }
 
   get heads(): number[] {

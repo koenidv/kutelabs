@@ -11,8 +11,8 @@ export type BlockSizeCount = BlockAndSize & { count: number }
 export type BlockCoordinateCount = BlockAndCoordinates & { count: number }
 
 export abstract class BaseDrawerRenderer {
-  private readonly blockRegistry: BlockRegistry
-  private readonly layouter: BaseLayouter
+  protected readonly blockRegistry: BlockRegistry
+  protected readonly layouter: BaseLayouter
   private readonly blockRenderer: BaseBlockRenderer
   private readonly requestUpdate: () => void
 
@@ -99,9 +99,14 @@ export abstract class BaseDrawerRenderer {
     ) as TemplateResult<1>
   }
 
-  private measureAndSet(blocks: { block: AnyBlock; count: number }[]): BlockSizeCount[] {
+  protected measureAndSet(
+    blocks: { block: AnyBlock; count: number }[],
+    sizeComputed = false
+  ): BlockSizeCount[] {
     return blocks.map(({ block, count }) => {
-      const size = this.layouter.measureBlock(block)
+      const size = sizeComputed
+        ? this.blockRegistry.getSize(block)
+        : this.layouter.measureBlock(block)
       const fullWidth = size.fullWidth
       if (fullWidth > this.maxWidth) {
         size.widths = size.widths.map(it => ({

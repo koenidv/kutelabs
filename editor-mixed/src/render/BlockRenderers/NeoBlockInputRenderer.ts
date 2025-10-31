@@ -5,15 +5,8 @@ import type { AnyRegisteredBlock } from "../../registries/RegisteredBlock"
 import { BaseBlockInputRenderer } from "./BaseBlockInputRenderer"
 import { Coordinates } from "../../util/Coordinates"
 import { BlockInputIcon } from "./InputIcon"
-import type { BaseWidgetRenderer } from "../WidgetRenderers/BaseWidgetRenderer"
 
-export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
-
-  constructor(setWidget: typeof BaseWidgetRenderer.prototype.setWidget, requestUpdate: () => void) {
-    super(setWidget, requestUpdate)
-    this.foreignObjectStyle = "border-radius: 6px;"
-  }
-
+export class NeoBlockInputRenderer extends BaseBlockInputRenderer {
   protected renderInputCode(
     { block }: AnyRegisteredBlock,
     value: string,
@@ -52,7 +45,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         tabindex="${editable ? "0" : "-1"}"
         style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
         (textScaling ??
-          1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px; padding: 0 4px;"
+          1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; padding: 0 4px; border: 2px solid black; box-sizing: border-box;"
         @input=${(e: InputEvent) => editable && onChange((e.target as HTMLInputElement).value)}
         @keydown=${onKeydown}
         spellcheck="false" />
@@ -80,7 +73,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
         @keydown=${(e: KeyboardEvent) => {
           if (e.key === "Enter" || e.key === " ") clickHandler(e)
         }}
-        style="width: 100%; height: 100%; display: flex; gap: 2px; justify-content: center; align-items: center; background-color: white; border-radius: 6px; ${editable
+        style="width: 100%; height: 100%; display: flex; gap: 2px; justify-content: center; align-items: center; background-color: white; border: 2px solid black; box-sizing: border-box; ${editable
           ? "cursor: pointer;"
           : ""}"
         role="button"
@@ -145,7 +138,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     }
     return html`
       <div
-        style="display: flex; flex-direction: row; height: 100%; width: 100%; background-color: white; border-radius: 6px;">
+        style="display: flex; flex-direction: row; height: 100%; width: 100%; background-color: white; border: 2px solid black; box-sizing: border-box;">
         <input
           ${reference ? ref(reference) : ""}
           value=${value ?? ""}
@@ -155,7 +148,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
           tabindex="${editable ? "0" : "-1"}"
           style="width: 100%; height: 100%; box-sizing: border-box; font-family: monospace; font-size: ${13 *
           (textScaling ??
-            1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border-radius: 6px; padding: 0 4px;"
+            1)}px; font-weight: normal; line-height: 1.5; padding: 0; margin: 0; border: none; outline: none; resize: none; overflow: hidden; border: 2px solid black; box-sizing: border-box; padding: 0 4px;"
           @keydown=${onKeydown}
           @input=${onInput}
           spellcheck="false" />
@@ -211,7 +204,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
   ): TemplateResult<1> {
     return html`
       <div
-        style="width: 100%; height: 100%; display: flex; justify-content: start; align-items: center; background-color: white; border-radius: 6px; overflow: hidden;">
+        style="width: 100%; height: 100%; display: flex; justify-content: start; align-items: center; background-color: white; border: 2px solid black; box-sizing: border-box; overflow: hidden;">
         <div style="padding: 0 2px 0 4px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
             <path
@@ -248,7 +241,7 @@ export class KuteBlockInputRenderer extends BaseBlockInputRenderer {
     }
     return html`
       <div
-        style="width: 100%; height: 100%; display: flex; justify-content: space-between; align-items: center; background-color: white; border-radius: 6px;">
+        style="width: 100%; height: 100%; display: flex; justify-content: space-between; align-items: center; background-color: white; border: 2px solid black; box-sizing: border-box;">
         <p style="font-family: monospace; font-size: 14px; font-weight: normal; padding-left: 4px;">
           ${value ? value.length + " " : ""}${itemText}${value?.length === 1 ? "" : "s"}
         </p>

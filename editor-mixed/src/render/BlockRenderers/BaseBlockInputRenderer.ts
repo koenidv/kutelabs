@@ -25,6 +25,8 @@ type GenericInputElementType<T extends DataType> = (
 ) => TemplateResult<1>
 
 export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
+  foreignObjectStyle = ""
+
   //#region Input Wrappers
 
   /**
@@ -109,13 +111,13 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
     const inputRef = createRef<RefType>()
 
     return svg`
-        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style="border-radius: 6px;">
+        <foreignObject x=${elementPosition.x} y=${elementPosition.y} width=${elementSize.x} height=${elementSize.y} style={this.foreignObjectStyle}>
         ${this.tapOrDragLayer(
           reference => html`
             <div
               ${ref(reference)}
               class="donotdrag"
-              style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block
+              style="width: 100%; height: 100%; cursor: pointer; overflow: auto; ${registered.block
                 .isInDrawer
                 ? this._safariFixOnly
                 : this._safariTransform}"
@@ -170,7 +172,7 @@ export abstract class BaseBlockInputRenderer extends PropertiesBlockRenderer {
       reference => html`
         <div
           class="donotdrag"
-          style="width: 100%; height: 100%; cursor: text; overflow: auto; ${registered.block
+          style="width: 100%; height: 100%; cursor: pointer; overflow: auto; ${registered.block
             .isInDrawer
             ? this._safariFixOnly
             : this._safariTransform}"
