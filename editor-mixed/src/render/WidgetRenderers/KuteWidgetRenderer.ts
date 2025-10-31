@@ -6,7 +6,7 @@ import {
   type OverlayWidget,
   type SelectorWidget,
 } from "./BaseWidgetRenderer"
-import { map } from "lit-html/directives/map.js"
+import { map } from "lit/directives/map.js"
 
 export class KuteWidgetRenderer extends BaseWidgetRenderer {
   containerPadding = { top: 2.75, right: 0, bottom: 0.5, left: 0 }

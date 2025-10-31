@@ -18,6 +18,9 @@ import InnerLayout from "../../layouts/InnerLayout.astro"
 import { navigationStore } from "../../navigation/NavigationStore"
 import type { Challenge } from "../../schema/challenge"
 
+interface Props {
+  challenge: Challenge
+}
 
 export async function getStaticPaths() {
   return (await getCollection("challenges"))
