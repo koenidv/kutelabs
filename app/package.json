@@ -26,7 +26,7 @@
     "@spotlightjs/astro": "^2.2.2",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "acorn": "^8.15.0",
-    "astro": "5.1.1",
+    "astro": "5.14.3",
     "astro-compress": "^2.3.5",
     "astro-icon": "^1.1.5",
     "astro-tabs": "^0.1.8",
