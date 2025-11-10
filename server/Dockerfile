@@ -16,8 +16,9 @@ FROM base AS installer
 COPY --from=builder /app/out/json .
 COPY --from=builder /app/scripts ./scripts/
 
-RUN apk add --no-cache bash
-RUN bun install --yarn --frozen-lockfile --production
+RUN apk add --no-cache bash yarn
+#RUN bun install --yarn --frozen-lockfile --production
+RUN yarn install --frozen-lockfile --production
 COPY --from=builder /app/out/full .
 
 FROM base AS runner
