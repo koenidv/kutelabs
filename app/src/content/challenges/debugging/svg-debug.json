@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../schema/challenge.schema.json",
+  "story": {
+    "order": 3,
+    "title": "SVG Stage",
+    "description": "Just for debugging purposes",
+    "published": "2024-01-01T00:00:00Z",
+    "color": "#FF91E9",
+    "imageStart": {
+      "src": "/images/illustration_debug_launch.png",
+      "alt": ""
+    },
+    "dialog": {
+      "static": "→"
+    }
+  },
+  "environment": {
+    "language": "unset"
+  },
+  "tests": [
+    {
+      "args": [
+        []
+      ],
+      "run": {}
+    }
+  ],
+  "editor": {
+    "type": "mixed",
+    "hideDrawer": true,
+    "initialBlocks": [
+      {
+        "coordinates": {
+          "x": 300,
+          "y": 250
+        },
+        "block": {
+          "type": "variable_init",
+          "data": {
+            "name": "imavar",
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "initialDrawerBlocks": []
+  }
+}

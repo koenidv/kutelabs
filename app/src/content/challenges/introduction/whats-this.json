@@ -41,22 +41,22 @@
         "block": {
           "type": "comment",
           "data": {
-            "value": "→ ",
+            "value": " → ",
             "rotation": 195,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
-            "fontSize": 36
+            "fontSize": 48
           },
           "draggable": false
         },
         "coordinates": {
-          "x": 420,
-          "y": 308
+          "x": 474,
+          "y": 334
         }
       },
       {
         "coordinates": {
-          "x": 190,
+          "x": 90,
           "y": 250
         },
         "block": {
@@ -119,8 +119,8 @@
           }
         },
         "coordinates": {
-          "x": 460,
-          "y": 320
+          "x": 520,
+          "y": 360
         }
       }
     ],

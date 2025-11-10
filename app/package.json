@@ -12,7 +12,7 @@
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/netlify": "6.0.1",
-    "@astrojs/svelte": "^7.0.2",
+    "@astrojs/svelte": "^7.2.1",
     "@astrojs/tailwind": "5.1.4",
     "@astropub/md": "^1.0.0",
     "@clerk/astro": "^2.1.7",
@@ -25,6 +25,7 @@
     "@sentry/astro": "^8.47.0",
     "@spotlightjs/astro": "^2.2.2",
     "@webcomponents/template-shadowroot": "^0.2.1",
+    "acorn": "^8.15.0",
     "astro": "5.1.1",
     "astro-compress": "^2.3.5",
     "astro-icon": "^1.1.5",
@@ -36,10 +37,10 @@
     "prism-code-editor": "^3.4.0",
     "sass": "^1.82.0",
     "source-map-js": "^1.2.1",
-    "svelte": "^5.16.0",
+    "svelte": "^5.43.3",
     "svelte-markdown": "^0.4.1",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@iconify/svelte": "^4.1.0",
